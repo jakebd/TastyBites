@@ -1,0 +1,60 @@
+html{
+    height: 100%;
+}
+
+/* 
+
+Header Section
+
+*/
+
+/* Header of the page */
+.site-title {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    padding: 15px 25px;
+    box-shadow: 0 5px 5px -5px rgba(0,0,0,0.2);
+    border-bottom: solid 2px #ffd400;
+}
+
+.site-title h1{
+    margin: 0 auto;
+    font-size: 36px;
+    font-weight: 600;
+    line-height: 1.1em;
+    color: #242424;
+}
+.site-title img {
+    width: 200px;
+    position: absolute;
+    left: 10px;
+}
+
+/* 
+
+Main Content section
+
+*/
+
+/* Main container CSS for the page */
+.body-container {
+    min-height: 650px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 90vh;
+    margin: 0 auto;
+    max-width: 1280px;
+}
+
+/* Content container */
+.content-container {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%; /* Make sure content-container takes the full width */
+    height: 100%; /* Make sure content-container takes the full height */
+}
+

@@ -2,35 +2,119 @@ html{
     height: 100%;
 }
 
+a, a:link{
+    text-decoration: none;
+    transition: all .15s ease-in;
+}
+
+ul{
+    list-style: none;
+}
+
 /* 
 
-Header Section
+Brand Section(Site Logo, title)
 
 */
 
-/* Header of the page */
-.site-title {
+.brand-section {
     display: flex;
+    background-color: #242424;
     align-items: center;
-    justify-content: center;
+    justify-content: space-between; /* Ensure space between logo and menu */
     position: relative;
-    padding: 15px 25px;
-    box-shadow: 0 5px 5px -5px rgba(0,0,0,0.2);
-    border-bottom: solid 2px #ffd400;
+    padding: 10px 30px;
+    box-shadow: 0 5px 5px -5px rgba(0, 0, 0, 0.2);
+    border-bottom: solid 2px #ffd400;   
 }
 
-.site-title h1{
-    margin: 0 auto;
-    font-size: 36px;
+.logo-slogan-container {
+    display: flex;
+    align-items: center;
+}
+
+.brand-logo{
+    margin: 0;
+    width: 40px;
+}
+
+.brand-title{
+    font-style: normal;
+    font-size: 1.2em;
     font-weight: 600;
-    line-height: 1.1em;
-    color: #242424;
+    line-height: 1.2;
+    color: white;
+    text-rendering: optimizeLegibility;
+    margin-bottom: 15px;
+    padding: 10px;
+    padding-left: 10px;
+    min-width: 200px;
 }
-.site-title img {
-    width: 200px;
+
+.brand-title::after{
+    content: "And Two Cents, Fuckers";
     position: absolute;
-    left: 10px;
+    color: white;
+    left: 80px;
+    bottom: 20px;
+    width: 100%;
+    font-style: normal;
+    font-size: 0.7em;
+    font-weight: 300;
+    line-height: 1.2;
 }
+
+
+/* 
+
+Nav Styling
+
+*/
+
+.primary_menu{
+    margin: 0 ; /* Center the primary_menu within the brand-section */
+    margin-left: auto;
+    padding: 0;
+    border: 0;
+    vertical-align: baseline;
+    min-width: 355px; /* Adjust as needed */
+    text-align: center; /* Center the items inside the menu */
+}
+
+.primary_menu .nav-container{
+    display: block;
+    background: #242424fc;
+    color: #dadada;
+    opacity: 0.95;
+    width: 100%;
+    box-sizing: border-box;
+}
+
+.primary_menu nav{
+    display: block;
+    max-width: 940px;
+    text-align: center;
+    padding: 0.8em 0;
+    overflow: hidden;
+}
+
+.primary_menu a{
+    color: #dadada;
+    background: 0;
+    font-size: 1em;
+    font-weight: bold;
+    float: left;
+    padding: 3px .9em;
+    border-bottom: 1px solid transparent;
+}
+
+
+
+.primary_menu a:hover{
+    color: white;
+    border-bottom: 1px solid #ffd400;
+}
+
 
 /* 
 

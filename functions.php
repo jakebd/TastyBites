@@ -69,4 +69,61 @@ function gengie_enqueue_styles(){
 }
 add_action( 'wp_enqueue_scripts', 'gengie_enqueue_styles');
 
+function wp_nav_menu_no_ul() {
+    $options = array(
+        'echo' => false,
+        'container' => false,
+		'menu_class'=> 'menuItems', 
+        'theme_location' => 'primary',
+        'fallback_cb' => 'default_page_menu',
+        'walker' => new Custom_Walker_Nav_Menu()
+    );
+
+     $menu = wp_nav_menu($options);
+    // //Use a more specific regex to target only the first <ul>
+    // $menu = preg_replace('/^<ul[^>]*>/', '', $menu, 1);
+    // // Remove the last </ul>
+    // $menu = preg_replace('/<\/ul>$/', '', $menu);
+    
+    echo $menu;
+}
+class Custom_Walker_Nav_Menu extends Walker_Nav_Menu {
+    // Start the list before the elements are added.
+    function start_lvl(&$output, $depth = 0, $args = null) {
+        if ($depth == 0) { // Only add this wrapper for top level
+            $output .= '<ul class="sub-menu">';
+        }
+    }
+
+    // End the list of after the elements are added.
+    function end_lvl(&$output, $depth = 0, $args = null) {
+        if ($depth == 0) {
+            $output .= '</ul>';
+        }
+    }
+
+    // Start the element output.
+    function start_el(&$output, $item, $depth = 0, $args = null, $id = 0) {
+        $title = apply_filters('the_title', $item->title, $item->ID);
+
+        // Check if this item has children 
+        $has_children = in_array('menu-item-has-children', $item->classes);
+
+        if ($depth === 0) {
+            // Top-level menu item
+            $class_names = $has_children ? ' class="menu-item-has-children"' : '';
+            $output .= '<li' . $class_names . '>';
+            $output .= '<a class="nav-link" href="' . esc_attr($item->url) . '" data-item="' . esc_attr($title) . '">' . esc_html($title) . '</a>';
+        } else {
+            // Submenu items
+            $output .= '<li><a class="nav-link" href="' . esc_attr($item->url) . '">' . esc_html($title) . '</a>';
+        }
+    }
+
+    // End the element output.
+    function end_el(&$output, $item, $depth = 0, $args = null, $id = 0) {
+        $output .= '</li>';
+    }
+}
+
 ?>

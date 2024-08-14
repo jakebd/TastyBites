@@ -1,11 +1,11 @@
 <?php
 get_header();
-?>
-<div class = "body-container">
-    <div class="content-container">
-        <div>Hello World</div>
-    </div>
-</div>
-<?php
+if ( have_posts() ) :
+    while ( have_posts() ) : the_post();
+        //the_post_thumbnail();
+        the_title();
+        the_content();
+    endwhile;
+endif;
 get_footer();
-?>
+?> 

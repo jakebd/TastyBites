@@ -65,6 +65,8 @@ function gengie_enqueue_styles(){
 	wp_enqueue_script('boostrapscript',"https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js");
 	wp_enqueue_script('jquery');
 	wp_enqueue_style('gengies_theme_styles', get_stylesheet_uri());
+    wp_enqueue_style('front-page-theme-styles', get_template_directory_uri() . '/assets/css/front-styles.css');
+
 
 }
 add_action( 'wp_enqueue_scripts', 'gengie_enqueue_styles');

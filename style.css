@@ -2,6 +2,11 @@ html{
     height: 100%;
 }
 
+html, body {
+    max-width: 100%;
+    overflow-x: hidden;
+}
+
 a, a:link{
     text-decoration: none;
     transition: all .15s ease-in;
@@ -108,8 +113,6 @@ Nav Styling
     border-bottom: 1px solid transparent;
 }
 
-
-
 .primary_menu a:hover{
     color: white;
     border-bottom: 1px solid #ffd400;
@@ -126,7 +129,7 @@ Main Content section
 .body-container {
     min-height: 650px;
     display: flex;
-    align-items: center;
+    align-items:start;
     justify-content: center;
     height: 90vh;
     margin: 0 auto;
@@ -142,3 +145,10 @@ Main Content section
     height: 100%; /* Make sure content-container takes the full height */
 }
 
+
+.page-title{
+    width: 100%;
+    font-size: 2rem;
+    background-color: #e5e5e5;
+    padding: 5px 5px 5px 30px;
+}

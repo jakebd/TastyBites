@@ -1,0 +1,69 @@
+.projcard-container {
+	margin: 50px 0;
+	max-width: 1280px;
+}
+
+.projcard-container {
+	margin-left: auto;
+	margin-right: auto;
+	width: 100%;
+}
+
+.projcard {
+    display: flex;
+    align-items: center;
+    width: 100%;
+    height: 450px;
+    margin-bottom: 20px;
+    background-color: #fff;
+    font-size: 18px;
+    overflow: hidden;
+}
+
+.projcard-innerbox.reverse {
+    flex-direction: row-reverse;
+}
+
+.projcard-innerbox {
+    display: flex;
+    width: 100%;
+    height: 100%;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.projcard-img {
+    flex: 0 0 30%; /* The image takes up 30% of the card's width */
+    max-height: 85%;
+    border-radius: 10px;
+    object-fit: cover; /* Ensure the image covers the area without stretching */
+}
+
+.projcard-textbox {
+    flex: 1; /* The textbox takes up the remaining space */
+    padding: 20px;
+    font-size: 17px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+}
+
+.projcard-title {
+    font-family: 'Voces', 'Open Sans', arial, sans-serif;
+    font-size: 24px;
+}
+
+.projcard-bar {
+    width: 50px;
+    height: 5px;
+    margin: 10px 0;
+    border-radius: 5px;
+    background-color: #424242;
+    transition: width 0.2s ease;
+}
+.projcard-description {
+    font-size: 15px;
+    color: #424242;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}

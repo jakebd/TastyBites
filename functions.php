@@ -16,7 +16,6 @@ if ( ! isset( $content_width ) ) {
 	$content_width = 800; /* pixels */
 }
 
-
 if ( ! function_exists( 'default_setup' ) ) :
 
 	/**
@@ -57,6 +56,7 @@ if ( ! function_exists( 'default_setup' ) ) :
 endif; // default_setup
 add_action( 'after_setup_theme', 'default_setup' );
 
+
 //add Bootstrap style and js
 function gengie_enqueue_styles(){
 	
@@ -69,6 +69,8 @@ function gengie_enqueue_styles(){
 }
 add_action( 'wp_enqueue_scripts', 'gengie_enqueue_styles');
 
+
+//Build a custom nav output
 function wp_nav_menu_no_ul() {
     $options = array(
         'echo' => false,
@@ -80,13 +82,9 @@ function wp_nav_menu_no_ul() {
     );
 
      $menu = wp_nav_menu($options);
-    // //Use a more specific regex to target only the first <ul>
-    // $menu = preg_replace('/^<ul[^>]*>/', '', $menu, 1);
-    // // Remove the last </ul>
-    // $menu = preg_replace('/<\/ul>$/', '', $menu);
-    
     echo $menu;
 }
+
 class Custom_Walker_Nav_Menu extends Walker_Nav_Menu {
     // Start the list before the elements are added.
     function start_lvl(&$output, $depth = 0, $args = null) {

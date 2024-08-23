@@ -31,7 +31,7 @@
             // echo '<pre>'; var_dump($first_post); echo '</pre>';
             // echo '<pre>' . var_export($first_post, true) . '</pre>';
 
-            echo "<div class='projcard-container'>";
+            echo "<div class='aboutcard-container'>";
             if($found_category->have_posts()){
                 $counter = 0;
                 while($found_category->have_posts()){
@@ -39,13 +39,13 @@
                     $counter++;
                     $reverse_class = ($counter % 2 == 0) ? 'reverse' : '';
                     ?>
-                        <div class="projcard">
-                            <div class="projcard-innerbox <?= $reverse_class; ?>">
-                                <img class="projcard-img" src="<?= get_the_post_thumbnail_url($post,'large'); ?>" />
-                                <div class="projcard-textbox">
-                                    <div class="projcard-title"><?= the_title(); ?></div>
-                                    <div class="projcard-bar"></div>
-                                    <div class="projcard-description"><?= the_content(); ?></div>
+                        <div class="aboutcard">
+                            <div class="aboutcard-innerbox <?= $reverse_class; ?>">
+                                <img class="aboutcard-img" src="<?= get_the_post_thumbnail_url($post,'large'); ?>" />
+                                <div class="aboutcard-textbox">
+                                    <div class="aboutcard-title"><?= the_title(); ?></div>
+                                    <div class="aboutcard-bar"></div>
+                                    <div class="aboutcard-description"><?= the_content(); ?></div>
                                 </div>
                             </div>
                         </div>

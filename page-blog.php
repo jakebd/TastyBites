@@ -1,11 +1,4 @@
-
-<!--
-    Thoughts moving forward:
-    Instead of making the the front page content a page, make it a post and systematically build that front page bassed on the posts.
-    This will allow for granular control over the page look and feel of the content. 
-    build deticated categories for each possible page: About content, Blog content, Recipe or Review.
--->
-
+<!-- Blog Template file -->
 <?php
     get_header();
     echo "<div class='page-title'>".get_the_title()."</div>";
@@ -21,7 +14,7 @@
         
         //var_dump($category_name);
 
-        if($category_name == "About Content"){
+        if($category_name == "Blog"){
             $args = array(
                         'posts_per_page' => 5,
                         'order' => 'ASC',
@@ -29,23 +22,41 @@
                         );
             $found_category = new WP_Query($args);
             // echo '<pre>'; var_dump($first_post); echo '</pre>';
-            // echo '<pre>' . var_export($first_post, true) . '</pre>';
+            // echo '<pre>' . var_export($found_category, true) . '</pre>';
 
-            echo "<div class='aboutcard-container'>";
+            echo "<div class='blogcard-container'>";
             if($found_category->have_posts()){
-                $counter = 0;
                 while($found_category->have_posts()){
                     $found_category->the_post();
-                    $counter++;
-                    $reverse_class = ($counter % 2 == 0) ? 'reverse' : '';
+                    // echo '<pre>' . var_export($found_category, true) . '</pre>';
+                    
                     ?>
-                        <div class="aboutcard">
-                            <div class="aboutcard-innerbox <?= $reverse_class; ?>">
-                                <img class="aboutcard-img" src="<?= get_the_post_thumbnail_url($post,'large'); ?>" />
-                                <div class="aboutcard-textbox">
-                                    <div class="aboutcard-title"><?= the_title(); ?></div>
-                                    <div class="aboutcard-bar"></div>
-                                    <div class="aboutcard-description"><?= the_content(); ?></div>
+                        <div class="blogcard">
+                            <a class="overlay" href="<?=the_permalink();?>"></a>
+                            <div class="blogcard-innerbox">
+                                <img class="blogcard-img" src="<?= get_the_post_thumbnail_url($post,'large'); ?>" />
+                                <div class="blogcard-textbox">
+                                    <div class="blogcard-title"><?= the_title(); ?></div>
+                                    <div class="blogcard-subtitle"><?= get_the_date(); ?></div>
+                                    <div class="blogcard-bar"></div>
+                                    <div class="blogcard-description"><?= the_excerpt(); ?></div>
+                                    <div class="blogcard-tagbox">
+                                        <?php
+                                        $tags = get_the_tags();
+                                        $max_tags = 0;
+                                        if(count($tags)>4){
+                                            $max_tags = 4;
+                                        }
+                                        else{
+                                            $max_tags = count($tags);
+                                        }
+
+                                        for($i = 0; $i < $max_tags; $i++){
+                                            $tag_url = get_category_link( $tags[$i]->term_id );
+                                            echo '<a class="blogcard-tag" href="'.$tag_url.'"> <span>'.strtoupper($tags[$i]->name).'</span></a>';
+                                        }
+                                        ?>
+                                    </div>
                                 </div>
                             </div>
                         </div>

@@ -31,7 +31,7 @@ Brand Section(Site Logo, title)
     display: flex;
     background-color: #242424;
     align-items: center;
-    justify-content: space-between; /* Ensure space between logo and menu */
+    justify-content: start; /* Ensure space between logo and menu */
     position: relative;
     padding: 10px 30px;
     box-shadow: 0 5px 5px -5px rgba(0, 0, 0, 0.2);
@@ -45,10 +45,10 @@ Brand Section(Site Logo, title)
 
 .brand-logo{
     margin: 0;
-    width: 40px;
+    width: 150px;
 }
 
-.brand-title{
+/* .brand-title{
     font-style: normal;
     font-size: 1.2em;
     font-weight: 600;
@@ -59,9 +59,9 @@ Brand Section(Site Logo, title)
     padding: 10px;
     padding-left: 10px;
     min-width: 200px;
-}
+} */
 
-.brand-title::after{
+/* .brand-title::after{
     content: "Food fuckery and My 2 Cents ";
     position: absolute;
     color: white;
@@ -72,7 +72,7 @@ Brand Section(Site Logo, title)
     font-size: 0.7em;
     font-weight: 300;
     line-height: 1.2;
-}
+} */
 
 
 /* 
@@ -83,7 +83,6 @@ Nav Styling
 
 .primary_menu{
     margin: 0 ; /* Center the primary_menu within the brand-section */
-    margin-left: auto;
     padding: 0;
     border: 0;
     vertical-align: baseline;
@@ -155,7 +154,7 @@ Main Content section
     width: 100%;
     font-size: 2rem;
     background-color: var(--light-grey);
-    padding: 5px 5px 5px 30px;
+    padding: 5px 5px 5px 40px;
 }
 
 

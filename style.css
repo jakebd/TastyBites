@@ -1,6 +1,7 @@
 :root {
     --light-grey: #e5e5e5;
     --accent-color: red;
+    --background-color:#fbfbfb;
 }
 
 html{
@@ -10,6 +11,7 @@ html{
 html, body {
     max-width: 100%;
     overflow-x: hidden;
+    background-color: var(--background-color);
 }
 
 a, a:link{
@@ -86,7 +88,8 @@ Nav Styling
     padding: 0;
     border: 0;
     vertical-align: baseline;
-    min-width: 355px; /* Adjust as needed */
+    max-width: 500px; /* Adjust as needed */
+    width: 100%;
     text-align: center; /* Center the items inside the menu */
 }
 
@@ -107,13 +110,23 @@ Nav Styling
     overflow: hidden;
 }
 
+/* Add gap between nav items */
+.menuItems li a{
+    margin-right: 10px; /* Adjust the value to set the desired gap */
+}
+
+/* Optional: Remove the margin on the last item */
+.menuItems li:last-child a{
+    margin-right: 0;
+}
+
 .primary_menu a{
     color: #dadada;
     background: 0;
-    font-size: 1em;
+    font-size: 1.3em;
     font-weight: bold;
     float: left;
-    padding: 3px .9em;
+    padding: 3px .6em;
     border-bottom: 1px solid transparent;
 }
 
@@ -122,7 +135,10 @@ Nav Styling
     border-bottom: 1px solid var(--accent-color);
 }
 
-
+.current_page_item a{
+    color: white;
+    border-bottom: 1px solid var(--accent-color);
+}
 /* 
 
 Main Content section
@@ -152,9 +168,12 @@ Main Content section
 
 .page-title{
     width: 100%;
-    font-size: 2rem;
-    background-color: var(--light-grey);
-    padding: 5px 5px 5px 40px;
+    max-width: 1280px;
+    font-size: 3rem;
+    font-weight: 600;
+    padding: 10px 0px;
+    margin-left: auto;
+    margin-right: auto;
 }
 
 
@@ -208,7 +227,8 @@ Main Content section
     padding: 0;
     border: 0;
     vertical-align: baseline;
-    min-width: 355px; /* Adjust as needed */
+    max-width: 400px; /* Adjust as needed */
+    width: 100%;
     text-align: center; /* Center the items inside the menu */
 }
 

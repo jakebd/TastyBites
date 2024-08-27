@@ -69,10 +69,13 @@ function gengie_enqueue_styles(){
     //Load in styles for about page.
     wp_enqueue_style('front-page-theme-styles', get_template_directory_uri() . '/assets/css/front-styles.css');
 
+    //load styles for single
+    wp_enqueue_style('single-post-theme-styles', get_template_directory_uri() . '/assets/css/single-styles.css');
+
+
     if (is_page('blog')) { 
         wp_enqueue_style('blog-page-theme-styles', get_template_directory_uri() . '/assets/css/blog-styles.css');
     }
-
 
 }
 add_action( 'wp_enqueue_scripts', 'gengie_enqueue_styles');
@@ -112,17 +115,20 @@ class Custom_Walker_Nav_Menu extends Walker_Nav_Menu {
     function start_el(&$output, $item, $depth = 0, $args = null, $id = 0) {
         $title = apply_filters('the_title', $item->title, $item->ID);
 
+        // Get original classes
+        $classes = implode(' ', $item->classes);
+
         // Check if this item has children 
         $has_children = in_array('menu-item-has-children', $item->classes);
 
         if ($depth === 0) {
             // Top-level menu item
             $class_names = $has_children ? ' class="menu-item-has-children"' : '';
-            $output .= '<li' . $class_names . '>';
-            $output .= '<a class="nav-link" href="' . esc_attr($item->url) . '" data-item="' . esc_attr($title) . '">' . esc_html($title) . '</a>';
+            $output .= '<li class="' . $class_names . ' ' . $classes . '">';
+            $output .= '<a class="nav-link" data-active="'.esc_html($title).'" href="' . esc_attr($item->url) . '" data-item="' . esc_attr($title) . '">' . esc_html($title) . '</a>';
         } else {
             // Submenu items
-            $output .= '<li><a class="nav-link" href="' . esc_attr($item->url) . '">' . esc_html($title) . '</a>';
+            $output .= '<li class="' . $classes . '"><a class="nav-link" href="' . esc_attr($item->url) . '">' . esc_html($title) . '</a>';
         }
     }
 

@@ -9,52 +9,34 @@ while ( have_posts() ) :
     $avatar_src = get_avatar_url( $post->post_author );
 ?>
 
-
-
-<!--  -->
-<div class="container mt-3 mb-5">
-    <div class="contentContainer">
-<!-- Page content-->
-        <div class="container mt-5">
-            <div class="row h-100 d-flex align-items-center justify-content-center">
-                <div class="col-lg-8">
-                    <!-- Post content-->
-                    <article>
-                        <!-- Post header-->
-                        <header class="mb-4">
-                            <!-- Post title-->
-                            <h1 class="fw-bolder mb-1"><?= the_title()?></h1>
-                            <!-- Post meta content-->
-                            <div class="fst-italic mb-4">
-                            <img src="<?= $avatar_src ?>" class="post_profile_img"> 
-                                <?= $author_name ?>
-                            </div>  
-                            <!-- Post categories-->
-                            <?php
-                            $categories = get_the_category( $post->ID );
-
-                            foreach($categories as $category){ ?>
-                                <a href="<?= get_category_link( $category->term_id )?>" class="badge bg-secondary text-decoration-none link-light"><?= $category->name?></a>
-                            <?php } ?>
-                        </header>
-                        <!-- Preview image figure-->
-                        <figure class="mb-4"><img class="post_thumbnail img-fluid rounded" src="<?=get_the_post_thumbnail_url($post,'large')?>" alt="..." /></figure>
-                        <!-- Post content-->
-                        <section class="fs-5 mb-5">
-                            <?= the_content()?>
-                        </section>
-                    </article>
+<div class="post-wrapper">
+    <div class="post-content">
+        <!-- Post content -->
+        <article>
+            <!-- Post header -->
+            <header class="post-header">
+                <!-- Post title -->
+                <h1 class="post-title"><?= the_title() ?></h1>
+                <!-- Post meta content -->
+                <div class="post-author-info">
+                    <img src="<?= $avatar_src ?>" class="post-author-avatar" alt="Author's avatar">
+                    <span class="post-author-name"><?= $author_name ?></span>
                 </div>
-            </div>
-        </div>
+            </header>
+            <!-- Post thumbnail -->
+            <figure class="post-thumbnail-wrapper">
+                <img class="post-thumbnail" src="<?= get_the_post_thumbnail_url( $post, 'large' ) ?>" alt="Post thumbnail">
+            </figure>
+            <!-- Post content -->
+            <section class="post-body">
+                <?= the_content() ?>
+            </section>
+        </article>
     </div>
-                            </div>
-<!--  -->
+</div>
+
 <?php
 endwhile;
-?>
 
-
-<?php
 get_footer();
 ?>

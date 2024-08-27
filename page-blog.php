@@ -1,7 +1,7 @@
 <!-- Blog Template file -->
 <?php
     get_header();
-    echo "<div class='page-title'>".get_the_title()."</div>";
+    echo "<div id='".get_the_title()."'>";
     // $content = get_the_content();
     // var_dump($content);
 
@@ -25,46 +25,32 @@
             // echo '<pre>' . var_export($found_category, true) . '</pre>';
 
             echo "<div class='blogcard-container'>";
+            echo "<div class='container'>";
+            echo "<div class='timeline'>";
             if($found_category->have_posts()){
                 while($found_category->have_posts()){
                     $found_category->the_post();
                     // echo '<pre>' . var_export($found_category, true) . '</pre>';
                     
                     ?>
-                        <div class="blogcard">
-                            <a class="overlay" href="<?=the_permalink();?>"></a>
-                            <div class="blogcard-innerbox">
-                                <img class="blogcard-img" src="<?= get_the_post_thumbnail_url($post,'large'); ?>" />
-                                <div class="blogcard-textbox">
-                                    <div class="blogcard-title"><?= the_title(); ?></div>
-                                    <div class="blogcard-subtitle"><?= get_the_date(); ?></div>
-                                    <div class="blogcard-bar"></div>
-                                    <div class="blogcard-description"><?= the_excerpt(); ?></div>
-                                    <div class="blogcard-tagbox">
-                                        <?php
-                                        $tags = get_the_tags();
-                                        $max_tags = 0;
-                                        if(count($tags)>4){
-                                            $max_tags = 4;
-                                        }
-                                        else{
-                                            $max_tags = count($tags);
-                                        }
 
-                                        for($i = 0; $i < $max_tags; $i++){
-                                            $tag_url = get_category_link( $tags[$i]->term_id );
-                                            echo '<a class="blogcard-tag" href="'.$tag_url.'"> <span>'.strtoupper($tags[$i]->name).'</span></a>';
-                                        }
-                                        ?>
+                                <div class="timeline-container primary">
+                                    <div class="timeline-icon">
+                                        <i class="far fa-grin-wink"></i>
+                                    </div>
+                                    <div class="timeline-body">
+                                        <h4 class="timeline-title"><span class="badge"><?= the_title(); ?></span></h4>
+                                        <p><?= the_excerpt(); ?></p>
+                                        <p class="timeline-subtitle"><?= get_the_date(); ?></p>
                                     </div>
                                 </div>
-                            </div>
-                        </div>
                     <?php
                 }
             }
             echo "</div>";
-            
+            echo "</div>";
+            echo "</div>";
+        echo "</div>"; //close the parent container
         }
         wp_reset_postdata();
     }

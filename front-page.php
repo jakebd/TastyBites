@@ -8,7 +8,7 @@
 
 <?php
     get_header();
-    echo "<div class='page-title'>".get_the_title()."</div>";
+    echo "<div id='".get_the_title()."'>";
     // $content = get_the_content();
     // var_dump($content);
 
@@ -53,7 +53,7 @@
                 }
             }
             echo "</div>";
-            
+        echo "</div>"; // close the parent container
         }
         wp_reset_postdata();
     }

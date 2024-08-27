@@ -76,6 +76,9 @@ function gengie_enqueue_styles(){
     if (is_page('blog')) { 
         wp_enqueue_style('blog-page-theme-styles', get_template_directory_uri() . '/assets/css/blog-styles.css');
     }
+    if (is_page('recipes')) { 
+        wp_enqueue_style('recipes-page-theme-styles', get_template_directory_uri() . '/assets/css/recipes-styles.css');
+    }
 
 }
 add_action( 'wp_enqueue_scripts', 'gengie_enqueue_styles');

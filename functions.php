@@ -92,6 +92,45 @@ require_once get_template_directory() . '/patterns/recipe_pattern.php';
 //register my review pattern
 require_once get_template_directory() . '/patterns/review_pattern.php';
 
+
+//pull the rating number
+//build the div with logic for the icons
+//output the final div
+//call the short code in the review pattern
+
+function render_rating_shortcode() {
+    // Get the current post ID
+    $post_id = get_the_ID();
+    
+    // Retrieve the review rating meta value
+    $review_rating = get_post_meta($post_id, 'review_rating', true);
+
+    // Check if review rating exists
+    if ($review_rating) {
+        // Customize how you want to display the rating
+        $output = '<div class="reviewcard-rating-wrapper">';
+        $output .= '<div class="review-rating-title">Bite Rating</div>';
+        $output .= '<div class="reviewcard-rating-container">';
+        for ($i = 0; $i < 10; $i++) {
+            for($i=0; $i<10; $i++){
+                if($i < (int)$review_rating){
+                    $output .= '<i class="fa-solid fa-drumstick-bite checked"></i>';
+                }else{
+                    $output .= '<i class="fa-solid fa-drumstick-bite"></i>';
+                }
+            }
+        }
+        $output .= '<div class="review-rating-number">'.$review_rating.'/10</div>';
+        $output .= '</div>';
+        $output .= '</div>';
+        return $output;
+    } else {
+        return '<div class="recipe-time">No rating available.</div>';
+    }
+}
+add_shortcode('render_rating', 'render_rating_shortcode');
+
+
 /**
  * Register custom block template for Recipes.
  */

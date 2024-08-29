@@ -15,7 +15,7 @@
 }
 
 .recipe-card:hover {
-    transform: scale(1.05);
+    transform: scale(1.03);
 }
 
 .recipe-card .overlay {
@@ -29,7 +29,7 @@
 }
 
 .recipe-card:hover .overlay {
-    background-color: rgba(0, 0, 0, 0.2);
+    background-color: rgba(0, 0, 0, 0.1);
 }
 
 .recipecard-img {

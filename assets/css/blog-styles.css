@@ -93,7 +93,7 @@ p {
     box-shadow: 1px 3px 9px rgba(0, 0, 0, .1);
     align-items: center; /* Align items vertically centered */
     position: relative;
-    background: var(--med-grey);
+    background: var(--light-grey);
     border-radius: 3px;
     padding: 20px 20px 15px;
     box-shadow: 1px 3px 9px rgba(0, 0, 0, .1);

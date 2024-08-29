@@ -6,7 +6,9 @@ function tastybites_register_patterns2() {
 		'title'      => __( 'Review Pattern', 'tastybites' ),
 		'categories' => array( 'featured' ),
 		'source'     => 'theme',
-		'content'    => '<!-- wp:mfb/meta-field-block {"fieldName":"review_rating","fieldSettings":{},"displayLayout":"inline-block","className":"review-icon-rating"} /-->
+		'content'    => '<!-- wp:shortcode -->
+                        [render_rating]
+                        <!-- /wp:shortcode -->
 
                         <!-- wp:group {"layout":{"type":"constrained"}} -->
                         <div class="wp-block-group"><!-- wp:gallery {"linkTo":"none","className":"recipe-gallery"} -->

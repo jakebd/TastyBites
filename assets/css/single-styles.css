@@ -95,6 +95,35 @@
     margin: 20px 0;
 }
 
+.reviewcard-rating-wrapper {
+    text-align: center; /* Center the content horizontally */
+}
+
+.review-rating-title {
+    font-size: calc(1.325rem + .9vw);
+    font-weight: 500;
+    line-height: 1.2;
+    margin-bottom: 10px; /* Add some space between the title and the icons */
+}
+
+.reviewcard-rating-container {
+    display: inline-flex; /* Ensure icons and numbers are in one row */
+    align-items: center; /* Align icons and numbers vertically in the center */
+}
+
+.reviewcard-rating-container i {
+    font-size: 20px;
+}
+
+.review-rating-number {
+    font-size: 25px;
+    margin-left: 10px; /* Optional: add some space between the icons and the number */
+}
+
+.checked{
+    color: var(--accent-color);
+}
+
 /* Media query for responsiveness */
 @media (max-width: 600px) {
     .post-wrapper {

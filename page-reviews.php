@@ -15,7 +15,7 @@
             // echo '<pre>'; var_dump($first_post); echo '</pre>';
             // echo '<pre>' . var_export($found_reviews, true) . '</pre>';
     echo "<div class='container'>";
-    echo "<div class='recipe-container'>";
+    echo "<div class='review-container'>";
     if ($found_reviews->have_posts()) {
         while ($found_reviews->have_posts()) {
             $found_reviews->the_post();
@@ -23,26 +23,28 @@
 
             // echo '<pre>' . var_export($found_reviews, true) . '</pre>';
             ?>
-                <div class="recipe-card">
+                <div class="review-card">
                     <a class="overlay" href="<?=the_permalink();?>"></a>
-                    <img class="recipecard-img" src="<?= get_the_post_thumbnail_url($post,'large'); ?>" alt="<?= the_title(); ?>" />
-                    <div class="recipecard-textbox">
-                        <div class="recipecard-title"><?= the_title(); ?></div>
-
-                        <div class="recipecard-subtitle"><?= get_the_date(); ?></div>
-                        <div class="recipecard-rating-container">
-                        <?php
-                            if ($review_rating) {
-                                echo '<div class="recipe-rating-title">Rating: </div>';
-                                for($i=0; $i<(int)$review_rating; $i++){
-                                   echo '<i class="fa-solid fa-drumstick-bite"></i>';
+                    <img class="reviewcard-img" src="<?= get_the_post_thumbnail_url($post,'large'); ?>" alt="<?= the_title(); ?>" />
+                    <div class="reviewcard-textbox">
+                        <div class="reviewcard-title"><?= the_title(); ?></div>
+                        <div class="reviewcard-subtitle"><?= get_the_date(); ?></div>
+                        <div class="reviewcard-rating-wrapper">
+                            <div class="review-rating-title">Bite Rating </div>
+                            <div class="reviewcard-rating-container">
+                            <?php
+                                if ($review_rating) {
+                                    for($i=0; $i<10; $i++){
+                                        if($i < (int)$review_rating){
+                                            echo '<i class="fa-solid fa-drumstick-bite checked"></i>';
+                                        }else{
+                                            echo '<i class="fa-solid fa-drumstick-bite"></i>';
+                                        }
+                                    }
                                 }
-                            }
-                        ?>
+                            ?>
+                            </div>
                         </div>
-                        <div class="recipecard-bar"></div>
-
-                        <!-- <div class="recipecard-description"><?= the_excerpt(); ?></div> -->
                     </div>
                 </div>
             <?php

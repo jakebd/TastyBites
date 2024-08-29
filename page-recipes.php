@@ -28,16 +28,13 @@
                     <img class="recipecard-img" src="<?= get_the_post_thumbnail_url($post,'large'); ?>" alt="<?= the_title(); ?>" />
                     <div class="recipecard-textbox">
                         <div class="recipecard-title"><?= the_title(); ?></div>
-
+                        <div class="recipecard-bar"></div>
                         <div class="recipecard-subtitle"><?= get_the_date(); ?></div>
                         <?php
                             if ($time_to_make) {
                                 echo '<div class="recipe-time">Time to Make: ' . esc_html($time_to_make) . '</div>';
                             }
                         ?>
-                        <div class="recipecard-bar"></div>
-
-                        <!-- <div class="recipecard-description"><?= the_excerpt(); ?></div> -->
                     </div>
                 </div>
             <?php

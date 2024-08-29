@@ -79,9 +79,52 @@ function gengie_enqueue_styles(){
     if (is_page('recipes')) { 
         wp_enqueue_style('recipes-page-theme-styles', get_template_directory_uri() . '/assets/css/recipes-styles.css');
     }
+    if (is_page('reviews')) { 
+        wp_enqueue_style('reviews-page-theme-styles', get_template_directory_uri() . '/assets/css/reviews-styles.css');
+    }
 
 }
 add_action( 'wp_enqueue_scripts', 'gengie_enqueue_styles');
+
+//register my recipe pattern
+require_once get_template_directory() . '/patterns/recipe_pattern.php';
+
+//register my review pattern
+require_once get_template_directory() . '/patterns/review_pattern.php';
+
+/**
+ * Register custom block template for Recipes.
+ */
+function tastybites_register_recipes_content_template() {
+    $post_type_object = get_post_type_object( 'recipes_content' );
+    
+    if ( $post_type_object ) {
+        $post_type_object->template = array( 
+            array( 'core/pattern', array(
+                'slug' => 'tastybites/recipe_pattern',
+            ) )
+        );
+    }
+}
+add_action( 'init', 'tastybites_register_recipes_content_template', 20 );
+
+
+/**
+ * Register custom block template for reviews.
+ */
+function tastybites_register_reviews_content_template() {
+    $post_type_object = get_post_type_object( 'review_content' );
+    
+    if ( $post_type_object ) {
+        $post_type_object->template = array( 
+            array( 'core/pattern', array(
+                'slug' => 'tastybites/review_pattern',
+            ) )
+        );
+    }
+}
+add_action( 'init', 'tastybites_register_reviews_content_template', 20 );
+
 
 
 //Build a custom nav output

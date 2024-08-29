@@ -8,20 +8,20 @@
     $args = array(
         'posts_per_page' => 5,
         'order' => 'ASC',
-        'post_type' => 'recipes_content', // Specify the custom post type
+        'post_type' => 'review_content', // Specify the custom post type
     );
 
-    $found_recipes = new WP_Query($args);
+    $found_reviews = new WP_Query($args);
             // echo '<pre>'; var_dump($first_post); echo '</pre>';
-            // echo '<pre>' . var_export($found_recipes, true) . '</pre>';
+            // echo '<pre>' . var_export($found_reviews, true) . '</pre>';
     echo "<div class='container'>";
     echo "<div class='recipe-container'>";
-    if ($found_recipes->have_posts()) {
-        while ($found_recipes->have_posts()) {
-            $found_recipes->the_post();
-            $time_to_make = get_post_meta(get_the_ID(), 'recipe_time', true);
+    if ($found_reviews->have_posts()) {
+        while ($found_reviews->have_posts()) {
+            $found_reviews->the_post();
+            $review_rating = get_post_meta(get_the_ID(), 'review_rating', true);
 
-            // echo '<pre>' . var_export($found_recipes, true) . '</pre>';
+            // echo '<pre>' . var_export($found_reviews, true) . '</pre>';
             ?>
                 <div class="recipe-card">
                     <a class="overlay" href="<?=the_permalink();?>"></a>
@@ -30,11 +30,16 @@
                         <div class="recipecard-title"><?= the_title(); ?></div>
 
                         <div class="recipecard-subtitle"><?= get_the_date(); ?></div>
+                        <div class="recipecard-rating-container">
                         <?php
-                            if ($time_to_make) {
-                                echo '<div class="recipe-time">Time to Make: ' . esc_html($time_to_make) . '</div>';
+                            if ($review_rating) {
+                                echo '<div class="recipe-rating-title">Rating: </div>';
+                                for($i=0; $i<(int)$review_rating; $i++){
+                                   echo '<i class="fa-solid fa-drumstick-bite"></i>';
+                                }
                             }
                         ?>
+                        </div>
                         <div class="recipecard-bar"></div>
 
                         <!-- <div class="recipecard-description"><?= the_excerpt(); ?></div> -->

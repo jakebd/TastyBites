@@ -56,6 +56,15 @@
     margin-bottom: 5px;
 }
 
+.recipecard-rating-container {
+    display: flex;
+    align-items: center; /* Aligns items vertically in the center */
+}
+
+.recipe-rating-title {
+    margin-right: 5px; /* Optional: add some space between the text and icons */
+}
+
 .recipe-time{
     font-size: 14px;
     color: #777;
@@ -66,6 +75,7 @@
     width: 50px;
     height: 2px;
     background-color: var(--accent-color);
+    margin-top: 10px;
     margin-bottom: 10px;
 }
 

@@ -46,19 +46,19 @@
                                     <div class="blogcard-description"><?= the_excerpt(); ?></div>
                                     <div class="blogcard-tagbox">
                                         <?php
-                                        $tags = get_the_tags();
-                                        $max_tags = 0;
-                                        if(count($tags)>4){
-                                            $max_tags = 4;
-                                        }
-                                        else{
-                                            $max_tags = count($tags);
-                                        }
+                                            $tags = get_the_tags();
+                                            $max_tags = 0;
+                                            if(count($tags)>4){
+                                                $max_tags = 4;
+                                            }
+                                            else{
+                                                $max_tags = count($tags);
+                                            }
 
-                                        for($i = 0; $i < $max_tags; $i++){
-                                            $tag_url = get_category_link( $tags[$i]->term_id );
-                                            echo '<a class="blogcard-tag" href="'.$tag_url.'"> <span>'.strtoupper($tags[$i]->name).'</span></a>';
-                                        }
+                                            for($i = 0; $i < $max_tags; $i++){
+                                                $tag_url = get_category_link( $tags[$i]->term_id );
+                                                echo '<a class="blogcard-tag" href="'.$tag_url.'"> <span>'.strtoupper($tags[$i]->name).'</span></a>';
+                                            }
                                         ?>
                                     </div>
                                 </div>

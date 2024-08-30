@@ -72,6 +72,11 @@ function gengie_enqueue_styles(){
     //load styles for single
     wp_enqueue_style('single-post-theme-styles', get_template_directory_uri() . '/assets/css/single-styles.css');
 
+    // Register the script
+    wp_register_script('custom-navbar-js', get_template_directory_uri() . '/assets/js/menu.js', array('jquery'), null, true);
+
+    // Enqueue the script
+    wp_enqueue_script('custom-navbar-js');
 
     if (is_page('blog')) { 
         wp_enqueue_style('blog-page-theme-styles', get_template_directory_uri() . '/assets/css/blog-styles.css');

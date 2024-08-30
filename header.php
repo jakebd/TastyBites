@@ -31,4 +31,9 @@
         </nav>
       </div>
     </div>
+
+    <button class="menu-toggle" aria-label="Toggle navigation">
+        &#9776;
+    </button>
+    
   </div>

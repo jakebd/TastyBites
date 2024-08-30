@@ -173,6 +173,7 @@ p {
 	line-height: 26px;
 	padding: 0 10px 0 23px;
 	position: relative;
+    margin: 5px;
 	margin-right: 20px;
 	cursor: pointer;
 	user-select: none;
@@ -209,3 +210,46 @@ p {
     border-left: 10px solid var(--accent-color);
 }
 
+
+/* Responsive Styles */
+@media (max-width: 768px) {
+    .blogcard-timeline {
+        padding-left: 2rem;
+        margin-left: 0;
+    }
+
+    .blogcard-icon {
+        top: 13px;
+        left: -48px;
+        width: 35px;
+        height: 35px;
+    }
+
+    .blogcard-body {
+        flex-direction: column;
+        align-items: flex-start;
+        padding: 15px;
+    }
+
+    .blogcard-img {
+        width: 100%;
+        max-height: 350px;
+        margin-bottom: 15px;
+    }
+
+    .blogcard-title {
+        font-size: 24px;
+    }
+
+    .blogcard-description {
+        font-size: 14px;
+    }
+
+    .blogcard-tag {
+        font-size: 13px;
+    }
+
+    .blogcard-tagbox {
+        margin-top: 15px;
+    }
+}

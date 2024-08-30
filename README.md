@@ -51,12 +51,6 @@ To set up this project locally:
 4. Import the block templates for recipes and reviews.
 5. Configure mail SMTP settings in WordPress.
 
-## Contributing
-Contributions are welcome! If you would like to contribute to this project, please fork the repository and submit a pull request with your changes.
-
-## License
-This project is licensed under the MIT License.
-
 ---
 
 Happy cooking with **Gengies Tasty Bites**! 🍽️

@@ -4,13 +4,19 @@
     Instead of making the the front page content a page, make it a post and systematically build that front page bassed on the posts.
     This will allow for granular control over the page look and feel of the content. 
     build deticated categories for each possible page: About content, Blog content, Recipe or Review.
+
+        fix the blog img, beeing cut off
+
+    Recipes:
+        "serves X amount of people on the recipe card"
+
+    reviews:
+        "Resturant Location under photo"
 -->
 
 <?php
     get_header();
     echo "<div id='".get_the_title()."'>";
-    // $content = get_the_content();
-    // var_dump($content);
 
     $categories = get_categories();
 
@@ -18,8 +24,6 @@
         $id = $category->term_id;
         $catergory_url = get_category_link( $id );
         $category_name = $category->name;
-        
-        //var_dump($category_name);
 
         if($category_name == "About Content"){
             $args = array(
@@ -28,8 +32,6 @@
 		                'cat' => $id,
                         );
             $found_category = new WP_Query($args);
-            // echo '<pre>'; var_dump($first_post); echo '</pre>';
-            // echo '<pre>' . var_export($first_post, true) . '</pre>';
 
             echo "<div class='aboutcard-container'>";
             if($found_category->have_posts()){

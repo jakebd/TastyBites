@@ -13,12 +13,10 @@
         $catergory_url = get_category_link( $id );
         $category_name = $category->name;
         
-        //var_dump($category_name);
-
         if($category_name == "Blog"){
             $args = array(
                         'posts_per_page' => 5,
-                        'order' => 'ASC',
+                        'order' => 'DESC',
 		                'cat' => $id,
                         );
             $found_category = new WP_Query($args);
@@ -30,7 +28,6 @@
             if($found_category->have_posts()){
                 while($found_category->have_posts()){
                     $found_category->the_post();
-                    // echo '<pre>' . var_export($found_category, true) . '</pre>';
                     ?>
                         <div class="blogcard-container primary">
                             <div class="blogcard-icon">

@@ -18,6 +18,12 @@ html, body {
     background-color: var(--background-color);
 }
 
+body{
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+}
+
 a, a:link{
     text-decoration: none;
     transition: all .15s ease-in;
@@ -175,6 +181,7 @@ Main Content section
     flex-shrink: 0;
     font-size: .8em;
     color: white;
+    margin-top: auto;
 }
 
 .footer-content{

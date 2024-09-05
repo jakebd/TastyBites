@@ -1,4 +1,4 @@
-<!-- Blog Template file -->
+<!-- Reviews Template file -->
 <?php
     get_header();
     echo "<div id='".get_the_title()."'>";

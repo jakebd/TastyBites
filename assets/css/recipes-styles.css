@@ -2,30 +2,36 @@
     max-width: 1100px;
     margin: 50px auto;
     padding: 0 15px; /* Add padding for smaller screens */
+	height: 100%;
 }
-
+ 
 .recipe-container {
     display: flex;
     flex-wrap: wrap;
     justify-content: space-between;
     gap: 20px; /* Add spacing between recipe cards */
 }
-
+ 
 .recipe-card {
     position: relative;
     width: 300px;
+	min-height: 380px;
     background-color: var(--light-grey);
     border: 1px solid #ddd;
     border-radius: 8px;
     overflow: hidden;
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
     transition: transform 0.3s ease;
+	/* Flexbox for layout */
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between; /* Push content apart */
 }
-
+ 
 .recipe-card:hover {
     transform: scale(1.03);
 }
-
+ 
 .recipe-card .overlay {
     position: absolute;
     top: 0;
@@ -35,65 +41,66 @@
     z-index: 2;
     transition: background-color 0.3s ease;
 }
-
+ 
 .recipe-card:hover .overlay {
     background-color: rgba(0, 0, 0, 0.1);
 }
-
+ 
 .recipecard-img {
     width: 100%;
     height: auto; /* Let height adjust automatically based on width */
     max-height: 300px; /* Control the maximum height */
     display: block;
 }
-
+ 
 .recipecard-textbox {
     padding: 15px;
+    flex-shrink: 0;
 }
-
+ 
 .recipecard-title {
     font-size: 18px;
     font-weight: bold;
     margin-bottom: 10px;
     color: #333;
 }
-
+ 
 .recipecard-subtitle {
     font-size: 14px;
     color: #777;
     margin-bottom: 5px;
 }
-
+ 
 .recipe-time{
     font-size: 14px;
     color: #777;
     margin-bottom: 10px;
 }
-
+ 
 .recipecard-bar {
     width: 50px;
     height: 2px;
     background-color: var(--accent-color);
     margin-bottom: 10px;
 }
-
+ 
 .recipecard-description {
     font-size: 14px;
     color: #555;
     line-height: 1.5;
 }
-
-
+ 
+ 
 /* Mobile Styles */
 @media screen and (max-width: 768px) {
     .container {
         margin: 20px auto;
     }
-
+ 
     .recipe-card {
         max-width: 100%; /* Full width for smaller screens */
     }
-
+ 
     .recipe-container {
         flex-direction: column; /* Stack cards vertically */
         align-items: center;

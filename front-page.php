@@ -1,53 +1,59 @@
-
-<!--
-    Thoughts moving forward:
-    Instead of making the the front page content a page, make it a post and systematically build that front page bassed on the posts.
-    This will allow for granular control over the page look and feel of the content. 
-    build deticated categories for each possible page: About content, Blog content, Recipe or Review.
-
-        fix the blog img, beeing cut off
-
-    Recipes:
-        "serves X amount of people on the recipe card"
-
-    reviews:
-        "Resturant Location under photo"
--->
-
+<!-- Blog Template file -->
 <?php
     get_header();
     echo "<div id='".get_the_title()."'>";
-
     $categories = get_categories();
+    $site_img = wp_get_attachment_image_url(384, "full");
 
     foreach($categories as $category){
         $id = $category->term_id;
         $catergory_url = get_category_link( $id );
         $category_name = $category->name;
 
-        if($category_name == "About Content"){
+        if($category_name == "Blog"){
             $args = array(
                         'posts_per_page' => 5,
-                        'order' => 'ASC',
+                        'order' => 'DESC',
 		                'cat' => $id,
                         );
             $found_category = new WP_Query($args);
 
-            echo "<div class='aboutcard-container'>";
+            echo "<div class='container'>";
+            echo "<div class='blogcard-timeline'>";
             if($found_category->have_posts()){
-                $counter = 0;
                 while($found_category->have_posts()){
                     $found_category->the_post();
-                    $counter++;
-                    $reverse_class = ($counter % 2 == 0) ? 'reverse' : '';
+
                     ?>
-                        <div class="aboutcard">
-                            <div class="aboutcard-innerbox <?= $reverse_class; ?>">
-                                <img class="aboutcard-img" src="<?= get_the_post_thumbnail_url($post,'large'); ?>" />
-                                <div class="aboutcard-textbox">
-                                    <div class="aboutcard-title"><?= the_title(); ?></div>
-                                    <div class="aboutcard-bar"></div>
-                                    <div class="aboutcard-description"><?= the_content(); ?></div>
+                        <div class="blogcard-container primary">
+                            <div class="blogcard-icon">
+                                <img src="<?= $site_img?>"/>
+                            </div>
+                            <div class="blogcard-body">
+                                <a class="overlay" href="<?=the_permalink();?>"></a>
+                                <img class="blogcard-img" src="<?= get_the_post_thumbnail_url($post,'large'); ?>" />
+                                <div class="blogcard-textbox">
+                                    <div class="blogcard-title"><?= the_title(); ?></div>
+                                    <div class="blogcard-subtitle"><?= get_the_date(); ?></div>
+                                    <div class="blogcard-bar"></div>
+                                    <div class="blogcard-description"><?= the_excerpt(); ?></div>
+                                    <div class="blogcard-tagbox">
+                                        <?php
+                                            $tags = get_the_tags();
+                                            $max_tags = 0;
+                                            if(count($tags)>4){
+                                                $max_tags = 4;
+                                            }
+                                            else{
+                                                $max_tags = count($tags);
+                                            }
+
+                                            for($i = 0; $i < $max_tags; $i++){
+                                                $tag_url = get_category_link( $tags[$i]->term_id );
+                                                echo '<div class="blogcard-tag"> <span>'.strtoupper($tags[$i]->name).'</span></div>';
+                                            }
+                                        ?>
+                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -55,7 +61,8 @@
                 }
             }
             echo "</div>";
-        echo "</div>"; // close the parent container
+            echo "</div>";
+        echo "</div>"; //close the parent container
         }
         wp_reset_postdata();
     }

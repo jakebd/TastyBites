@@ -659,7 +659,8 @@ h1, h2, h3, h4 {
    (e.g. a photo beside a whole review squeezes the text into half the column). */
 .prose .wp-block-group.is-layout-flex { flex-direction: column; flex-wrap: nowrap; align-items: stretch; gap: 1.2em; }
 .prose .wp-block-group.is-layout-flex > * { flex: none; width: auto; min-width: 0; max-width: 100%; }
-.prose .wp-block-group.is-layout-flex > figure img { margin-inline: auto; max-height: min(85vh, 860px); width: auto; }
+.prose .wp-block-group.is-layout-flex > figure { display: flex; flex-direction: column; align-items: center; }
+.prose .wp-block-group.is-layout-flex > figure img { max-height: min(85vh, 860px); }
 .prose figcaption,
 .prose .wp-element-caption {
 	margin-top: 8px;

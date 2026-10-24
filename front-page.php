@@ -12,7 +12,7 @@
 
         if($category_name == "Blog"){
             $args = array(
-                        'posts_per_page' => 5,
+                        'posts_per_page' => 25,
                         'order' => 'DESC',
 		                'cat' => $id,
                         );
@@ -40,17 +40,12 @@
                                     <div class="blogcard-tagbox">
                                         <?php
                                             $tags = get_the_tags();
-                                            $max_tags = 0;
-                                            if(count($tags)>4){
-                                                $max_tags = 4;
-                                            }
-                                            else{
-                                                $max_tags = count($tags);
-                                            }
-
-                                            for($i = 0; $i < $max_tags; $i++){
-                                                $tag_url = get_category_link( $tags[$i]->term_id );
-                                                echo '<div class="blogcard-tag"> <span>'.strtoupper($tags[$i]->name).'</span></div>';
+                                            if (!empty($tags)) {
+                                                $max_tags = min(count($tags), 4); // Limit to 4 tags or less if there are fewer
+                                                for ($i = 0; $i < $max_tags; $i++) {
+                                                    $tag_url = get_tag_link($tags[$i]->term_id);
+                                                    echo '<div class="blogcard-tag"><span>' . strtoupper($tags[$i]->name) . '</span></div>';
+                                                }
                                             }
                                         ?>
                                     </div>

@@ -1,17 +1,16 @@
 .container{
     max-width: 1100px;
     margin: 50px auto;
-    padding: 0 15px; /* Add padding for smaller screens */
 	height: 100%;
+	padding: 0px 0px;
 }
- 
+
 .review-container {
     display: flex;
     flex-wrap: wrap;
-    justify-content: space-between;
-    gap: 20px; /* Add spacing between recipe cards */
+    gap: 3vw;
 }
- 
+
 .review-card {
     position: relative;
     width: 300px;
@@ -22,16 +21,16 @@
     overflow: hidden;
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
     transition: transform 0.3s ease;
-	/* Flexbox for layout */
     display: flex;
     flex-direction: column;
-    justify-content: space-between; /* Push content apart */
+    justify-content: space-between;
+	margin-bottom: 20px;
 }
- 
+
 .review-card:hover {
     transform: scale(1.03);
 }
- 
+
 .review-card .overlay {
     position: absolute;
     top: 0;
@@ -41,79 +40,79 @@
     z-index: 2;
     transition: background-color 0.3s ease;
 }
- 
+
 .review-card:hover .overlay {
     background-color: rgba(0, 0, 0, 0.1);
 }
- 
+
 .reviewcard-img {
     width: 100%;
     height: auto;
     max-height: 300px;
     display: block;
 }
- 
+
 .reviewcard-textbox {
     padding: 20px;
     text-align: center;
     flex-shrink: 0;
 }
- 
+
 .reviewcard-title {
     font-size: 20px;
     font-weight: bold;
     margin-bottom: 10px;
     color: #333;
 }
- 
+
 .reviewcard-subtitle {
     font-size: 14px;
     color: #777;
     margin-bottom: 5px;
 }
- 
+
 .reviewcard-rating-container {
     display: flex;
     align-items: center;
 }
- 
+
 .review-rating-title {
     margin-right: 5px; 
 }
- 
+
 .reviewcard-rating-wrapper {
     text-align: center; 
 }
- 
+
 .review-rating-title {
     font-size: 20px;
     margin-bottom: 10px; 
 }
- 
+
 .reviewcard-rating-container {
     display: inline-flex;
     align-items: center; 
 }
- 
+
 .reviewcard-rating-container i {
     font-size: 15px;
 }
- 
+
 .review-rating-number {
     font-size: 25px;
     margin-left: 10px; 
 }
- 
+
 .checked{
     color: var(--accent-color);
 }
- 
+
 .review-time{
     font-size: 14px;
     color: #777;
     margin-bottom: 10px;
 }
- 
+
 .reviewcard-bar {
     width: 50px;
     height: 2px;
@@ -121,24 +120,24 @@
     margin-top: 10px;
     margin-bottom: 10px;
 }
- 
+
 .reviewcard-description {
     font-size: 14px;
     color: #555;
     line-height: 1.5;
 }
- 
- 
+
+
 /* Mobile Styles */
 @media screen and (max-width: 768px) {
     .container {
         margin: 20px auto;
     }
- 
+
     .review-card {
         max-width: 100%;
     }
- 
+
     .review-container {
         flex-direction: column; 
         align-items: center;

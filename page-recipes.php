@@ -4,9 +4,9 @@
     echo "<div id='".get_the_title()."'>";
 
     $args = array(
-        'posts_per_page' => 5,
+        'posts_per_page' => 25,
         'order' => 'ASC',
-        'post_type' => 'recipes_content', // Specify the custom post type
+        'post_type' => 'recipes_content', 
     );
 
     $found_recipes = new WP_Query($args);
@@ -16,6 +16,7 @@
         while ($found_recipes->have_posts()) {
             $found_recipes->the_post();
             $time_to_make = get_post_meta(get_the_ID(), 'recipe_time', true);
+
             ?>
                 <div class="recipe-card">
                     <a class="overlay" href="<?=the_permalink();?>"></a>

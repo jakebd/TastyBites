@@ -1,0 +1,4 @@
+.env
+Prod DB Backups/
+*.sql
+*.sql.gz

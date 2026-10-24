@@ -1,19 +1,15 @@
-<!-- Reviews Template file -->
+<!-- Review Template file -->
 <?php
     get_header();
     echo "<div id='".get_the_title()."'>";
-    // $content = get_the_content();
-    // var_dump($content);
 
     $args = array(
-        'posts_per_page' => 5,
+        'posts_per_page' => 10,
         'order' => 'ASC',
         'post_type' => 'review_content', // Specify the custom post type
     );
 
     $found_reviews = new WP_Query($args);
-            // echo '<pre>'; var_dump($first_post); echo '</pre>';
-            // echo '<pre>' . var_export($found_reviews, true) . '</pre>';
     echo "<div class='container'>";
     echo "<div class='review-container'>";
     if ($found_reviews->have_posts()) {
@@ -21,7 +17,6 @@
             $found_reviews->the_post();
             $review_rating = get_post_meta(get_the_ID(), 'review_rating', true);
 
-            // echo '<pre>' . var_export($found_reviews, true) . '</pre>';
             ?>
                 <div class="review-card">
                     <a class="overlay" href="<?=the_permalink();?>"></a>

@@ -1,6 +1,6 @@
 /* Main post container styling */
 .post-wrapper {
-    max-width: 1000px;
+	max-width: 1000px;
     margin: 10px auto;
     padding: 20px;
     background-color: #ffffff;
@@ -45,24 +45,6 @@
 }
 
 /* Post categories styling */
-/* .post-categories {
-    margin-top: 10px;
-}
-
-.post-category-badge {
-    display: inline-block;
-    margin: 5px 5px 0 0;
-    padding: 5px 10px;
-    background-color: #0073aa;
-    color: #ffffff;
-    border-radius: 12px;
-    font-size: 0.8rem;
-    text-decoration: none;
-}
-
-.post-category-badge:hover {
-    background-color: #005f8d;
-} */
 
 /* Post thumbnail styling */
 .post-thumbnail-wrapper {
@@ -72,9 +54,9 @@
 }
 
 .post-thumbnail {
-    width: 50%; /* Adjusted to half the size */
+    width: 50%; 
     border-radius: 8px;
-    object-fit: cover; /* Ensures the image scales properly */
+    object-fit: cover;
 }
 
 /* Post content body styling */
@@ -96,19 +78,19 @@
 }
 
 .reviewcard-rating-wrapper {
-    text-align: center; /* Center the content horizontally */
+    text-align: center; 
 }
 
 .review-rating-title {
     font-size: calc(1.325rem + .9vw);
     font-weight: 500;
     line-height: 1.2;
-    margin-bottom: 10px; /* Add some space between the title and the icons */
+    margin-bottom: 10px; 
 }
 
 .reviewcard-rating-container {
-    display: inline-flex; /* Ensure icons and numbers are in one row */
-    align-items: center; /* Align icons and numbers vertically in the center */
+    display: inline-flex; 
+    align-items: center; 
 }
 
 .reviewcard-rating-container i {
@@ -117,7 +99,7 @@
 
 .review-rating-number {
     font-size: 25px;
-    margin-left: 10px; /* Optional: add some space between the icons and the number */
+    margin-left: 10px; 
 }
 
 .checked{
@@ -144,6 +126,6 @@
     }
 
     .post-thumbnail {
-        width: 80%; /* Adjusted for smaller screens */
+        width: 80%; 
     }
 }

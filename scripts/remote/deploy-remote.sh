@@ -13,7 +13,7 @@ KEEP_BACKUPS=15
 manifest_of() { (cd "$1" && find . -type f -print0 | sort -z | xargs -0 md5sum); }
 
 purge_cache() {
-	wp --path="$WP_ROOT" litespeed-purge all >/dev/null 2>&1 || echo "    (LiteSpeed purge unavailable, skipped)"
+	wp --path="$WP_ROOT" litespeed-purge all >/dev/null 2>&1 || echo "    (LiteSpeed purge failed; if pages look stale, purge from WP admin)"
 }
 
 # 1. Unpack and lint the release before touching the live theme.
@@ -59,7 +59,8 @@ purge_cache
 
 # 5. Smoke test: WordPress must boot with the theme, and key pages must render.
 smoke() {
-	wp --path="$WP_ROOT" eval 'echo "boot-ok";' 2>/dev/null | grep -q boot-ok || { echo "    WP-CLI could not boot WordPress"; return 1; }
+	# (This host's wp wrapper re-splits arguments on spaces, so keep wp args space-free.)
+	wp --path="$WP_ROOT" option get home 2>/dev/null | grep -q "^$SITE_URL" || { echo "    WP-CLI could not boot WordPress"; return 1; }
 	# Talk to this server directly (works before DNS for a new subdomain exists).
 	local host="${SITE_URL#https://}" ip
 	ip="$(dig +short gengiestastybites.ca | tail -1)"

@@ -86,7 +86,7 @@ Claude as the provider. Estimate the cost before building; it should be small at
 
 ## 3. Site features
 
-- [ ] **Comments**, designed to need no moderation (proposed 2026-10-24, awaiting Jacob's OK):
+- [ ] **Comments**, designed to need no moderation (approved by Jacob 2026-10-24; next after the redesign):
   - publish immediately unless flagged; Antispam Bee for spam filtering (free, no account, runs on the server);
   - hold comments that contain links; spam is auto-deleted after a few weeks;
   - open comments on all posts (currently closed everywhere) and add a comment section to the theme.
@@ -125,6 +125,10 @@ Shawn talks; AI turns it into posts in his voice. Proposed by Jacob, 2026-10-24.
   review form in Sep 2024 and now puts his reviews inside trip posts.
 
 ### Open questions
+- **Shawn has publicly said he doesn't use AI.** His post "Where did 2025 go?" (Dec 2025) tells readers:
+  "I don't use any AI hacks, so everything you get is me". AI-written posts would contradict that.
+  Talk to him first. Options: AI Mode only transcribes and arranges his own spoken words (light touch);
+  he updates that line; or AI stays limited to behind-the-scenes metadata (§2).
 - **Images, the big one.** How do his photos get in and get placed?
   - Upload a batch from the laptop into the session; AI describes each one (vision) and places it next
     to the matching part of the story, with a caption and alt text he can adjust.
@@ -166,5 +170,6 @@ Found while reviewing the site in October 2026. Test each on staging first.
 | 2026-10-24 | Deploy via GitHub Actions; staging on a WHC subdomain | Repeatable deploys with rollback; a safe place to test |
 | 2026-10-24 | Design direction A · Road Journal | Jacob and Shawn both preferred it |
 | 2026-10-24 | Restyle the classic theme + `theme.json`, not a full block theme | Keeps the Site Editor away from a non-technical author |
+| 2026-10-24 | Comments: auto-publish with spam filtering, no approval queue; do right after the redesign | Nobody will moderate; bots are the main risk |
 | 2026-10-24 | AI acts on publish only, never on draft saves | Shawn writes over several days |
 | 2026-10-24 | Design first; AI work after, behind the scenes | Minimal disruption to Shawn's workflow |

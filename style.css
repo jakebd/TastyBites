@@ -589,6 +589,53 @@ h1, h2, h3, h4 {
 	object-fit: contain;
 }
 
+/* Ground rule: photo grids are balanced, never a lone orphan photo on its own row.
+   Applies to Grid groups (how Shawn lays out photos) and default-column galleries. A 6-track grid lets
+   photos span 2 tracks (3 per row) or 3 tracks (2 per row):
+   3n photos -> rows of 3; 3n+1 -> rows of 3 ending in a 2×2 block (4 = 2×2); 3n+2 -> rows of 3 ending in a pair.
+   Phones: 2 per row, an odd last photo full width. Photos share a 4:3 crop; the lightbox shows them whole. */
+.prose .wp-block-group.is-layout-grid,
+.prose .wp-block-gallery.has-nested-images.columns-default {
+	display: grid;
+	grid-template-columns: repeat(6, minmax(0, 1fr));
+	gap: 10px;
+	align-items: stretch;
+}
+.prose .wp-block-group.is-layout-grid > figure,
+.prose .wp-block-gallery.has-nested-images.columns-default > figure.wp-block-image {
+	--span: 2;
+	grid-column: span var(--span);
+	width: auto !important;
+	margin: 0;
+}
+.prose .wp-block-group.is-layout-grid:has(> figure:last-of-type:nth-of-type(3n+1)) > figure:nth-last-of-type(-n+4),
+.prose .wp-block-gallery.columns-default:has(> figure:last-of-type:nth-of-type(3n+1)) > figure:nth-last-of-type(-n+4),
+.prose .wp-block-group.is-layout-grid:has(> figure:last-of-type:nth-of-type(3n+2)) > figure:nth-last-of-type(-n+2),
+.prose .wp-block-gallery.columns-default:has(> figure:last-of-type:nth-of-type(3n+2)) > figure:nth-last-of-type(-n+2) {
+	--span: 3;
+}
+.prose .wp-block-group.is-layout-grid > figure:only-of-type,
+.prose .wp-block-gallery.columns-default > figure:only-of-type { --span: 6; }
+.prose .wp-block-group.is-layout-grid > :not(figure),
+.prose .wp-block-gallery.columns-default > figcaption { grid-column: 1 / -1; }
+.prose .wp-block-group.is-layout-grid > figure img,
+.prose .wp-block-gallery.columns-default > figure.wp-block-image img {
+	display: block;
+	width: 100% !important;
+	height: 100% !important;
+	max-height: none;
+	aspect-ratio: 4 / 3;
+	object-fit: cover;
+}
+.prose .wp-block-group.is-layout-grid > figure > .wp-lightbox-container,
+.prose .wp-block-gallery.columns-default > figure > .wp-lightbox-container { height: 100%; }
+@media (max-width: 560px) {
+	.prose .wp-block-group.is-layout-grid > figure,
+	.prose .wp-block-gallery.has-nested-images.columns-default > figure.wp-block-image { --span: 3 !important; }
+	.prose .wp-block-group.is-layout-grid > figure:last-of-type:nth-of-type(odd),
+	.prose .wp-block-gallery.has-nested-images.columns-default > figure.wp-block-image:last-of-type:nth-of-type(odd) { --span: 6 !important; }
+}
+
 /* Ground rule: old "row" groups wrap on narrow screens instead of squeezing the text. */
 .prose .wp-block-group.is-layout-flex { flex-wrap: wrap; }
 .prose .wp-block-group.is-layout-flex > * { flex: 1 1 260px; min-width: 0; }

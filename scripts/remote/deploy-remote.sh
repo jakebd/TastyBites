@@ -79,6 +79,11 @@ smoke() {
 			[ "$code" = 429 ] || [ "$code" = 503 ] || break
 			sleep $((attempt * 5))
 		done
+		if [ "$code" = 429 ]; then
+			# Still rate limited: we can't judge the page, so don't roll back a deploy that booted fine.
+			echo "    $path -> HTTP 429 (rate limited, not checked; verify in a browser)"
+			continue
+		fi
 		if [ "$code" != 200 ] || grep -qiE 'critical error|Fatal error|Parse error' <<<"$body"; then
 			echo "    $path -> HTTP $code (FAILED)"; return 1
 		fi

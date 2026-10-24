@@ -93,6 +93,7 @@ PHP
 if [ ! -f "$HOME/.staging-basicauth" ]; then
 	( umask 077; echo "staging:$(head -c 24 /dev/urandom | base64 | tr -dc 'A-Za-z0-9' | head -c 20)" > "$HOME/.staging-basicauth" )
 fi
+SERVER_IP="$(dig +short gengiestastybites.ca | tail -1)"
 mkdir -p "$HOME/.htpasswds"
 BA_USER="$(cut -d: -f1 "$HOME/.staging-basicauth")" BA_PASS="$(cut -d: -f2- "$HOME/.staging-basicauth")"
 echo "$BA_USER:$(openssl passwd -apr1 "$BA_PASS")" > "$HOME/.htpasswds/staging"
@@ -102,7 +103,11 @@ chmod 644 "$HOME/.htpasswds/staging"
 	echo "AuthType Basic"
 	echo "AuthName \"Tasty Bites staging\""
 	echo "AuthUserFile $HOME/.htpasswds/staging"
+	echo "<RequireAny>"
+	# The server itself (LiteSpeed cache purge, WP cron, loopback requests) skips the password.
+	echo "Require ip $SERVER_IP"
 	echo "Require valid-user"
+	echo "</RequireAny>"
 	echo "# END staging basic auth"
 	echo
 	cat "$PROD/.htaccess"

@@ -40,3 +40,36 @@ upload "$TARBALL" "deploy/$ENVIRONMENT/incoming.tar"
 
 remote "bash -s -- '$ENVIRONMENT' '$WP_ROOT' '$SITE_URL' '$THEME_SLUG' '$SHA' '${FORCE:-0}'" \
 	< "$REPO_ROOT/scripts/remote/deploy-remote.sh"
+
+# Smoke test from here rather than from the server: the host rate limits requests
+# the server makes to itself.
+echo "--> Smoke testing $SITE_URL"
+CURL_OPTS=(-sS -A "TastyBites-deploy-smoke/1.0")
+if [ "$ENVIRONMENT" = staging ]; then
+	CURL_OPTS+=(-u "$(remote 'cat ~/.staging-basicauth')")
+fi
+failed=0
+for path in / /recipes/ /reviews/ /about/; do
+	for attempt in 1 2 3; do
+		body="$(curl "${CURL_OPTS[@]}" -w '\n%{http_code}' "$SITE_URL$path?nocache=$SHA" || true)"
+		code="${body##*$'\n'}"
+		[ "$code" = 429 ] || [ "$code" = 503 ] || break
+		sleep $((attempt * 3))
+	done
+	if [ "$code" = 429 ]; then
+		echo "    $path -> HTTP 429 (rate limited, not checked; verify in a browser)"
+	elif [ "$code" != 200 ] || grep -qiE 'critical error|Fatal error|Parse error' <<<"$body"; then
+		echo "    $path -> HTTP $code (FAILED)"
+		failed=1
+		break
+	else
+		echo "    $path -> HTTP $code"
+	fi
+done
+
+if [ "$failed" = 1 ]; then
+	echo "--> Smoke test failed, rolling back"
+	bash "$REPO_ROOT/scripts/rollback.sh" "$ENVIRONMENT" latest
+	exit 1
+fi
+echo "==> Deployed $SHA to $ENVIRONMENT"

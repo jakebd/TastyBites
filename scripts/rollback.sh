@@ -26,7 +26,7 @@ if [ "$CHOICE" = latest ]; then FILE=\$(ls -1t \$BASE/backups/*.tgz | head -1); 
 [ -f "\$FILE" ] || { echo "Backup not found: \$FILE"; exit 1; }
 rm -rf "\$THEMES/$THEME_SLUG" && tar -xzf "\$FILE" -C "\$THEMES"
 (cd "\$THEMES/$THEME_SLUG" && find . -type f -print0 | sort -z | xargs -0 md5sum) > \$BASE/manifest.md5
-wp --path=~/$WP_ROOT litespeed-purge all >/dev/null 2>&1 || true
+wp --path=~/$WP_ROOT litespeed-purge all >/dev/null 2>&1 || find ~/lscache -type f -delete 2>/dev/null || true
 echo "rollback \$(basename \$FILE) \$(date -u +%FT%TZ)" >> \$BASE/history.log
 echo "Restored \$(basename "\$FILE") to $ENVIRONMENT"
 EOF

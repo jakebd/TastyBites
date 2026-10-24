@@ -9,12 +9,19 @@
  * A plain-text description for the current page (max ~160 chars).
  */
 function tb_meta_description() {
-	if ( is_singular() ) {
+	if ( is_front_page() ) {
+		$text = get_bloginfo( 'description' ) ?: 'A chef\'s food and travel journal: road trips, restaurant reviews scored out of 10, recipes and opinions from 40-plus years in the business.';
+	} elseif ( is_singular( 'recipes_content' ) && ! has_excerpt() ) {
+		$time = get_post_meta( get_the_ID(), 'recipe_time', true );
+		$text = sprintf(
+			'%s: a recipe from Shawn\'s kitchen, with ingredients and step-by-step method.%s',
+			html_entity_decode( wp_strip_all_tags( get_the_title() ), ENT_QUOTES | ENT_HTML5 ),
+			$time ? ' Time to make: ' . $time . '.' : ''
+		);
+	} elseif ( is_singular() ) {
 		$text = has_excerpt() ? get_the_excerpt() : tb_lead_sentence();
 	} elseif ( is_category() || is_tag() || is_tax() ) {
 		$text = term_description() ?: sprintf( '%s on %s.', single_term_title( '', false ), get_bloginfo( 'name' ) );
-	} elseif ( is_front_page() ) {
-		$text = get_bloginfo( 'description' ) ?: 'A chef\'s food and travel journal: road trips, restaurant reviews scored out of 10, recipes and opinions from 40-plus years in the business.';
 	} else {
 		return '';
 	}
@@ -161,7 +168,7 @@ add_action( 'wp_head', function () {
 		$data = array(
 			'@context'          => 'https://schema.org',
 			'@type'             => 'Recipe',
-			'name'              => wp_strip_all_tags( get_the_title() ),
+			'name'              => html_entity_decode( wp_strip_all_tags( get_the_title() ), ENT_QUOTES | ENT_HTML5 ),
 			'image'             => array( $image ),
 			'author'            => tb_person(),
 			'datePublished'     => get_the_date( 'c' ),

@@ -277,7 +277,10 @@ function tb_lead_sentence( $post = null ) {
 	if ( has_excerpt( $post ) ) {
 		return get_the_excerpt( $post );
 	}
-	$text = trim( preg_replace( '/\s+/', ' ', wp_strip_all_tags( strip_shortcodes( $post->post_content ) ) ) );
+	// Paragraph text only: drop headings, captions and the recipe "time to cook" field first.
+	$html = preg_replace( '#<(h[1-6]|figcaption)[^>]*>.*?</\1>#is', ' ', $post->post_content );
+	$html = preg_replace( '#<div[^>]*meta-field[^>]*>.*?</div>#is', ' ', $html );
+	$text = trim( preg_replace( '/\s+/', ' ', wp_strip_all_tags( strip_shortcodes( excerpt_remove_blocks( $html ) ) ) ) );
 	// Shawn often starts with a short heading like "Day 1", so skip leading fragments.
 	$text = preg_replace( '/^(day \d+\s+)/i', '', $text );
 	if ( preg_match( '/^(.{40,260}?[.!?])(\s|$)/u', $text, $m ) ) {

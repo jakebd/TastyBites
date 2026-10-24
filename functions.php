@@ -58,10 +58,10 @@ function tb_enqueue_assets() {
 add_action( 'wp_enqueue_scripts', 'tb_enqueue_assets' );
 
 //register my recipe pattern
-require_once get_template_directory() . '/patterns/recipe_pattern.php';
+require_once get_template_directory() . '/inc/patterns/recipe_pattern.php';
 
 //register my review pattern
-require_once get_template_directory() . '/patterns/review_pattern.php';
+require_once get_template_directory() . '/inc/patterns/review_pattern.php';
 
 /**
  * [render_rating] shortcode used by the review pattern: the drumstick "Bite Rating" out of 10.

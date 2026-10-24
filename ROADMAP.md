@@ -77,40 +77,53 @@ section hides itself rather than showing something broken.
       Recipes and Reviews templates. Bootstrap, the Font Awesome 4.7 link and the old per-page CSS removed.
 
 ### Polish pass: template bugs (from the fresh-eyes review, 2026-10-24)
-- [ ] Destination archive URLs 404 (rewrite rules were never flushed after adding the taxonomy). Also
+- [x] Destination archive URLs 404 (rewrite rules were never flushed after adding the taxonomy). Also
       flush in the migration so production doesn't hit it.
-- [ ] Recipe "Time to cook" badge sits at the screen edge instead of in the text column.
-- [ ] Archive headings are wider than the list beneath them (misaligned on desktop).
-- [ ] Card excerpts end in "…." (double punctuation).
-- [ ] `/page/2/` serves a duplicate of the homepage.
-- [ ] Empty categories ("Blog", "Uncategorized") are public; hide or noindex empty archives.
-- [ ] Santa Monica stamp "LAX" reads as an airport. Use a place-style code.
-- [ ] Images from the old WHC address `wp230263.wpdns.ca` (15 images in 3 posts on production; it's a parked
+- [x] Recipe "Time to cook" badge sits at the screen edge instead of in the text column.
+- [x] Archive headings are wider than the list beneath them (misaligned on desktop).
+- [x] Card excerpts end in "…." (double punctuation).
+- [x] `/page/2/` serves a duplicate of the homepage.
+- [x] Empty categories ("Blog", "Uncategorized") are public; hide or noindex empty archives.
+- [x] Santa Monica stamp "LAX" reads as an airport. Use a place-style code.
+- [x] Images from the old WHC address `wp230263.wpdns.ca` (15 images in 3 posts on production; it's a parked
       domain on the same account). Point them at the main domain with a search-replace migration.
-- [ ] Ground rules for images: portrait photos never taller than the screen; browsers download images
+- [x] Ground rules for images: portrait photos never taller than the screen; browsers download images
       sized for the reading column, not full size; tap to enlarge (lightbox).
-- [ ] Ground rules for content blocks: hide empty headings and empty list items; legacy "row" groups wrap
+- [x] Ground rules for content blocks: hide empty headings and empty list items; legacy "row" groups wrap
       instead of squeezing the text (Atlantic Kitchen, Buttermilk Biscuits).
-- [ ] Search "no results" suggestions should be links; 404 page should suggest real content.
-- [ ] About page "Today" photo: check whether the template's crop hides Shawn's face (template) or the
-      photo itself needs replacing (content, ask Shawn).
-- [ ] Mobile pass at true phone widths (360, 390 and 414px), not just a narrowed desktop window.
+- [x] Search "no results" suggestions should be links; 404 page should suggest real content.
+- [x] About page "Today" photo: the template cropped from the middle (fixed: crops from the top now). His face is
+      still shaded by his hat brim in that photo: a better source photo is a content item (§6).
+- [x] Mobile pass at true phone widths (360, 390 and 414px), not just a narrowed desktop window.
 
 ### Polish pass: features (approved by Jacob)
-- [ ] **Search filters:** filter results by type (trips, reviews, recipes, opinions) and more; see research notes.
-- [ ] **Breadcrumbs** on posts, recipes, reviews and archives (with BreadcrumbList schema).
-- [ ] **Social icons** instead of the words "Facebook" / "Instagram" (accessible labels).
-- [ ] **Bite Rating index:** a legend on the Reviews page explaining the 1–10 scale, written so it reads as if it
-      came from Shawn. Draft from his own scores and phrases; Shawn approves the wording.
-- [ ] **Related posts** at the end of posts, recipes and reviews (same destination, category or type).
-- [ ] Gallery lightbox for photo-heavy trip posts (see image ground rules).
+- [x] **Search filters:** filter results by type (trips, reviews, recipes, opinions) and more; see research notes.
+- [x] **Breadcrumbs** on posts, recipes, reviews and archives (with BreadcrumbList schema).
+- [x] **Social icons** instead of the words "Facebook" / "Instagram" (accessible labels).
+- [~] **Bite Rating index:** "How I rate" note on the Reviews page, verdict word next to every score. Opening line is
+      Shawn's own (About › Today); band names come from his posts ("off the charts", "top 5", "solid", "I know there are
+      better options", "don't waste your time"). **Shawn to approve or rewrite the wording** (`tb_rating_bands()` in functions.php).
+- [x] **Related posts** at the end of posts, recipes and reviews (same destination, category or type).
+- [x] Gallery lightbox for photo-heavy trip posts (see image ground rules).
+
+Research notes behind these choices: `docs/research/blog-best-practices-2026-10.md`.
+
+### Polish pass: still open (template)
+- [ ] Modern Image Formats plugin (automatic WebP/AVIF) + regenerate existing images.
+- [ ] Table of contents for long posts (needs real headings first, §2.11).
+- [ ] Review info box + Review/Restaurant schema; recipe card + Recipe schema (§3).
+- [ ] Fuller footer (about line, contact, privacy, ethics note, ©).
+- [ ] Check at 200% text size and on a real iPhone.
 
 ### Production rollout (in this order)
-1. Shawn OKs the category names above (rename in the migration script first if he wants different ones).
+1. Shawn OKs the category names above (rename in the migration script first if he wants different ones) and the
+   Bite Rating index wording.
 2. Merge `road-journal` → `main` and approve the production deploy. Until step 3 runs, the homepage
    falls back to the old "Blog" category and the menu stays as it was: nothing breaks.
-3. Straight after: `bash scripts/migrate.sh production scripts/migrations/road-journal-content.php`
-   (takes a DB backup first; needs the new theme's Destinations taxonomy, which is why it runs after the deploy).
+3. Straight after, in order (each takes a DB backup first; they need the new theme's Destinations taxonomy,
+   which is why they run after the deploy):
+   - `bash scripts/migrate.sh production scripts/migrations/road-journal-content.php`
+   - `bash scripts/migrate.sh production scripts/migrations/polish-data-fixes.php`
 4. Confirm the XML sitemap is served on production (`/wp-sitemap.xml`; on staging it's off because search
    engines are discouraged there).
 5. Spot-check the homepage, a trip post, search and the phone menu.

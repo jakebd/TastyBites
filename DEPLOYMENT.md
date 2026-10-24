@@ -78,6 +78,13 @@ Then from the machine running the deploy (your PC or the GitHub runner), `script
 
 Deploy history: `~/deploy/<env>/history.log` on the server. A deploy takes about 5–30 seconds.
 
+## Testing at phone widths
+
+Chrome won't shrink its viewport below about 660px, so test phones by loading staging pages into
+360, 390 and 414px wide iframes on a same-origin staging page (e.g. `/robots.txt`), via the browser's
+JavaScript console or Claude's browser tools. Check every frame's `scrollWidth` equals its width (no
+sideways scroll). Also check a real phone before production.
+
 ## Staging
 
 A full clone of production (files, plugins, uploads, DB) on the same hosting account, built and

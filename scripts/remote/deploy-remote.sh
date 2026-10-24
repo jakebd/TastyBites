@@ -69,10 +69,16 @@ smoke() {
 		opts+=(-k) # staging cert may not be issued yet
 		[ -f "$HOME/.staging-basicauth" ] && opts+=(-u "$(cat "$HOME/.staging-basicauth")")
 	fi
-	local path code body
+	opts+=(-A "TastyBites-deploy-smoke/1.0")
+	local path code body attempt
 	for path in / /recipes/ /reviews/ /about/; do
-		body="$(curl -sS "${opts[@]}" -w '\n%{http_code}' "$SITE_URL$path?nocache=$SHA" || true)"
-		code="${body##*$'\n'}"
+		# Retry on rate limiting (Imunify/LiteSpeed return 429/503 to bursts of requests).
+		for attempt in 1 2 3 4 5; do
+			body="$(curl -sS "${opts[@]}" -w '\n%{http_code}' "$SITE_URL$path?nocache=$SHA" || true)"
+			code="${body##*$'\n'}"
+			[ "$code" = 429 ] || [ "$code" = 503 ] || break
+			sleep $((attempt * 5))
+		done
 		if [ "$code" != 200 ] || grep -qiE 'critical error|Fatal error|Parse error' <<<"$body"; then
 			echo "    $path -> HTTP $code (FAILED)"; return 1
 		fi

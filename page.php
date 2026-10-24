@@ -9,6 +9,7 @@ while ( have_posts() ) :
 	?>
 	<main id="main" class="single">
 		<header class="entry__header wrap wrap--narrow">
+			<?php tb_breadcrumbs(); ?>
 			<h1 class="entry__title"><?php the_title(); ?></h1>
 		</header>
 		<div class="entry__content prose">

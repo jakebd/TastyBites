@@ -16,6 +16,7 @@ $tb_early    = get_category_by_slug( TB_CAT_EARLY );
 ?>
 <main id="main" class="about">
 	<header class="archive__header wrap">
+		<?php tb_breadcrumbs(); ?>
 		<span class="stamp stamp--tilt">Culinary school · class of 1982</span>
 		<h1 class="archive__title">Meet Shawn</h1>
 		<?php if ( $tb_quote ) : ?>

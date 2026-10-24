@@ -651,6 +651,104 @@ h1, h2, h3, h4 {
 .post-nav__next { text-align: right; }
 
 /* ---------------------------------------------------------------
+   Breadcrumbs
+---------------------------------------------------------------- */
+.breadcrumbs { margin-bottom: 14px; font-size: 0.95rem; }
+.breadcrumbs ol {
+	list-style: none;
+	margin: 0;
+	padding: 0;
+	display: flex;
+	flex-wrap: nowrap;
+	overflow-x: auto;
+	white-space: nowrap;
+	scrollbar-width: none;
+}
+.breadcrumbs li { display: flex; align-items: center; }
+.breadcrumbs li + li::before { content: "›"; margin: 0 8px; color: var(--ink-soft); }
+.breadcrumbs a { color: var(--ink-soft); padding-block: 10px; }
+.breadcrumbs a:hover { color: var(--tomato); }
+.breadcrumbs [aria-current] { color: var(--ink); font-weight: 600; overflow: hidden; text-overflow: ellipsis; max-width: 40ch; }
+
+/* ---------------------------------------------------------------
+   Search filters
+---------------------------------------------------------------- */
+.filters { margin-top: 18px; }
+.chips--scroll { flex-wrap: nowrap; overflow-x: auto; padding-bottom: 6px; scrollbar-width: thin; }
+.chips--scroll .chip { white-space: nowrap; }
+
+/* ---------------------------------------------------------------
+   Related posts
+---------------------------------------------------------------- */
+.related { padding-block: 16px 24px; }
+.related__grid {
+	display: grid;
+	grid-template-columns: repeat(auto-fill, minmax(min(100%, 280px), 1fr));
+	gap: 28px;
+}
+@media (max-width: 600px) {
+	/* Phones: stacked horizontal cards (thumbnail left, title right). */
+	.related__grid { gap: 16px; }
+	.related .trip-card__link { flex-direction: row; align-items: center; gap: 14px; }
+	.related .trip-card__media { flex: 0 0 104px; }
+	.related .trip-card__img { aspect-ratio: 1 / 1; }
+	.related .trip-card__title { font-size: 1.15rem; }
+	.related .trip-card__excerpt, .related .stamp--photo { display: none; }
+	.related .trip-card__score { font-size: 0.95rem; padding: 3px 8px; }
+}
+
+.trip-card__body { display: flex; flex-direction: column; gap: 4px; }
+.trip-card__body .eyebrow { margin: 0; }
+.trip-card__score {
+	position: absolute;
+	left: 12px; bottom: 12px;
+	padding: 4px 10px;
+	border-radius: var(--radius);
+	background: var(--ink);
+	color: var(--mustard-light);
+	font-family: var(--font-display);
+	font-size: 1.2rem;
+	line-height: 1.2;
+}
+.trip-card__score small { font-size: 0.6em; color: var(--on-ink-soft); }
+
+/* ---------------------------------------------------------------
+   Bite Rating: verdict + "How I rate" index
+---------------------------------------------------------------- */
+.bite-rating__verdict { font-weight: 700; color: var(--tomato); }
+.bite-rating__how { font-size: 0.95rem; }
+
+.reviews-layout {
+	display: grid;
+	grid-template-columns: repeat(auto-fit, minmax(min(100%, 380px), 1fr));
+	gap: 40px 56px;
+	align-items: start;
+	padding-bottom: 64px;
+}
+.bite-index {
+	background: var(--paper-deep);
+	border: 2px dashed var(--tomato);
+	border-radius: var(--radius);
+	padding: clamp(22px, 4vw, 34px);
+	transform: rotate(-0.6deg);
+	box-shadow: 0 18px 30px -24px rgba(31, 27, 23, 0.6);
+	scroll-margin-top: 24px;
+}
+.bite-index__stamp { margin: 0 0 12px; }
+.bite-index__title { font-size: 2rem; margin: 0 0 10px; }
+.bite-index__intro { margin: 0 0 18px; line-height: 1.55; }
+.bite-index__scale { margin: 0; display: flex; flex-direction: column; gap: 14px; }
+.bite-index__band { padding-top: 12px; border-top: 1px dashed #C9B89E; }
+.bite-index__band dt { font-family: var(--font-display); font-size: 1.2rem; }
+.bite-index__range {
+	display: inline-block;
+	min-width: 4.6em;
+	color: var(--tomato);
+}
+.bite-index__band dd { margin: 4px 0 0; color: var(--ink-soft); }
+.bite-index__sign { margin: 18px 0 0; text-align: right; font-family: var(--font-display); font-size: 1.4rem; color: var(--tomato); transform: rotate(-3deg); }
+
+/* ---------------------------------------------------------------
    Footer
 ---------------------------------------------------------------- */
 .site-footer { background: var(--ink); color: var(--on-ink-soft); margin-top: auto; }

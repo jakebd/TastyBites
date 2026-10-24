@@ -364,6 +364,12 @@ add_filter( 'wp_robots', function ( $robots ) {
 function tb_search_post_types( $query ) {
 	if ( $query->is_search() && $query->is_main_query() && ! is_admin() ) {
 		$query->set( 'post_type', array( 'post', 'recipes_content', 'review_content' ) );
+		$type = tb_search_type();
+		if ( $type ) {
+			foreach ( tb_search_types()[ $type ]['args'] as $key => $value ) {
+				$query->set( $key, $value );
+			}
+		}
 	}
 }
 add_action( 'pre_get_posts', 'tb_search_post_types' );
@@ -385,6 +391,194 @@ function tb_post_label( $post = null ) {
 		}
 	}
 	return 'Journal';
+}
+
+/**
+ * Bite Rating bands: the 1–10 scale explained in Shawn's own phrases (from his posts). The index on
+ * the Reviews page and the verdict next to each score both use this list.
+ * Wording drafted from his posts; Shawn to approve (ROADMAP §1).
+ */
+function tb_rating_bands() {
+	return array(
+		array( 'min' => 9, 'range' => '9–10', 'verdict' => 'Off the charts', 'note' => 'The best of the best. Worth the drive, worth the trip.' ),
+		array( 'min' => 8, 'range' => '8–8.9', 'verdict' => 'Top 5 material', 'note' => 'If you\'re ever in town, eat here. Worth going out of your way for.' ),
+		array( 'min' => 7, 'range' => '7–7.9', 'verdict' => 'Solid', 'note' => 'Tasty, good value, homemade where it counts. I\'d come back.' ),
+		array( 'min' => 6, 'range' => '6–6.9', 'verdict' => 'It\'s OK', 'note' => 'It wasn\'t terrible, but I know there are better options.' ),
+		array( 'min' => 0, 'range' => 'Under 6', 'verdict' => 'Don\'t waste your time', 'note' => 'Out of a box, or just not done right. There are better options.' ),
+	);
+}
+
+function tb_rating_band( $rating ) {
+	foreach ( tb_rating_bands() as $band ) {
+		if ( (float) $rating >= $band['min'] ) {
+			return $band;
+		}
+	}
+	$bands = tb_rating_bands();
+	return end( $bands );
+}
+
+/**
+ * Breadcrumbs: Home › section › page, plus matching BreadcrumbList JSON-LD (built from the same trail).
+ * Not shown on the homepage.
+ */
+function tb_breadcrumb_trail() {
+	$trail = array( array( 'Home', home_url( '/' ) ) );
+
+	if ( is_singular( 'recipes_content' ) ) {
+		$trail[] = array( 'Recipes', home_url( '/recipes/' ) );
+	} elseif ( is_singular( 'review_content' ) ) {
+		$trail[] = array( 'Reviews', home_url( '/reviews/' ) );
+		$places = get_the_terms( get_queried_object_id(), 'destination' );
+		if ( $places && ! is_wp_error( $places ) ) {
+			$trail[] = array( $places[0]->name, get_term_link( $places[0] ) );
+		}
+	} elseif ( is_singular( 'post' ) ) {
+		foreach ( get_the_category( get_queried_object_id() ) as $category ) {
+			if ( 'uncategorized' !== $category->slug ) {
+				$trail[] = array( $category->name, get_category_link( $category ) );
+				break;
+			}
+		}
+	} elseif ( is_search() ) {
+		$trail[] = array( 'Search', '' );
+		return $trail;
+	} elseif ( is_404() ) {
+		$trail[] = array( 'Page not found', '' );
+		return $trail;
+	}
+
+	if ( is_singular() ) {
+		$trail[] = array( wp_strip_all_tags( get_the_title( get_queried_object_id() ) ), '' );
+	} elseif ( is_category() || is_tag() || is_tax() ) {
+		$trail[] = array( single_term_title( '', false ), '' );
+	} elseif ( is_archive() ) {
+		$trail[] = array( wp_strip_all_tags( get_the_archive_title() ), '' );
+	}
+	return $trail;
+}
+
+function tb_breadcrumbs() {
+	if ( is_front_page() ) {
+		return;
+	}
+	$trail = tb_breadcrumb_trail();
+	if ( count( $trail ) < 2 ) {
+		return;
+	}
+	echo '<nav class="breadcrumbs" aria-label="Breadcrumb"><ol>';
+	$last = count( $trail ) - 1;
+	foreach ( $trail as $i => list( $name, $url ) ) {
+		if ( $i === $last || ! $url ) {
+			echo '<li><span aria-current="page">' . esc_html( $name ) . '</span></li>';
+		} else {
+			echo '<li><a href="' . esc_url( $url ) . '">' . esc_html( $name ) . '</a></li>';
+		}
+	}
+	echo '</ol></nav>';
+
+	$items = array();
+	foreach ( $trail as $i => list( $name, $url ) ) {
+		$item = array( '@type' => 'ListItem', 'position' => $i + 1, 'name' => $name );
+		if ( $url && $i !== $last ) {
+			$item['item'] = $url;
+		}
+		$items[] = $item;
+	}
+	echo '<script type="application/ld+json">' . wp_json_encode( array(
+		'@context'        => 'https://schema.org',
+		'@type'           => 'BreadcrumbList',
+		'itemListElement' => $items,
+	), JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE ) . '</script>';
+}
+
+/**
+ * Related posts: up to 3, same destination first, then same category / content type, then recent.
+ *
+ * @return array{ title: string, posts: WP_Post[] }
+ */
+function tb_related_posts( $post = null, $count = 3 ) {
+	$post    = get_post( $post );
+	$found   = array();
+	$exclude = array( $post->ID );
+	$title   = '';
+	$base    = array(
+		'posts_per_page'      => $count,
+		'ignore_sticky_posts' => true,
+		'no_found_rows'       => true,
+		'post_status'         => 'publish',
+	);
+	$take = function ( $args ) use ( &$found, &$exclude, $count, $base ) {
+		if ( count( $found ) >= $count ) {
+			return;
+		}
+		$args['posts_per_page'] = $count - count( $found );
+		$args['post__not_in']   = $exclude;
+		foreach ( get_posts( array_merge( $base, $args ) ) as $match ) {
+			$found[]   = $match;
+			$exclude[] = $match->ID;
+		}
+	};
+
+	$places = get_the_terms( $post, 'destination' );
+	if ( $places && ! is_wp_error( $places ) ) {
+		$take( array(
+			'post_type' => array( 'post', 'review_content' ),
+			'tax_query' => array( array( 'taxonomy' => 'destination', 'terms' => wp_list_pluck( $places, 'term_id' ) ) ),
+		) );
+		if ( $found ) {
+			$title = 'More from ' . $places[0]->name;
+		}
+	}
+
+	if ( 'post' === $post->post_type ) {
+		$categories = wp_list_pluck( get_the_category( $post->ID ), 'term_id' );
+		if ( $categories ) {
+			$take( array( 'category__in' => $categories ) );
+		}
+		$title = $title ?: 'More from the journal';
+	} else {
+		$take( array( 'post_type' => $post->post_type, 'orderby' => 'rand' ) );
+		$title = $title ?: ( 'recipes_content' === $post->post_type ? 'More recipes' : 'More reviews' );
+	}
+
+	$take( array( 'post_type' => 'post' ) );
+	return array( 'title' => $title, 'posts' => $found );
+}
+
+/**
+ * Search filters: content-type chips (?type=…). Each maps to query args.
+ */
+function tb_search_types() {
+	return array(
+		'trips'   => array( 'label' => 'Road Trips', 'args' => array( 'post_type' => 'post', 'category_name' => TB_CAT_TRIPS ) ),
+		'reviews' => array( 'label' => 'Reviews', 'args' => array( 'post_type' => 'review_content' ) ),
+		'recipes' => array( 'label' => 'Recipes', 'args' => array( 'post_type' => 'recipes_content' ) ),
+		'opinion' => array( 'label' => 'My 2 Cents', 'args' => array( 'post_type' => 'post', 'category_name' => TB_CAT_TWO_CENTS ) ),
+	);
+}
+
+function tb_search_type() {
+	$type = isset( $_GET['type'] ) ? sanitize_key( wp_unslash( $_GET['type'] ) ) : '';
+	return array_key_exists( $type, tb_search_types() ) ? $type : '';
+}
+
+/**
+ * Result count for a search term per filter ('' = all types).
+ */
+function tb_search_count( $term, $type = '' ) {
+	$args = array(
+		's'              => $term,
+		'post_type'      => array( 'post', 'recipes_content', 'review_content' ),
+		'post_status'    => 'publish',
+		'posts_per_page' => 1,
+		'fields'         => 'ids',
+	);
+	if ( $type ) {
+		$args = array_merge( $args, tb_search_types()[ $type ]['args'] );
+	}
+	$query = new WP_Query( $args );
+	return (int) $query->found_posts;
 }
 
 /**

@@ -13,6 +13,7 @@ $tb_recipes = new WP_Query( array(
 ?>
 <main id="main" class="archive">
 	<header class="archive__header wrap">
+		<?php tb_breadcrumbs(); ?>
 		<p class="eyebrow">From Shawn's Kitchen</p>
 		<h1 class="archive__title">Recipes</h1>
 		<p class="archive__intro">Comfort food the way a chef makes it at home.</p>

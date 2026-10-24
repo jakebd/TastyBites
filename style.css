@@ -805,6 +805,7 @@ h1, h2, h3, h4 {
 	box-shadow: 0 18px 30px -24px rgba(31, 27, 23, 0.6);
 	scroll-margin-top: 24px;
 }
+@media (max-width: 480px) { .bite-index { transform: none; } }
 .bite-index__stamp { margin: 0 0 12px; }
 .bite-index__title { font-size: 2rem; margin: 0 0 10px; }
 .bite-index__intro { margin: 0 0 18px; line-height: 1.55; }

@@ -53,7 +53,9 @@ Built and refreshed by `scripts/refresh-staging.sh`, which:
 - puts the whole site behind HTTP basic auth (username/password in `~/.staging-basicauth`
   on the server, also copied into your local `.env` as `staging_basic_auth`).
 
-Your WP admin login on staging is the same as production at the time of the last refresh.
+**WP admin on staging:** WHC's "log in to wp-admin" button is SSO for production only, so
+staging has its own administrator, `staging-admin`. Its password lives in `~/.staging-admin` on the
+server and in your local `.env` as `staging_wp_admin`. It is recreated on every refresh with the same password.
 
 Refreshing overwrites everything on staging, so redeploy your branch afterwards.
 

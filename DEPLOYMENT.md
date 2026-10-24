@@ -47,7 +47,15 @@ bash scripts/rollback.sh production          # list backups
 bash scripts/rollback.sh production latest   # restore the most recent backup
 bash scripts/refresh-staging.sh              # re-clone prod -> staging (files + DB)
 bash scripts/pull-live-theme.sh production   # copy the server's theme into your working tree
+bash scripts/migrate.sh staging scripts/migrations/<file>.php   # run a content migration (DB backup first)
 ```
+
+### Content migrations
+
+Theme deploys only ship files. Changes to content (categories, menus, Customizer settings) are PHP
+scripts in `scripts/migrations/`, run with WordPress's APIs via `scripts/migrate.sh`. That script backs up
+the database to `~/deploy/<env>/db-backups/` first (last 10 kept) and asks before touching production.
+Write migrations so they are safe to run twice. Run on staging first, then production.
 
 ## What a deploy does
 

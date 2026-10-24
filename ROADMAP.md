@@ -44,17 +44,31 @@ section hides itself rather than showing something broken.
 | Next stops | An *Upcoming trips* list (month + places) in one admin settings screen. Entries hide themselves once their month has passed | Nothing (Jacob keeps it current) | Assistant proposes updates when a post mentions future plans (§2.6) |
 
 ### Tasks
-- [ ] Restructure content: categories Road Trips, Restaurant Reviews, My 2 Cents, The Early Years
-      (+ About Content). Re-tag the existing 15 posts. Fix the "Grandville Island" spelling. Remove the
-      duplicate Uncategorized. Needs Shawn's OK on category names.
-- [ ] `theme.json` with the Road Journal tokens (colours, fonts, spacing), so the editor matches the site.
-- [ ] New header, footer and homepage sections per the table above.
-- [ ] Single post template for long trip posts: readable measure, day headings, big photos, gallery lightbox.
-- [ ] Category/archive pages, search results page, About page ("Meet Shawn" + Early Years).
-- [ ] Recipe and review templates restyled.
+Built on branch `road-journal`, live on staging since 2026-10-24.
+
+- [~] Restructure content: categories Road Trips, My 2 Cents, The Early Years, Updates replace "Blog";
+      destinations with stamp codes; "Grandville Island" tag fixed; duplicate Uncategorized removed; menu
+      rebuilt. Script: `scripts/migrations/road-journal-content.php`. **Done on staging; production waits
+      for Shawn's OK on the category names.**
+- [x] `theme.json` with the Road Journal tokens, self-hosted fonts, editor styles (editor now matches the site).
+- [x] New header (with search) and footer, phone menu.
+- [x] Homepage sections per the table above, each hiding itself when empty.
+- [x] Single template for posts, recipes and reviews (reading column, Bite Rating in the header).
+- [x] Category/destination archives, search results page, 404, About page ("Meet Shawn" + About Content).
+- [x] Recipes and Reviews pages restyled (reviews sorted by score).
+- [x] Removed Bootstrap, the Font Awesome 4.7 CDN link and the old per-page CSS files.
+- [x] Checked on staging in the browser at desktop and tablet/phone widths.
 - [ ] Comments section on posts (see §3).
-- [ ] Check every template on desktop and phone in the browser before each deploy.
-- [ ] Remove Bootstrap and the Font Awesome 4.7 CDN once nothing uses them.
+- [ ] Gallery lightbox for photo-heavy trip posts.
+- [ ] Check at true phone width (≈390px) on a real phone.
+
+### Production rollout (in this order)
+1. Shawn OKs the category names above (rename in the migration script first if he wants different ones).
+2. Merge `road-journal` → `main` and approve the production deploy. Until step 3 runs, the homepage
+   falls back to the old "Blog" category and the menu stays as it was: nothing breaks.
+3. Straight after: `bash scripts/migrate.sh production scripts/migrations/road-journal-content.php`
+   (takes a DB backup first; needs the new theme's Destinations taxonomy, which is why it runs after the deploy).
+4. Spot-check the homepage, a trip post, search and the phone menu.
 
 ---
 
@@ -152,14 +166,12 @@ Found while reviewing the site in October 2026. Test each on staging first.
 
 - [x] Update outdated plugins: done by Jacob on staging and production, 2026-10-24.
 - [ ] Turn off `WP_DEBUG` on production (it's on, and `public_html/error_log` is ~19 MB; it is not publicly readable).
-- [ ] Replace hard-coded image attachment IDs: the logo (`385` in `header.php`, could use WordPress's custom
-      logo setting) and the blog card icon (`384` in `front-page.php`). Likely solved by the redesign.
-- [ ] Remove the Font Awesome 4.7 CDN link in `header.php`. The icons use FA 6 classes from the Font Awesome plugin.
-- [ ] Query categories by slug (`'category_name' => 'blog'`) instead of looping over every category in
-      `front-page.php` and `page-about.php`.
-- [ ] Remove the redundant nested loop in `render_rating_shortcode()` (`functions.php`).
-- [ ] Escape output in templates (`esc_attr( get_the_title() )` in the wrapper `id`s, `esc_url()` on image URLs).
-- [ ] Add a theme header (`Theme Name:` etc.) to the top of `style.css` so WP admin shows proper theme details.
+- [x] Replace hard-coded image attachment IDs: the redesign uses the Customizer logo (falls back to `385`); the blog card icon is gone.
+- [x] Remove the Font Awesome 4.7 CDN link in `header.php` (redesign).
+- [x] Query categories by slug instead of looping over every category (redesign).
+- [x] Remove the redundant nested loop in `render_rating_shortcode()` (redesign).
+- [x] Escape output in templates (redesign rewrote them).
+- [x] Add a theme header to `style.css` (redesign).
 
 ---
 

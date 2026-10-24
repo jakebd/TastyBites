@@ -56,7 +56,7 @@ backlog are tracked in **[ROADMAP.md](ROADMAP.md)**.
 
 ## Technologies Used
 - **WordPress** 7.1 on PHP 8.2, LiteSpeed web server.
-- **Theme:** this repo: classic PHP templates, Bootstrap 5.3 (CDN), custom CSS per page in `assets/css/`.
+- **Theme:** this repo: classic PHP templates + `theme.json` design tokens ("Road Journal" design), one stylesheet (`style.css`), self-hosted Young Serif and Source Sans 3 fonts.
 - **Plugins:**
   - **Advanced Custom Fields (ACF):** custom fields on posts.
   - **Custom Post Type UI:** the recipe and review post types.
@@ -71,10 +71,12 @@ backlog are tracked in **[ROADMAP.md](ROADMAP.md)**.
 ## Repository layout
 
 ```
-*.php, style.css        theme templates and main stylesheet
-assets/css, assets/js   per-page styles and the mobile menu script
-patterns/               block patterns used as templates for new recipes and reviews
-scripts/                deploy, rollback, staging refresh (not shipped to the server)
+*.php, style.css        theme templates and the stylesheet
+theme.json              design tokens (colours, fonts, sizes) and editor settings
+template-parts/         cards shared by the homepage, archives and search
+assets/                 fonts, editor stylesheet, phone-menu script
+inc/patterns/           block patterns used as templates for new recipes and reviews
+scripts/                deploy, rollback, staging refresh, content migrations (not shipped to the server)
 .github/workflows/      GitHub Actions deploy workflow
 DEPLOYMENT.md           how deployment and staging work
 ROADMAP.md              feature backlog, ideas and decisions

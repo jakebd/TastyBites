@@ -22,9 +22,9 @@ remote "mkdir -p ~/deploy/$ENVIRONMENT/migrations ~/deploy/$ENVIRONMENT/db-backu
 upload "$MIGRATION" "deploy/$ENVIRONMENT/migrations/$NAME"
 
 echo "==> Backing up the $ENVIRONMENT database"
-remote "wp --path=~/$WP_ROOT --skip-plugins --skip-themes db export ~/deploy/$ENVIRONMENT/db-backups/before-$NAME-$STAMP.sql --single-transaction --quiet && ls -1t ~/deploy/$ENVIRONMENT/db-backups/*.sql | tail -n +11 | xargs -r rm -f"
+remote "wp --path=$WP_ROOT --skip-plugins --skip-themes db export ~/deploy/$ENVIRONMENT/db-backups/before-$NAME-$STAMP.sql --single-transaction --quiet && ls -1t ~/deploy/$ENVIRONMENT/db-backups/*.sql | tail -n +11 | xargs -r rm -f"
 echo "    ~/deploy/$ENVIRONMENT/db-backups/before-$NAME-$STAMP.sql"
 
 echo "==> Running $NAME on $ENVIRONMENT"
-remote "wp --path=~/$WP_ROOT eval-file ~/deploy/$ENVIRONMENT/migrations/$NAME 2>&1 | grep -v _load_textdomain_just_in_time"
-remote "wp --path=~/$WP_ROOT litespeed-purge all >/dev/null 2>&1 || find ~/lscache -type f -delete 2>/dev/null || true"
+remote "wp --path=$WP_ROOT eval-file ~/deploy/$ENVIRONMENT/migrations/$NAME 2>&1 | grep -v _load_textdomain_just_in_time"
+remote "wp --path=$WP_ROOT litespeed-purge all >/dev/null 2>&1 || find ~/lscache -type f -delete 2>/dev/null || true"

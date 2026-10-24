@@ -41,6 +41,7 @@ html { -webkit-text-size-adjust: 100%; }
 
 body {
 	margin: 0;
+	overflow-wrap: break-word;
 	background: var(--paper);
 	color: var(--ink);
 	font-family: var(--font-body);
@@ -383,9 +384,9 @@ h1, h2, h3, h4 {
 	font-family: var(--font-display);
 	font-size: 1.5rem;
 }
-.scoreboard__name { flex: 1; font-weight: 700; font-size: 1.1rem; line-height: 1.3; }
+.scoreboard__name { flex: 1; min-width: 0; overflow-wrap: anywhere; font-weight: 700; font-size: 1.1rem; line-height: 1.3; }
 .scoreboard__name small { display: block; font-weight: 400; font-size: 0.9rem; color: var(--on-ink-soft); }
-.scoreboard__score { font-family: var(--font-display); font-size: 1.9rem; color: var(--mustard-light); }
+.scoreboard__score { flex: none; font-family: var(--font-display); font-size: 1.9rem; color: var(--mustard-light); }
 
 .scoreboard--light .scoreboard__row + .scoreboard__row { border-top-color: #D8CCB8; }
 .scoreboard--light .scoreboard__name small { color: var(--ink-soft); }

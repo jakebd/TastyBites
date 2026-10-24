@@ -701,7 +701,8 @@ h1, h2, h3, h4 {
 /* Bite Rating: drumsticks + score. */
 .bite-rating { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 14px; margin-block: 0 1.4em; }
 .bite-rating__label { font-size: 0.82rem; font-weight: 700; letter-spacing: 0.14em; text-transform: uppercase; color: var(--ink-soft); }
-.bite-rating__sticks { display: inline-flex; gap: 3px; color: #CDBFA8; font-size: 1.15rem; }
+.bite-rating__sticks { display: inline-flex; flex-wrap: wrap; max-width: 100%; gap: 3px; color: #CDBFA8; font-size: 1.15rem; }
+.bite-rating { max-width: 100%; }
 .bite-rating__sticks .is-on { color: var(--tomato); }
 .bite-rating__score { font-family: var(--font-display); font-size: 1.6rem; color: var(--ink); }
 .bite-rating--header { margin-top: 18px; }

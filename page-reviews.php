@@ -1,56 +1,40 @@
-<!-- Review Template file -->
 <?php
-    get_header();
-    echo "<div id='".get_the_title()."'>";
+/**
+ * Reviews page: every rated restaurant, best first.
+ */
+get_header();
 
-    $args = array(
-        'posts_per_page' => 10,
-        'order' => 'ASC',
-        'post_type' => 'review_content', // Specify the custom post type
-    );
-
-    $found_reviews = new WP_Query($args);
-    echo "<div class='container'>";
-    echo "<div class='review-container'>";
-    if ($found_reviews->have_posts()) {
-        while ($found_reviews->have_posts()) {
-            $found_reviews->the_post();
-            $review_rating = get_post_meta(get_the_ID(), 'review_rating', true);
-
-            ?>
-                <div class="review-card">
-                    <a class="overlay" href="<?=the_permalink();?>"></a>
-                    <img class="reviewcard-img" src="<?= get_the_post_thumbnail_url($post,'large'); ?>" alt="<?= the_title(); ?>" />
-                    <div class="reviewcard-textbox">
-                        <div class="reviewcard-title"><?= the_title(); ?></div>
-                        <div class="reviewcard-subtitle"><?= get_the_date(); ?></div>
-                        <div class="reviewcard-rating-wrapper">
-                            <div class="review-rating-title">Bite Rating </div>
-                            <div class="reviewcard-rating-container">
-                            <?php
-                                if ($review_rating) {
-                                    for($i=0; $i<10; $i++){
-                                        if($i < (int)$review_rating){
-                                            echo '<i class="fa-solid fa-drumstick-bite checked"></i>';
-                                        }else{
-                                            echo '<i class="fa-solid fa-drumstick-bite"></i>';
-                                        }
-                                    }
-                                }
-                            ?>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            <?php
-        }
-    }
-    echo "</div>";
-    echo "</div>";
-    echo "</div>"; //close the parent container
-
-    wp_reset_postdata();
-
-
-    get_footer();
-?> 
+$tb_reviews = new WP_Query( array(
+	'post_type'      => 'review_content',
+	'posts_per_page' => -1,
+	'meta_key'       => 'review_rating',
+	'orderby'        => 'meta_value_num',
+	'order'          => 'DESC',
+) );
+?>
+<main id="main" class="archive">
+	<header class="archive__header wrap">
+		<p class="eyebrow">The Bite Rating</p>
+		<h1 class="archive__title">Restaurant Reviews</h1>
+		<p class="archive__intro">Every restaurant scored out of 10. Homemade fries earn points. Boxed country fried steak does not.</p>
+	</header>
+	<div class="wrap">
+		<ol class="scoreboard scoreboard--light">
+			<?php while ( $tb_reviews->have_posts() ) : $tb_reviews->the_post(); ?>
+				<li class="scoreboard__row">
+					<a class="scoreboard__link" href="<?php the_permalink(); ?>">
+						<?php if ( has_post_thumbnail() ) : ?>
+							<?php the_post_thumbnail( 'thumbnail', array( 'class' => 'scoreboard__img', 'alt' => '' ) ); ?>
+						<?php else : ?>
+							<span class="scoreboard__img scoreboard__img--letter" aria-hidden="true"><?php echo esc_html( mb_substr( get_the_title(), 0, 1 ) ); ?></span>
+						<?php endif; ?>
+						<span class="scoreboard__name"><?php the_title(); ?><small><?php echo esc_html( get_the_date( 'F Y' ) ); ?></small></span>
+						<span class="scoreboard__score"><?php echo esc_html( tb_format_score( get_post_meta( get_the_ID(), 'review_rating', true ) ) ); ?></span>
+					</a>
+				</li>
+			<?php endwhile; wp_reset_postdata(); ?>
+		</ol>
+	</div>
+</main>
+<?php
+get_footer();

@@ -1,42 +1,50 @@
 <?php
+/**
+ * Single post, recipe or review: a readable column for Shawn's long, photo-heavy posts.
+ */
 get_header();
 
-while ( have_posts() ) : 
-    the_post();
+while ( have_posts() ) :
+	the_post();
+	$tb_stamp  = tb_post_stamp();
+	$tb_rating = 'review_content' === get_post_type() ? get_post_meta( get_the_ID(), 'review_rating', true ) : '';
+	?>
+	<main id="main" class="single">
+		<article <?php post_class( 'entry' ); ?>>
+			<header class="entry__header wrap wrap--narrow">
+				<p class="eyebrow">
+					<?php echo esc_html( tb_post_label() ); ?> · <time datetime="<?php echo esc_attr( get_the_date( 'c' ) ); ?>"><?php echo esc_html( get_the_date() ); ?></time>
+				</p>
+				<h1 class="entry__title"><?php the_title(); ?></h1>
+				<div class="entry__meta">
+					<?php echo get_avatar( get_the_author_meta( 'ID' ), 44, '', '', array( 'class' => 'entry__avatar' ) ); ?>
+					<span>By <?php the_author(); ?></span>
+					<?php if ( $tb_stamp ) : ?>
+						<span class="stamp stamp--tilt"><?php echo esc_html( $tb_stamp ); ?></span>
+					<?php endif; ?>
+				</div>
+				<?php if ( $tb_rating ) : ?>
+					<div class="bite-rating bite-rating--header"><span class="bite-rating__label">Bite Rating</span><?php echo tb_rating_markup( $tb_rating ); // phpcs:ignore WordPress.Security.EscapeOutput -- built from escaped parts. ?></div>
+				<?php endif; ?>
+			</header>
 
-    $post = get_post();
-    $author_name = get_the_author_meta( 'display_name', $post->post_author );
-    $avatar_src = get_avatar_url( $post->post_author );
-?>
+			<?php if ( has_post_thumbnail() ) : ?>
+				<figure class="entry__hero wrap">
+					<?php the_post_thumbnail( 'large', array( 'class' => 'entry__hero-img', 'fetchpriority' => 'high', 'loading' => 'eager' ) ); ?>
+				</figure>
+			<?php endif; ?>
 
-<div class="post-wrapper">
-    <div class="post-content">
-        <!-- Post content -->
-        <article>
-            <!-- Post header -->
-            <header class="post-header">
-                <!-- Post title -->
-                <h1 class="post-title"><?= the_title() ?></h1>
-                <!-- Post meta content -->
-                <div class="post-author-info">
-                    <img src="<?= $avatar_src ?>" class="post-author-avatar" alt="Author's avatar">
-                    <span class="post-author-name"><?= $author_name ?></span>
-                </div>
-            </header>
-            <!-- Post thumbnail -->
-            <figure class="post-thumbnail-wrapper">
-                <img class="post-thumbnail" src="<?= get_the_post_thumbnail_url( $post, 'large' ) ?>" alt="Post thumbnail">
-            </figure>
-            <!-- Post content -->
-            <section class="post-body">
-                <?= the_content() ?>
-            </section>
-        </article>
-    </div>
-</div>
+			<div class="entry__content prose">
+				<?php the_content(); ?>
+			</div>
+		</article>
 
-<?php
+		<nav class="post-nav wrap wrap--narrow" aria-label="More posts">
+			<div class="post-nav__prev"><?php previous_post_link( '%link', '<span class="eyebrow">Previous</span> %title' ); ?></div>
+			<div class="post-nav__next"><?php next_post_link( '%link', '<span class="eyebrow">Next</span> %title' ); ?></div>
+		</nav>
+	</main>
+	<?php
 endwhile;
 
 get_footer();
-?>

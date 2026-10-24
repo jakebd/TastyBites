@@ -1,12 +1,5 @@
 <?php
-get_header();
-echo "<div class='body-container'>";
-if ( have_posts() ) :
-    while ( have_posts() ) : the_post();
-        echo "<div class='page-title'>".get_the_title()."</div>";
-        the_content();
-    endwhile;
-endif;
-echo "<div>";
-get_footer();
-?> 
+/**
+ * Fallback template: the same list layout as archives.
+ */
+get_template_part( 'archive' );

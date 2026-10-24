@@ -1,0 +1,15 @@
+/* Block editor: match the site's reading column so Shawn sees what readers will see.
+   Fonts and colours come from theme.json. */
+body {
+	background: #F3ECDF;
+	color: #1F1B17;
+	font-size: 1.125rem;
+	line-height: 1.65;
+}
+.editor-styles-wrapper .wp-block { max-width: 720px; }
+.editor-styles-wrapper .wp-block[data-align="wide"],
+.editor-styles-wrapper .wp-block-gallery { max-width: 980px; }
+.editor-styles-wrapper .wp-block[data-align="full"] { max-width: none; }
+.editor-styles-wrapper .editor-post-title { font-size: 3rem; line-height: 1.05; }
+.editor-styles-wrapper figcaption { font-style: italic; color: #5A5048; }
+.editor-styles-wrapper .wp-block-quote { border-left: 0; font-size: 1.35rem; }

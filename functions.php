@@ -298,7 +298,7 @@ add_filter( 'wp_trim_excerpt', function ( $excerpt, $raw ) {
 	if ( '' !== $raw ) {
 		return $excerpt;
 	}
-	$content = preg_replace( '#<(h[1-6]|figcaption)[^>]*>.*?</>#is', ' ', get_the_content() );
+	$content = preg_replace( '#<(h[1-6]|figcaption)[^>]*>.*?</\1>#is', ' ', get_the_content() );
 	$text    = wp_strip_all_tags( strip_shortcodes( excerpt_remove_blocks( $content ) ) );
 	$text    = preg_replace( '/^\s*day \d+\s+/i', '', $text );
 	$excerpt = wp_trim_words( $text, apply_filters( 'excerpt_length', 26 ), '…' );

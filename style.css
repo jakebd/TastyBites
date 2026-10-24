@@ -631,6 +631,21 @@ h1, h2, h3, h4 {
 	aspect-ratio: 4 / 3;
 	object-fit: cover;
 }
+/* Captions in photo grids sit on the photo (like gallery captions), so rows stay even. */
+.prose .wp-block-group.is-layout-grid > figure { position: relative; }
+.prose .wp-block-group.is-layout-grid > figure > figcaption {
+	position: absolute;
+	left: 0; right: 0; bottom: 0;
+	margin: 0;
+	padding: 28px 10px 8px;
+	border-radius: 0 0 4px 4px;
+	background: linear-gradient(to top, rgba(0, 0, 0, 0.72), rgba(0, 0, 0, 0));
+	color: #fff;
+	font-style: normal;
+	font-size: 0.85rem;
+	text-align: left;
+	pointer-events: none;
+}
 .prose .wp-block-group.is-layout-grid > figure > .wp-lightbox-container,
 .prose .wp-block-gallery.columns-default > figure > .wp-lightbox-container { height: 100%; }
 @media (max-width: 560px) {

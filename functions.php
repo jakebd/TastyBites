@@ -50,9 +50,10 @@ function tb_setup() {
 add_action( 'after_setup_theme', 'tb_setup' );
 
 function tb_enqueue_assets() {
-	$version = wp_get_theme()->get( 'Version' );
-	wp_enqueue_style( 'tastybites', get_stylesheet_uri(), array(), $version );
-	wp_enqueue_script( 'tastybites-nav', get_template_directory_uri() . '/assets/js/menu.js', array(), $version, true );
+	// Version by file time, so browsers and the cache pick up every deploy.
+	$dir = get_template_directory();
+	wp_enqueue_style( 'tastybites', get_stylesheet_uri(), array(), (string) filemtime( $dir . '/style.css' ) );
+	wp_enqueue_script( 'tastybites-nav', get_template_directory_uri() . '/assets/js/menu.js', array(), (string) filemtime( $dir . '/assets/js/menu.js' ), true );
 }
 add_action( 'wp_enqueue_scripts', 'tb_enqueue_assets' );
 
@@ -290,6 +291,14 @@ add_filter( 'excerpt_length', function () {
 add_filter( 'excerpt_more', function () {
 	return '…';
 } );
+
+// Shawn often opens a post with a short "Day 1" line; skip it in automatic excerpts.
+add_filter( 'wp_trim_excerpt', function ( $excerpt, $raw ) {
+	return '' === $raw ? preg_replace( '/^\s*day \d+\s+/i', '', $excerpt ) : $excerpt;
+}, 10, 2 );
+
+// Archive headings: "Road Trips", not "Category: Road Trips".
+add_filter( 'get_the_archive_title_prefix', '__return_empty_string' );
 
 /**
  * Search covers posts, recipes and reviews, but not pages.

@@ -15,3 +15,4 @@ scripts        export-ignore
 .env.example   export-ignore
 README.md      export-ignore
 DEPLOYMENT.md  export-ignore
+CLAUDE.md      export-ignore

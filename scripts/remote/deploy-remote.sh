@@ -32,7 +32,7 @@ done < <(find "$RELEASE" -name '*.php' -print0)
 if [ -d "$THEME_DIR" ] && [ -f "$MANIFEST" ]; then
 	if ! diff -q <(manifest_of "$THEME_DIR") "$MANIFEST" >/dev/null; then
 		echo "--> WARNING: the live theme was changed outside of this pipeline since the last deploy:"
-		diff <(manifest_of "$THEME_DIR") "$MANIFEST" | grep '^[<>]' | awk '{print "    " $1 " " $3}' | sort -u -k2
+		{ diff <(manifest_of "$THEME_DIR") "$MANIFEST" || true; } | grep '^[<>]' | awk '{print "    " $3}' | sort -u
 		if [ "$FORCE" != 1 ]; then
 			echo "Aborting so those edits are not lost. Pull them into git (scripts/pull-live-theme.sh $ENVIRONMENT)"
 			echo "or re-run with FORCE=1 to overwrite them (a backup is still taken)."

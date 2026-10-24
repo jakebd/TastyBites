@@ -55,6 +55,19 @@ for pair in "$PROD_URL|$STG_URL" "http://gengiestastybites.ca|$STG_URL" "https:/
 done
 $WPS option update blog_public 0 --quiet
 
+echo "--> Ensuring staging admin login"
+# Production only has WHC's SSO admin (no known password), so staging gets its own
+# admin. The cloned DB never contains it, so (re)create it on every refresh.
+if [ ! -f "$HOME/.staging-admin" ]; then
+	( umask 077; echo "staging-admin:$(head -c 24 /dev/urandom | base64 | tr -dc 'A-Za-z0-9' | head -c 20)" > "$HOME/.staging-admin" )
+fi
+ADMIN_USER="$(cut -d: -f1 "$HOME/.staging-admin")" ADMIN_PASS="$(cut -d: -f2- "$HOME/.staging-admin")"
+if $WPS user get "$ADMIN_USER" --field=ID >/dev/null 2>&1; then
+	$WPS user update "$ADMIN_USER" --user_pass="$ADMIN_PASS" --role=administrator --skip-email --quiet
+else
+	$WPS user create "$ADMIN_USER" staging-admin@gengiestastybites.ca --role=administrator --user_pass="$ADMIN_PASS" --quiet
+fi
+
 echo "--> Installing staging safeguards"
 cat > "$STG/wp-content/mu-plugins/zz-staging.php" <<'PHP'
 <?php

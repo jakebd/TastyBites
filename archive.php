@@ -5,7 +5,7 @@
 get_header();
 ?>
 <main id="main" class="archive">
-	<header class="archive__header wrap">
+	<header class="archive__header wrap wrap--list">
 		<p class="eyebrow"><?php echo is_tax( 'destination' ) ? 'Destination' : ( is_category() ? 'Category' : 'Archive' ); ?></p>
 		<h1 class="archive__title"><?php echo esc_html( wp_strip_all_tags( get_the_archive_title() ) ); ?></h1>
 		<?php the_archive_description( '<div class="archive__intro">', '</div>' ); ?>

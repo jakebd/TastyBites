@@ -292,13 +292,71 @@ add_filter( 'excerpt_more', function () {
 	return '…';
 } );
 
-// Shawn often opens a post with a short "Day 1" line; skip it in automatic excerpts.
+// Automatic excerpts: skip a leading "Day 1" line, and don't end in "…." when the cut lands on punctuation.
 add_filter( 'wp_trim_excerpt', function ( $excerpt, $raw ) {
-	return '' === $raw ? preg_replace( '/^\s*day \d+\s+/i', '', $excerpt ) : $excerpt;
+	if ( '' !== $raw ) {
+		return $excerpt;
+	}
+	$excerpt = preg_replace( '/^\s*day \d+\s+/i', '', $excerpt );
+	return preg_replace( '/[\s.,;:!?]+…$/u', '…', $excerpt );
 }, 10, 2 );
 
 // Archive headings: "Road Trips", not "Category: Road Trips".
 add_filter( 'get_the_archive_title_prefix', '__return_empty_string' );
+
+/**
+ * Template ground rules for post content (see ROADMAP §0): generic rules that hold for every post,
+ * so the theme never needs per-post special cases.
+ */
+
+// An empty heading or list item (left over from the block patterns) is not rendered at all.
+function tb_drop_empty_blocks( $content, $block ) {
+	if ( '' === trim( html_entity_decode( wp_strip_all_tags( $content ), ENT_QUOTES | ENT_HTML5 ), " \t\n\r\0\x0B\xC2\xA0" ) && false === strpos( $content, '<img' ) ) {
+		return '';
+	}
+	return $content;
+}
+add_filter( 'render_block_core/heading', 'tb_drop_empty_blocks', 10, 2 );
+add_filter( 'render_block_core/list-item', 'tb_drop_empty_blocks', 10, 2 );
+
+// Tell browsers how wide content images actually display, so they download a reading-column-sized
+// file instead of the full-size original.
+add_filter( 'wp_calculate_image_sizes', function ( $sizes ) {
+	if ( is_admin() || ! is_singular() ) {
+		return $sizes;
+	}
+	return '(max-width: 760px) calc(100vw - 32px), 720px';
+} );
+
+/**
+ * Housekeeping that keeps the site's URLs clean.
+ */
+
+// Rewrite rules must be rebuilt when the theme adds URL types (the Destinations taxonomy).
+// Bump the version when that happens again; the first request after a deploy rebuilds them once.
+const TB_REWRITE_VERSION = '1';
+add_action( 'init', function () {
+	if ( get_option( 'tb_rewrite_version' ) !== TB_REWRITE_VERSION ) {
+		flush_rewrite_rules( false );
+		update_option( 'tb_rewrite_version', TB_REWRITE_VERSION );
+	}
+}, 99 );
+
+// The homepage is a static page, so /page/2/ would just repeat it: send it home.
+add_action( 'template_redirect', function () {
+	if ( is_front_page() && ( get_query_var( 'paged' ) > 1 || get_query_var( 'page' ) > 1 ) ) {
+		wp_safe_redirect( home_url( '/' ), 301 );
+		exit;
+	}
+} );
+
+// Keep empty category/tag/destination pages out of search engines.
+add_filter( 'wp_robots', function ( $robots ) {
+	if ( ( is_category() || is_tag() || is_tax() ) && ! have_posts() ) {
+		$robots['noindex'] = true;
+	}
+	return $robots;
+} );
 
 /**
  * Search covers posts, recipes and reviews, but not pages.

@@ -54,6 +54,11 @@
 		},
 		"spacing": {
 			"units": [ "px", "rem", "%" ]
+		},
+		"blocks": {
+			"core/image": {
+				"lightbox": { "enabled": true, "allowEditing": true }
+			}
 		}
 	},
 	"styles": {

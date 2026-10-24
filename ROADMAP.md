@@ -14,7 +14,28 @@ Status: `[ ]` planned · `[~]` in progress · `[x]` done · `(?)` idea, needs di
 
 ---
 
-## 1. Redesign: "Road Journal" (in progress)
+## 0. Template vs. content: who fixes what
+
+Problems on the site fall into two buckets. Keep them apart.
+
+- **Template (the theme):** ground rules that hold for *every* post, whatever Shawn types.
+  Typography, the reading column, image sizing limits, galleries, spacing, hiding empty elements,
+  navigation, search, SEO tags. If a rule can be stated once and applied everywhere, it belongs here.
+- **Content (the posts):** what is actually in each post: wording, which photos, how he formatted
+  a heading, a restaurant's address. Fix it in the content, not with template special cases.
+
+**Rule of thumb:** the template must not grow edge-case CSS for individual posts. When content doesn't
+follow the template's ground rules (a "Day 2" typed as a plain paragraph instead of a heading,
+12 photos in a row instead of a gallery), the fix is to change the content to fit the rules. In
+future the AI assistant does that (§2.11), with Shawn's or Jacob's approval. Until then, content
+issues are parked in §6.
+
+Cheap, generic template rules are fine when they apply everywhere (e.g. "an empty heading is
+hidden", "portrait photos never get taller than the screen").
+
+---
+
+## 1. Redesign: "Road Journal" (in progress, staging only)
 
 Direction **A · Road Journal** was chosen on 2026-10-24 by Jacob and Shawn.
 Design canvas: https://claude.ai/artifact/Uu314G9Q5YizEABVDquG9c (private; also has the
@@ -26,6 +47,9 @@ and mustard `#C8921A` accents on charcoal `#1F1B17`, passport-stamp labels.
 Approach: restyle the existing classic theme and add a `theme.json` for design tokens and
 editor styles. Not a full block theme: that would expose the Site Editor to a non-technical author.
 
+**Goal before production:** make it feel polished and aligned with blog best practices on staging
+first. Nothing goes to production until the polish pass below is done.
+
 ### How each homepage section gets its content
 
 Every section must work with **no extra effort from Shawn**. When data is missing, a
@@ -33,7 +57,7 @@ section hides itself rather than showing something broken.
 
 | Section | Content source | Needs from Shawn | Later improvement |
 |---|---|---|---|
-| Header + search | WordPress search | Nothing | Search results page designed to match |
+| Header + search | WordPress search | Nothing | Search filters (below) |
 | Hero: latest trip | Newest post in the Road Trips category; its featured photo and first sentence | Nothing | Stamps ("10 days · 2 countries") from trip fields the assistant fills in |
 | Road Trips & Travels | Latest posts in Road Trips | Nothing | |
 | Destination stamps (NOLA, SFO…) | A *Destination* taxonomy; each term has a short stamp code, set once per place | Nothing (Jacob or the assistant tags) | Assistant suggests the destination on publish |
@@ -43,24 +67,43 @@ section hides itself rather than showing something broken.
 | Meet Shawn | Fixed text and photo, editable in one admin settings screen | Nothing | |
 | Next stops | An *Upcoming trips* list (month + places) in one admin settings screen. Entries hide themselves once their month has passed | Nothing (Jacob keeps it current) | Assistant proposes updates when a post mentions future plans (§2.6) |
 
-### Tasks
-Built on branch `road-journal`, live on staging since 2026-10-24.
-
-- [~] Restructure content: categories Road Trips, My 2 Cents, The Early Years, Updates replace "Blog";
+### Built (branch `road-journal`, on staging since 2026-10-24)
+- [~] Content restructure: categories Road Trips, My 2 Cents, The Early Years, Updates replace "Blog";
       destinations with stamp codes; "Grandville Island" tag fixed; duplicate Uncategorized removed; menu
       rebuilt. Script: `scripts/migrations/road-journal-content.php`. **Done on staging; production waits
       for Shawn's OK on the category names.**
-- [x] `theme.json` with the Road Journal tokens, self-hosted fonts, editor styles (editor now matches the site).
-- [x] New header (with search) and footer, phone menu.
-- [x] Homepage sections per the table above, each hiding itself when empty.
-- [x] Single template for posts, recipes and reviews (reading column, Bite Rating in the header).
-- [x] Category/destination archives, search results page, 404, About page ("Meet Shawn" + About Content).
-- [x] Recipes and Reviews pages restyled (reviews sorted by score).
-- [x] Removed Bootstrap, the Font Awesome 4.7 CDN link and the old per-page CSS files.
-- [x] Checked on staging in the browser at desktop and tablet/phone widths.
-- [ ] Comments section on posts (see §3).
-- [ ] Gallery lightbox for photo-heavy trip posts.
-- [ ] Check at true phone width (≈390px) on a real phone.
+- [x] `theme.json` tokens, self-hosted fonts, editor styles (the editor matches the site).
+- [x] Header with search, footer, phone menu; homepage sections; single, archive, search, 404, About,
+      Recipes and Reviews templates. Bootstrap, the Font Awesome 4.7 link and the old per-page CSS removed.
+
+### Polish pass: template bugs (from the fresh-eyes review, 2026-10-24)
+- [ ] Destination archive URLs 404 (rewrite rules were never flushed after adding the taxonomy). Also
+      flush in the migration so production doesn't hit it.
+- [ ] Recipe "Time to cook" badge sits at the screen edge instead of in the text column.
+- [ ] Archive headings are wider than the list beneath them (misaligned on desktop).
+- [ ] Card excerpts end in "…." (double punctuation).
+- [ ] `/page/2/` serves a duplicate of the homepage.
+- [ ] Empty categories ("Blog", "Uncategorized") are public; hide or noindex empty archives.
+- [ ] Santa Monica stamp "LAX" reads as an airport. Use a place-style code.
+- [ ] Images from the old WHC address `wp230263.wpdns.ca` (15 images in 3 posts on production; it's a parked
+      domain on the same account). Point them at the main domain with a search-replace migration.
+- [ ] Ground rules for images: portrait photos never taller than the screen; browsers download images
+      sized for the reading column, not full size; tap to enlarge (lightbox).
+- [ ] Ground rules for content blocks: hide empty headings and empty list items; legacy "row" groups wrap
+      instead of squeezing the text (Atlantic Kitchen, Buttermilk Biscuits).
+- [ ] Search "no results" suggestions should be links; 404 page should suggest real content.
+- [ ] About page "Today" photo: check whether the template's crop hides Shawn's face (template) or the
+      photo itself needs replacing (content, ask Shawn).
+- [ ] Mobile pass at true phone widths (360, 390 and 414px), not just a narrowed desktop window.
+
+### Polish pass: features (approved by Jacob)
+- [ ] **Search filters:** filter results by type (trips, reviews, recipes, opinions) and more; see research notes.
+- [ ] **Breadcrumbs** on posts, recipes, reviews and archives (with BreadcrumbList schema).
+- [ ] **Social icons** instead of the words "Facebook" / "Instagram" (accessible labels).
+- [ ] **Bite Rating index:** a legend on the Reviews page explaining the 1–10 scale, written so it reads as if it
+      came from Shawn. Draft from his own scores and phrases; Shawn approves the wording.
+- [ ] **Related posts** at the end of posts, recipes and reviews (same destination, category or type).
+- [ ] Gallery lightbox for photo-heavy trip posts (see image ground rules).
 
 ### Production rollout (in this order)
 1. Shawn OKs the category names above (rename in the migration script first if he wants different ones).
@@ -68,7 +111,9 @@ Built on branch `road-journal`, live on staging since 2026-10-24.
    falls back to the old "Blog" category and the menu stays as it was: nothing breaks.
 3. Straight after: `bash scripts/migrate.sh production scripts/migrations/road-journal-content.php`
    (takes a DB backup first; needs the new theme's Destinations taxonomy, which is why it runs after the deploy).
-4. Spot-check the homepage, a trip post, search and the phone menu.
+4. Confirm the XML sitemap is served on production (`/wp-sitemap.xml`; on staging it's off because search
+   engines are discouraged there).
+5. Spot-check the homepage, a trip post, search and the phone menu.
 
 ---
 
@@ -95,23 +140,50 @@ Claude as the provider. Estimate the cost before building; it should be small at
 - [ ] **2.7 Comment triage:** decide on comments held for containing links (§3); approve genuine ones.
 - (?) **2.8 Proofread:** optional button in the editor that fixes spelling and grammar only, keeps his
       voice and swearing, and shows each change for him to accept.
+- [ ] **2.9 Content flags:** find and flag gaps instead of guessing. Examples from the 2026-10 review:
+      reviews with no city, address, cuisine, price or visit date; restaurants mentioned in trip posts with
+      no score; recipes without servings or with inconsistent times; typos; images without alt text.
+- (?) **2.10 Flags dashboard + email loop:** an admin screen listing open content flags, plus a periodic
+      email to Shawn (or Jacob) with the flags. **Shawn replies to the email in plain words** ("it's in
+      St. Albert, Alberta, about $20 a head") and the AI applies the answer to the post. Open questions: how
+      replies are received (a mailbox the site reads), verifying the sender, and showing what changed.
+- [ ] **2.11 Structure fixer:** bring content in line with the template's ground rules (§0) instead of the
+      template handling edge cases:
+  - short standalone lines like "Day 2" or "Lunch" become proper subheadings;
+  - runs of consecutive single images become a gallery;
+  - empty headings and bullets removed, stray leading hyphens in lists removed;
+  - legacy row/column layouts that squeeze text are unwrapped.
+  Runs on publish, shows a before/after for approval (or applies automatically once trusted). Never
+  changes his words.
+- (?) **2.12 Image tidy-up on upload:** convert large PNG photos to JPEG/WebP and cap their dimensions so
+      posts stay light (Italian Center is ~12 MB of PNGs today). Doesn't need AI.
 
 ---
 
 ## 3. Site features
 
-- [ ] **Comments**, designed to need no moderation (approved by Jacob 2026-10-24; next after the redesign):
-  - publish immediately unless flagged; Antispam Bee for spam filtering (free, no account, runs on the server);
-  - hold comments that contain links; spam is auto-deleted after a few weeks;
-  - open comments on all posts (currently closed everywhere) and add a comment section to the theme.
-- [ ] **Search** (part of the redesign header).
+- [ ] **Comments**, designed to need no moderation (approved by Jacob 2026-10-24; next after the polish pass):
+  - Why: posts actively ask for it ("Well please leave feedback, positive or negative", "if you have
+    recommendations let me know") but there is no comment form, contact page or email anywhere.
+  - Publish immediately unless flagged; Antispam Bee for spam filtering (free, no account, runs on the server);
+    hold comments that contain links; spam auto-deleted after a few weeks; the assistant can triage held ones (§2.7).
+  - Open comments on all posts (currently closed everywhere) and design a comment section for the theme.
+  - Consider "notify me of replies" and an email to Shawn when someone comments (he'd enjoy reading them).
+- [ ] **Ways to follow:** visible RSS link, optional email signup; links to any video channels Shawn starts
+      (his 2025 update promises cooking videos).
 - [ ] **Open Graph / meta tags** so Facebook and Instagram shares show a photo, title and description.
-- [ ] **Clean recipe/review URLs:** `/recipes/…` and `/reviews/…` instead of `/recipes_content/…`,
-      with redirects from the old addresses.
+- [ ] **Structured data:** Recipe schema on recipes, Review schema on reviews, BreadcrumbList.
+- [ ] **Clean URLs:** `/recipes/…` and `/reviews/…` instead of `/recipes_content/…`; fix numeric slugs
+      (`/414-2/` Costco, `/recipes_content/792/`, `/review_content/553/`), all with redirects.
+- [ ] **Review info box:** city, address, cuisine, price, visit date, website/map. Filled by the assistant
+      from what Shawn wrote, with gaps flagged (§2.9).
+- [ ] **Recipe card:** servings, prep/cook/total, numbered steps, print, jump-to-recipe.
+- [ ] **Trip post navigation:** day-by-day contents and a styled "Worth a second stop / Don't waste your
+      time" summary box. Depends on headings being real headings (§2.11).
+- [ ] **Places hub:** destinations as navigation, with trips and reviews per place.
+- [ ] **Fuller footer:** contact, copyright, privacy note (needed with comments or a newsletter).
 - (?) **Map of everywhere he's eaten:** one pin per reviewed restaurant, linking to its post. Depends on
       §2.4 for the data. Photo GPS data from §4 could place pins.
-- (?) **Recipe plugin** (e.g. WP Recipe Maker: jump-to-recipe, print, Google rich results). Only if
-      he starts writing recipes again; no new recipes since Sep 2024.
 
 ---
 
@@ -141,8 +213,8 @@ Shawn talks; AI turns it into posts in his voice. Proposed by Jacob, 2026-10-24.
 ### Open questions
 - **Shawn has publicly said he doesn't use AI.** His post "Where did 2025 go?" (Dec 2025) tells readers:
   "I don't use any AI hacks, so everything you get is me". AI-written posts would contradict that.
-  Talk to him first. Options: AI Mode only transcribes and arranges his own spoken words (light touch);
-  he updates that line; or AI stays limited to behind-the-scenes metadata (§2).
+  **Jacob will talk to Shawn about it.** Options: AI Mode only transcribes and arranges his own spoken words
+  (light touch); he updates that line; or AI stays limited to behind-the-scenes metadata (§2).
 - **Images, the big one.** How do his photos get in and get placed?
   - Upload a batch from the laptop into the session; AI describes each one (vision) and places it next
     to the matching part of the story, with a caption and alt text he can adjust.
@@ -167,11 +239,35 @@ Found while reviewing the site in October 2026. Test each on staging first.
 - [x] Update outdated plugins: done by Jacob on staging and production, 2026-10-24.
 - [ ] Turn off `WP_DEBUG` on production (it's on, and `public_html/error_log` is ~19 MB; it is not publicly readable).
 - [x] Replace hard-coded image attachment IDs: the redesign uses the Customizer logo (falls back to `385`); the blog card icon is gone.
-- [x] Remove the Font Awesome 4.7 CDN link in `header.php` (redesign).
+- [x] Remove the Font Awesome 4.7 CDN link in `header.php` (redesign). The Font Awesome *plugin* stays:
+      it draws the Bite Rating drumsticks.
 - [x] Query categories by slug instead of looping over every category (redesign).
 - [x] Remove the redundant nested loop in `render_rating_shortcode()` (redesign).
 - [x] Escape output in templates (redesign rewrote them).
 - [x] Add a theme header to `style.css` (redesign).
+
+---
+
+## 6. Content concerns (parked)
+
+Real issues inside the posts themselves. Parked on purpose: they need Shawn, or the AI assistant
+(§2.9–2.11), not template changes. From the fresh-eyes review, 2026-10-24.
+
+- Typos and small errors: "7.2Tasty Bites out of 10" (King's Head), "When its a snowy" (Nola),
+  "The walk from hell than ended…" (Nola heading), "Dysart''s", trailing space in "Thanh Thanh Restaurant".
+- Trip post subheads ("Day 1", "Lunch") typed as plain paragraphs, not headings (→ §2.11).
+- 100+ consecutive single images in long trip posts instead of galleries (→ §2.11).
+- Legacy row/column layouts inside some posts (Atlantic Kitchen, Buttermilk Biscuits) (→ §2.11; the template
+  also gets a generic wrap rule).
+- Ingredient lists with leading hyphens ("• -1 cup flour") and empty bullets.
+- Inconsistent recipe times ("Over Night Marinade/ less than 1 hour" vs "20 min").
+- Reviews missing location, cuisine, price and visit date; restaurants in trip posts have no review entries (→ §2.4, §2.9).
+- Large PNG photos (Italian Center ~12 MB) (→ §2.12).
+- About page: "Today" photo may need a better source photo (pending template check in §1).
+- The 4 "About Content" posts are also public as thin standalone posts (fold into /about/ or noindex: decide later).
+- Content age: most reviews and opinion pieces are from 2024; the 2025 recap mentions trips with no posts.
+- Tone: the homepage "Meet Shawn" photo shows his "…all you f*ckers" t-shirt. On-brand, but a deliberate
+  choice for Jacob and Shawn.
 
 ---
 
@@ -185,3 +281,6 @@ Found while reviewing the site in October 2026. Test each on staging first.
 | 2026-10-24 | Comments: auto-publish with spam filtering, no approval queue; do right after the redesign | Nobody will moderate; bots are the main risk |
 | 2026-10-24 | AI acts on publish only, never on draft saves | Shawn writes over several days |
 | 2026-10-24 | Design first; AI work after, behind the scenes | Minimal disruption to Shawn's workflow |
+| 2026-10-24 | Template handles ground rules; content is changed to fit them (by AI later), not the other way round | Keeps the theme from filling up with edge cases |
+| 2026-10-24 | Polish everything on staging before any production rollout | Launch once, launch well |
+| 2026-10-24 | Research that reads the web runs in a separate agent | Keeps outside content (possible prompt injection) out of the main session |

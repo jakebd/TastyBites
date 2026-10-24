@@ -483,7 +483,25 @@ h1, h2, h3, h4 {
 .nav-links .page-numbers { text-decoration: none; padding: 6px 4px; }
 .nav-links .current { color: var(--ink); }
 
-.empty { padding: 24px; background: var(--paper-deep); border-radius: var(--radius); }
+.empty { padding: 20px 24px; background: var(--paper-deep); border-radius: var(--radius); }
+
+.suggestions { display: flex; flex-direction: column; gap: 32px; padding-block: 24px 64px; }
+.suggestions__title { font-size: 1.4rem; margin: 0 0 14px; }
+.chips { list-style: none; margin: 0; padding: 0; display: flex; flex-wrap: wrap; gap: 10px; }
+.chip {
+	display: inline-flex;
+	align-items: center;
+	min-height: 44px;
+	padding: 8px 18px;
+	border: 2px solid var(--ink);
+	border-radius: 999px;
+	color: var(--ink);
+	text-decoration: none;
+	font-weight: 600;
+}
+.chip:hover { background: var(--ink); color: var(--paper); }
+.chip[aria-current="true"] { background: var(--ink); color: var(--paper); }
+.chip__count { margin-left: 8px; font-weight: 400; opacity: 0.75; }
 
 /* ---------------------------------------------------------------
    About
@@ -497,7 +515,7 @@ h1, h2, h3, h4 {
 	align-items: start;
 }
 .about__row:nth-child(even) .about__img { order: 2; }
-.about__img { width: 100%; max-height: 460px; object-fit: cover; border-radius: var(--radius); }
+.about__img { width: 100%; max-height: 460px; object-fit: cover; object-position: 50% 15%; border-radius: var(--radius); }
 .about__text h2 { font-size: 2rem; margin-top: 0; }
 .about__more { padding-bottom: 64px; }
 
@@ -558,6 +576,22 @@ h1, h2, h3, h4 {
 
 .prose figure { margin-block: 1.6em; }
 .prose .wp-block-image img { border-radius: 4px; }
+
+/* Ground rule: a single photo is never taller than the screen (phone portraits otherwise fill
+   several screens). Galleries keep their own sizing. */
+.prose > .wp-block-image img,
+.prose > figure > img {
+	display: block;
+	width: auto;
+	max-width: 100%;
+	max-height: min(85vh, 860px);
+	margin-inline: auto;
+	object-fit: contain;
+}
+
+/* Ground rule: old "row" groups wrap on narrow screens instead of squeezing the text. */
+.prose .wp-block-group.is-layout-flex { flex-wrap: wrap; }
+.prose .wp-block-group.is-layout-flex > * { flex: 1 1 260px; min-width: 0; }
 .prose figcaption,
 .prose .wp-element-caption {
 	margin-top: 8px;
@@ -579,11 +613,14 @@ h1, h2, h3, h4 {
 
 .prose hr, .prose .wp-block-separator { border: 0; border-top: 2px dashed #D8CCB8; margin-block: 2.4em; }
 
-/* Recipe "Time to cook" field (Display a Meta Field as Block). */
+/* Recipe "Time to cook" field (Display a Meta Field as Block). Block-level and lined up with the
+   reading column (it's an inline element, so the column's auto margins don't apply to it). */
 .prose .time-to-cook,
 .prose .wp-block-mfb-meta-field-block {
-	display: inline-block;
-	margin-bottom: 1.2em;
+	display: block;
+	width: fit-content;
+	box-sizing: border-box;
+	margin: 0 0 1.2em max(var(--gutter), calc((100% - var(--measure)) / 2));
 	padding: 6px 14px;
 	border: 2px dashed var(--tomato);
 	border-radius: var(--radius);
@@ -628,9 +665,16 @@ h1, h2, h3, h4 {
 	gap: 16px;
 }
 .site-footer__name { margin: 0; font-family: var(--font-display); font-size: 1.15rem; color: var(--on-ink); }
-.site-footer__social { list-style: none; margin: 0; padding: 0; display: flex; gap: 22px; }
-.site-footer__social a { color: var(--mustard-light); font-weight: 700; }
-.site-footer__social a:hover { color: #fff; }
+.site-footer__social { list-style: none; margin: 0; padding: 0; display: flex; gap: 12px; }
+.social-link {
+	display: grid;
+	place-items: center;
+	width: 44px; height: 44px;
+	border: 1px solid #5A5048;
+	border-radius: 50%;
+	color: var(--mustard-light);
+}
+.social-link:hover { color: var(--ink); background: var(--mustard-light); border-color: var(--mustard-light); }
 
 @media (prefers-reduced-motion: reduce) {
 	*, *::before, *::after { transition: none !important; scroll-behavior: auto !important; }

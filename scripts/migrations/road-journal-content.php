@@ -54,7 +54,7 @@ $destinations = array(
 	'San Francisco' => array( 'SFO', array( 1237, 1168, 1134 ) ),
 	'Vancouver'     => array( 'YVR', array( 1057, 1014 ) ),
 	'Toronto'       => array( 'YYZ', array( 648 ) ),
-	'Santa Monica'  => array( 'LAX', array( 1043, 1021 ) ),
+	'Santa Monica'  => array( 'LA', array( 1043, 1021 ) ),
 );
 foreach ( $destinations as $name => list( $stamp, $post_ids ) ) {
 	$term = term_exists( $name, 'destination' );
@@ -139,4 +139,5 @@ if ( ! get_theme_mod( 'tb_next_stops' ) ) {
 	tbm_log( 'set Next stops' );
 }
 
+flush_rewrite_rules( false );
 WP_CLI::success( 'Road Journal content migration done.' );

@@ -6,7 +6,7 @@ get_header();
 global $wp_query;
 ?>
 <main id="main" class="archive">
-	<header class="archive__header wrap">
+	<header class="archive__header wrap wrap--list">
 		<p class="eyebrow">Search</p>
 		<h1 class="archive__title">
 			<?php if ( get_search_query() ) : ?>
@@ -26,10 +26,11 @@ global $wp_query;
 			}
 			?>
 			<?php the_posts_pagination( array( 'prev_text' => '← Previous', 'next_text' => 'More results →' ) ); ?>
-		<?php elseif ( get_search_query() ) : ?>
-			<div class="empty">
-				<p>Nothing matched that. Try a place (“Vancouver”), a dish (“pizza”) or a restaurant name.</p>
-			</div>
+		<?php else : ?>
+			<?php if ( get_search_query() ) : ?>
+				<p class="empty">Nothing matched that. Try a place, a dish or a restaurant name.</p>
+			<?php endif; ?>
+			<?php get_template_part( 'template-parts/suggestions' ); ?>
 		<?php endif; ?>
 	</div>
 </main>

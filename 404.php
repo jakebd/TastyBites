@@ -11,6 +11,9 @@ get_header();
 		<p class="archive__intro">We couldn't find it. Try searching, or head back to the <a href="<?php echo esc_url( home_url( '/' ) ); ?>">homepage</a>.</p>
 		<div class="archive__search"><?php get_search_form(); ?></div>
 	</header>
+	<div class="wrap">
+		<?php get_template_part( 'template-parts/suggestions' ); ?>
+	</div>
 </main>
 <?php
 get_footer();

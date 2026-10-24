@@ -24,13 +24,44 @@ while ( have_posts() ) :
 						<span class="stamp stamp--tilt"><?php echo esc_html( $tb_stamp ); ?></span>
 					<?php endif; ?>
 				</div>
-				<?php if ( $tb_rating ) : ?>
-					<div class="bite-rating bite-rating--header">
-						<span class="bite-rating__label">Bite Rating</span>
-						<?php echo tb_rating_markup( $tb_rating ); // phpcs:ignore WordPress.Security.EscapeOutput -- built from escaped parts. ?>
-						<span class="bite-rating__verdict"><?php echo esc_html( tb_rating_band( $tb_rating )['verdict'] ); ?></span>
-						<a class="bite-rating__how" href="<?php echo esc_url( home_url( '/reviews/#how-i-rate' ) ); ?>">How I rate</a>
+				<?php if ( 'recipes_content' === get_post_type() && false !== stripos( get_the_content(), '"name":"Ingredients"' ) ) : ?>
+					<div class="entry__tools">
+						<a class="button" href="#ingredients">Jump to recipe</a>
+						<button class="button button--ghost" type="button" data-print>Print recipe</button>
 					</div>
+				<?php endif; ?>
+				<?php if ( $tb_rating ) : ?>
+					<?php $tb_info = tb_review_info( get_the_ID() ); ?>
+					<dl class="info-box">
+						<div class="info-box__row info-box__row--rating">
+							<dt>Bite Rating</dt>
+							<dd>
+								<span class="bite-rating"><?php echo tb_rating_markup( $tb_rating ); // phpcs:ignore WordPress.Security.EscapeOutput -- built from escaped parts. ?></span>
+								<span class="bite-rating__verdict"><?php echo esc_html( tb_rating_band( $tb_rating )['verdict'] ); ?></span>
+								<a class="bite-rating__how" href="<?php echo esc_url( home_url( '/reviews/#how-i-rate' ) ); ?>">How I rate</a>
+							</dd>
+						</div>
+						<?php
+						$tb_rows = array(
+							'city'    => 'Where',
+							'cuisine' => 'Cuisine',
+							'price'   => 'Price',
+							'visited' => 'Visited',
+						);
+						foreach ( $tb_rows as $tb_key => $tb_label ) :
+							if ( '' === $tb_info[ $tb_key ] ) {
+								continue;
+							}
+							?>
+							<div class="info-box__row"><dt><?php echo esc_html( $tb_label ); ?></dt><dd><?php echo esc_html( $tb_info[ $tb_key ] ); ?></dd></div>
+						<?php endforeach; ?>
+						<?php if ( $tb_info['address'] ) : ?>
+							<div class="info-box__row"><dt>Address</dt><dd><a href="<?php echo esc_url( 'https://www.google.com/maps/search/?api=1&query=' . rawurlencode( $tb_info['name'] . ', ' . $tb_info['address'] . ', ' . $tb_info['city'] ) ); ?>" target="_blank" rel="noopener"><?php echo esc_html( $tb_info['address'] ); ?></a></dd></div>
+						<?php endif; ?>
+						<?php if ( $tb_info['website'] ) : ?>
+							<div class="info-box__row"><dt>Website</dt><dd><a href="<?php echo esc_url( $tb_info['website'] ); ?>" target="_blank" rel="noopener"><?php echo esc_html( preg_replace( '#^https?://(www\.)?|/$#', '', $tb_info['website'] ) ); ?></a></dd></div>
+						<?php endif; ?>
+					</dl>
 				<?php endif; ?>
 			</header>
 

@@ -63,6 +63,10 @@ require_once get_template_directory() . '/inc/patterns/recipe_pattern.php';
 //register my review pattern
 require_once get_template_directory() . '/inc/patterns/review_pattern.php';
 
+// Reading tools (heading anchors, table of contents, review info box) and SEO/sharing tags.
+require_once get_template_directory() . '/inc/entry-tools.php';
+require_once get_template_directory() . '/inc/seo.php';
+
 /**
  * [render_rating] shortcode used by the review pattern: the drumstick "Bite Rating" out of 10.
  */

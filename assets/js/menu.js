@@ -11,3 +11,10 @@
 		panel.classList.toggle( 'is-open', ! open );
 	} );
 } )();
+
+// "Print recipe" buttons.
+document.querySelectorAll( '[data-print]' ).forEach( function ( button ) {
+	button.addEventListener( 'click', function () {
+		window.print();
+	} );
+} );

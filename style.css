@@ -616,6 +616,10 @@ h1, h2, h3, h4 {
 }
 .prose .wp-block-group.is-layout-grid > figure:only-of-type,
 .prose .wp-block-gallery.columns-default > figure:only-of-type { --span: 6; }
+.prose > .wp-block-group.is-layout-grid,
+.prose > .wp-block-gallery { margin-block: 1.6em; }
+/* Back-to-back grids read as one gallery: same 10px gap between them as inside them. */
+.prose > :is(.wp-block-group.is-layout-grid, .wp-block-gallery) + :is(.wp-block-group.is-layout-grid, .wp-block-gallery) { margin-top: calc(10px - 1.6em); }
 .prose .wp-block-group.is-layout-grid > :not(figure),
 .prose .wp-block-gallery.columns-default > figcaption { grid-column: 1 / -1; }
 .prose .wp-block-group.is-layout-grid > figure img,
@@ -802,14 +806,19 @@ h1, h2, h3, h4 {
 .site-footer__inner {
 	max-width: calc(var(--wrap) + 2 * var(--gutter));
 	margin-inline: auto;
-	padding: 32px var(--gutter);
-	display: flex;
-	flex-wrap: wrap;
-	justify-content: space-between;
-	align-items: center;
-	gap: 16px;
+	padding: 48px var(--gutter) 24px;
+	display: grid;
+	grid-template-columns: repeat(auto-fit, minmax(min(100%, 220px), 1fr));
+	gap: 32px 48px;
 }
-.site-footer__name { margin: 0; font-family: var(--font-display); font-size: 1.15rem; color: var(--on-ink); }
+.site-footer__about { grid-column: span 2; max-width: 34em; }
+@media (max-width: 560px) { .site-footer__about { grid-column: auto; } }
+.site-footer__name { margin: 0 0 8px; font-family: var(--font-display); font-size: 1.5rem; color: var(--on-ink); }
+.site-footer__tagline { margin: 0 0 18px; line-height: 1.55; }
+.site-footer__heading { margin: 0 0 12px; font-family: var(--font-body); font-size: 0.82rem; font-weight: 700; letter-spacing: 0.14em; text-transform: uppercase; color: var(--mustard-light); }
+.site-footer__links { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 2px; }
+.site-footer__links a { display: inline-block; padding: 6px 0; color: var(--on-ink); text-decoration: none; }
+.site-footer__links a:hover { color: var(--mustard-light); text-decoration: underline; }
 .site-footer__social { list-style: none; margin: 0; padding: 0; display: flex; gap: 12px; }
 .social-link {
 	display: grid;
@@ -820,6 +829,60 @@ h1, h2, h3, h4 {
 	color: var(--mustard-light);
 }
 .social-link:hover { color: var(--ink); background: var(--mustard-light); border-color: var(--mustard-light); }
+.site-footer__copy {
+	max-width: calc(var(--wrap) + 2 * var(--gutter));
+	margin: 0 auto;
+	padding: 16px var(--gutter) 28px;
+	border-top: 1px solid var(--ink-line);
+	font-size: 0.9rem;
+}
+
+/* ---------------------------------------------------------------
+   Reading tools: recipe buttons, review info box, table of contents
+---------------------------------------------------------------- */
+.entry__tools { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 20px; }
+.button--ghost { background: transparent; color: var(--tomato); border: 2px solid var(--tomato); padding: 11px 22px; cursor: pointer; font: inherit; font-weight: 700; }
+.button--ghost:hover { background: var(--tomato); color: #fff; }
+
+.info-box {
+	margin: 22px 0 0;
+	border: 2px solid var(--ink);
+	border-radius: var(--radius);
+	background: #FBF7EF;
+	display: grid;
+	grid-template-columns: repeat(auto-fit, minmax(min(100%, 200px), 1fr));
+}
+.info-box__row { padding: 12px 16px; border-bottom: 1px solid #E2D6C2; }
+.info-box__row--rating { grid-column: 1 / -1; }
+.info-box dt { font-size: 0.78rem; font-weight: 700; letter-spacing: 0.14em; text-transform: uppercase; color: var(--ink-soft); }
+.info-box dd { margin: 2px 0 0; font-weight: 600; }
+.info-box__row--rating dd { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 14px; }
+.info-box .bite-rating { margin: 0; }
+.single-review_content .prose .bite-rating { display: none; }
+
+.toc {
+	margin-block: 1.6em;
+	border: 2px dashed var(--tomato);
+	border-radius: var(--radius);
+	padding: 14px 20px;
+	background: #FBF7EF;
+}
+.toc summary { cursor: pointer; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; font-size: 0.85rem; color: var(--tomato); min-height: 32px; display: flex; align-items: center; }
+.toc__list { margin: 10px 0 4px; padding-left: 1.4em; columns: 2 220px; column-gap: 32px; }
+.toc__list li { break-inside: avoid; margin-bottom: 4px; }
+.prose h2[id], .prose h3[id] { scroll-margin-top: 24px; }
+html { scroll-behavior: smooth; }
+
+/* Print: recipes and posts print as clean text, no site chrome. */
+@media print {
+	.site-header, .site-footer, .skip-link, .breadcrumbs, .related, .post-nav, .entry__tools, .toc,
+	.entry__hero, .lightbox-trigger, #wpadminbar, .wp-block-image img, .wp-block-gallery { display: none !important; }
+	body { background: #fff; color: #000; font-size: 12pt; }
+	.prose > * { max-width: none; padding-inline: 0; }
+	.prose li, .prose p { break-inside: avoid; }
+	.entry__title { font-size: 24pt; }
+	a { color: #000; text-decoration: none; }
+}
 
 @media (prefers-reduced-motion: reduce) {
 	*, *::before, *::after { transition: none !important; scroll-behavior: auto !important; }

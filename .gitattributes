@@ -1,0 +1,17 @@
+# Keep LF line endings in the repo and on checkout, so files match the Linux server byte-for-byte.
+* text=auto eol=lf
+*.png binary
+*.jpg binary
+*.gif binary
+*.ico binary
+*.woff binary
+*.woff2 binary
+
+# Not shipped to the server by scripts/deploy.sh (git archive honours export-ignore).
+.github        export-ignore
+scripts        export-ignore
+.gitattributes export-ignore
+.gitignore     export-ignore
+.env.example   export-ignore
+README.md      export-ignore
+DEPLOYMENT.md  export-ignore

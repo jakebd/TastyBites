@@ -41,7 +41,7 @@ ul{
     cursor: pointer;
     background: none;
     border: none;
-    color: var(--light-grey); /* Color for the hamburger icon */
+    color: var(--light-grey);
 }
 
 /* 
@@ -78,13 +78,13 @@ Nav Styling
 */
 
 .primary_menu{
-    margin: 0 ; /* Center the primary_menu within the brand-section */
+    margin: 0 ; 
     padding: 0;
     border: 0;
     vertical-align: baseline;
-    max-width: 500px; /* Adjust as needed */
+    max-width: 500px; 
     width: 100%;
-    text-align: center; /* Center the items inside the menu */
+    text-align: center;
 }
 
 .primary_menu .nav-container{
@@ -155,10 +155,9 @@ Main Content section
     display: flex;
     align-items: center;
     justify-content: center;
-    width: 100%; /* Make sure content-container takes the full width */
-    height: 100%; /* Make sure content-container takes the full height */
+    width: 100%; 
+    height: 100%; 
 }
-
 
 .page-title{
     width: 100%;
@@ -170,10 +169,11 @@ Main Content section
     margin-right: auto;
 }
 
-/* Styling to fix the caption under all images across blogs, recipes, and reviews */
+/* Styling to fix the bottom caption across all images on the site */
 .wp-block-gallery.has-nested-images figure.wp-block-image figcaption {
-    bottom: 20px;
+	bottom: 20px;	
 }
+
 
 /* footer */
 
@@ -213,22 +213,22 @@ Main Content section
 }
 
 .social-media-list li {
-    margin-right: 15px; /* Add spacing between the items */
+    margin-right: 15px; 
 }
 
 .social-media-list li:last-child {
-    margin-right: 0; /* Remove right margin from the last item */
+    margin-right: 0; 
 }
 
 .secondary_menu{
-    margin: 0 ; /* Center the primary_menu within the brand-section */
+    margin: 0 ; 
     margin-left: auto;
     padding: 0;
     border: 0;
     vertical-align: baseline;
-    max-width: 400px; /* Adjust as needed */
+    max-width: 400px; 
     width: 100%;
-    text-align: center; /* Center the items inside the menu */
+    text-align: center; 
 }
 
 .secondary_menu .nav-container{
@@ -291,7 +291,7 @@ Main Content section
         top: 100%; 
         left: 0;
         right: 0;
-        z-index: 1000; /* Make sure it appears above other content */
+        z-index: 1000; 
     }
 
     /* When showing, adjust the display and add a smooth transition */
@@ -300,13 +300,13 @@ Main Content section
         opacity: 0;
         max-height: 0;
         transition: opacity 0.3s ease, max-height 0.3s ease;
-        overflow: hidden; /* Hide overflow to create a dropdown effect */
+        overflow: hidden;
     }
 
     /* Transition to fully visible state */
     .nav-container nav ul.menuItems.show.active {
         opacity: 1;
-        max-height: 500px; /* Large enough to accommodate all items */
+        max-height: 500px; 
         padding: 10px 0;
     }
 

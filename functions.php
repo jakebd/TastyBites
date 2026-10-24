@@ -34,6 +34,11 @@ if ( ! function_exists( 'default_setup' ) ) :
 		add_theme_support( 'automatic-feed-links' );
 
 		/**
+		 * Let WordPress output the <title> tag in <head>.
+		 */
+		add_theme_support( 'title-tag' );
+
+		/**
 		 * Enable support for post thumbnails and featured images.
 		 */
 		add_theme_support( 'post-thumbnails' );

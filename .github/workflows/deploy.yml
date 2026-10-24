@@ -1,0 +1,56 @@
+name: Deploy theme
+
+# push to `staging` -> staging.gengiestastybites.ca
+# push to `main`    -> gengiestastybites.ca
+# or run manually from the Actions tab.
+on:
+  push:
+    branches: [main, staging]
+    paths-ignore: ["**.md"]
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: Where to deploy
+        type: choice
+        options: [staging, production]
+        default: staging
+      force:
+        description: Overwrite theme edits made outside git (a backup is still taken)
+        type: boolean
+        default: false
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    environment: ${{ inputs.environment || (github.ref_name == 'main' && 'production' || 'staging') }}
+    concurrency:
+      group: deploy-${{ inputs.environment || (github.ref_name == 'main' && 'production' || 'staging') }}
+      cancel-in-progress: false
+    env:
+      DEPLOY_ENV: ${{ inputs.environment || (github.ref_name == 'main' && 'production' || 'staging') }}
+    steps:
+      - name: Only main may deploy to production
+        if: env.DEPLOY_ENV == 'production' && github.ref_name != 'main'
+        run: |
+          echo "::error::Production deploys must run from main (got ${{ github.ref_name }})"
+          exit 1
+
+      - uses: actions/checkout@v4
+
+      - name: Configure SSH
+        env:
+          SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
+          SSH_KNOWN_HOSTS: ${{ secrets.SSH_KNOWN_HOSTS }}
+        run: |
+          mkdir -p ~/.ssh && chmod 700 ~/.ssh
+          printf '%s\n' "$SSH_PRIVATE_KEY" > ~/.ssh/tastybites_deploy
+          chmod 600 ~/.ssh/tastybites_deploy
+          printf '%s\n' "$SSH_KNOWN_HOSTS" >> ~/.ssh/known_hosts
+
+      - name: Deploy
+        env:
+          SSH_HOST: ${{ secrets.SSH_HOST }}
+          SSH_PORT: ${{ secrets.SSH_PORT }}
+          SSH_USER: ${{ secrets.SSH_USER }}
+          FORCE: ${{ inputs.force && '1' || '0' }}
+        run: bash scripts/deploy.sh "$DEPLOY_ENV"

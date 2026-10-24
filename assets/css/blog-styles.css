@@ -91,7 +91,7 @@ p {
     border-radius: 3px;
     padding: 20px;
     box-shadow: 1px 3px 9px rgba(0, 0, 0, .1);
-    align-items: center; /* Align items vertically centered */
+    align-items: center; 
     position: relative;
     background: var(--light-grey);
     border-radius: 3px;
@@ -107,14 +107,14 @@ p {
 
 .blogcard-img {
     flex: 0 0 30%;
-    height: auto; /* Let height adjust automatically based on width */
-    max-height: 275px; /* Control the maximum height */
+    height: auto; 
+    max-height: 275px; 
     border-radius: 10px;
     object-fit: cover;
 }
 
 .blogcard-textbox {
-    flex: 1; /* The textbox takes up the remaining space */
+    flex: 1; 
     padding: 20px;
     font-size: 17px;
     display: flex;

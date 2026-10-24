@@ -108,12 +108,29 @@ section hides itself rather than showing something broken.
 
 Research notes behind these choices: `docs/research/blog-best-practices-2026-10.md`.
 
-### Polish pass: still open (template)
-- [ ] Modern Image Formats plugin (automatic WebP/AVIF) + regenerate existing images.
-- [ ] Table of contents for long posts (needs real headings first, §2.11).
-- [ ] Review info box + Review/Restaurant schema; recipe card + Recipe schema (§3).
-- [ ] Fuller footer (about line, contact, privacy, ethics note, ©).
-- [ ] Check at 200% text size and on a real iPhone.
+### Polish pass, round 2 (2026-10-24)
+- [x] **Balanced photo grids** (template, not content): Shawn lays photos out with Grid groups, which filled
+      3 columns and left a lone 4th photo on its own row. Grids (and default galleries) now use balanced rows:
+      4 = 2×2, 5 = 3+2, 7 = 3+2×2; 2 per row on phones; captions overlay the photo; back-to-back grids
+      join with the same 10px gap. Decision: template, because it holds for every post and costs Shawn nothing.
+- [x] Row groups in posts stack instead of squeezing text (fixed Atlantic Kitchen fully); photos centred.
+- [x] Table of contents for posts with 4+ h2 headings; all headings get anchors. Verified with a test post;
+      appears on real posts once "Day N" lines become headings (§2.11).
+- [x] Review info box (Bite Rating, verdict, "How I rate", plus city/cuisine/price/visited/address/website when
+      filled) with a "Restaurant details" box in the review editor; Review → Restaurant JSON-LD (`bestRating: 10`).
+- [x] Recipes: Jump to recipe + Print recipe buttons, print stylesheet; Recipe JSON-LD built from the pattern's
+      Ingredients/Instructions blocks (nothing new for Shawn).
+- [x] Meta description + Open Graph/Twitter tags on every page (Facebook previews); homepage and recipe descriptions.
+- [x] Fuller footer: about line, Browse and More links, RSS, ©. (No privacy page exists yet: see below.)
+- [x] 200% text size: overflow check on 14 key pages at 320/360px; fixed scoreboard names, drumsticks, note tilt.
+- [ ] **Image formats:** tried Modern Image Formats on staging and removed it. On this host AVIF came out *larger*
+      than JPEG (GD encoder), WebP+JPEG mode didn't run from WP-CLI, and its first run re-pointed the original
+      file record to .avif (restored). Recommended instead: LiteSpeed Cache image optimisation (plugin already
+      installed; uses the QUIC.cloud service, so needs Jacob's OK to connect). Meanwhile the `sizes` fix already
+      makes browsers fetch column-sized images.
+- [ ] **Privacy page:** needed before comments/newsletter. Content/legal decision for Jacob and Shawn; the footer
+      links it automatically once WordPress has one set (Settings → Privacy).
+- [ ] Check on a real iPhone (Safari) before production.
 
 ### Production rollout (in this order)
 1. Shawn OKs the category names above (rename in the migration script first if he wants different ones) and the
@@ -124,6 +141,7 @@ Research notes behind these choices: `docs/research/blog-best-practices-2026-10.
    which is why they run after the deploy):
    - `bash scripts/migrate.sh production scripts/migrations/road-journal-content.php`
    - `bash scripts/migrate.sh production scripts/migrations/polish-data-fixes.php`
+   - Optional: fill "Restaurant details" on the 7 reviews (city, cuisine, price) so the info boxes fill out.
 4. Confirm the XML sitemap is served on production (`/wp-sitemap.xml`; on staging it's off because search
    engines are discouraged there).
 5. Spot-check the homepage, a trip post, search and the phone menu.

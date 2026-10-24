@@ -292,12 +292,16 @@ add_filter( 'excerpt_more', function () {
 	return '…';
 } );
 
-// Automatic excerpts: skip a leading "Day 1" line, and don't end in "…." when the cut lands on punctuation.
+// Automatic excerpts come from the post's paragraphs only, so headings like "Day 1" or the review
+// pattern's "Overview" don't lead the excerpt, and don't end in "…." when the cut lands on punctuation.
 add_filter( 'wp_trim_excerpt', function ( $excerpt, $raw ) {
 	if ( '' !== $raw ) {
 		return $excerpt;
 	}
-	$excerpt = preg_replace( '/^\s*day \d+\s+/i', '', $excerpt );
+	$content = preg_replace( '#<(h[1-6]|figcaption)[^>]*>.*?</>#is', ' ', get_the_content() );
+	$text    = wp_strip_all_tags( strip_shortcodes( excerpt_remove_blocks( $content ) ) );
+	$text    = preg_replace( '/^\s*day \d+\s+/i', '', $text );
+	$excerpt = wp_trim_words( $text, apply_filters( 'excerpt_length', 26 ), '…' );
 	return preg_replace( '/[\s.,;:!?]+…$/u', '…', $excerpt );
 }, 10, 2 );
 
@@ -526,7 +530,7 @@ function tb_related_posts( $post = null, $count = 3 ) {
 			'post_type' => array( 'post', 'review_content' ),
 			'tax_query' => array( array( 'taxonomy' => 'destination', 'terms' => wp_list_pluck( $places, 'term_id' ) ) ),
 		) );
-		if ( $found ) {
+		if ( count( $found ) >= $count ) {
 			$title = 'More from ' . $places[0]->name;
 		}
 	}

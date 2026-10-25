@@ -161,7 +161,11 @@ Follow-ups:
 - [x] Site admin address **GengiesTastyBites@outlook.com** (Jacob's alias, forwards to him): WordPress admin
       email, copied on every new-comment email, footer "Email us", Privacy page contact (`[site_email]`).
       Live on staging and production (2026-10-25, `scripts/migrations/admin-contact.php`).
-- [ ] Confirm Shawn and the admin address receive the new-comment email (first chance to see email; staging blocks it).
+- [x] Shawn and the admin address receive the new-comment email (Jacob tested 2026-10-25).
+- [~] Branded comment emails (`inc/emails.php`): site colours and logo, who said what, plain "what you can do"
+      buttons (Reply on the site / Delete it / It's spam; held ones: Approve it), each naming the exact confirm button
+      WordPress shows next. No IP, host or email (still in wp-admin → Comments). Replies go to the admin address.
+      On staging; production after the next deploy. (first chance to see email; staging blocks it).
 - [ ] `/category/blog/` now 404s (the old Blog category was emptied and removed). Redirect it to Road Trips in
       case search engines or old links still point there.
 - [ ] Shawn check-in (list below).

@@ -134,8 +134,8 @@ add_filter( 'comment_notification_text', function ( $text, $comment_id ) {
 		'<p style="margin:0 0 20px;">If you want to, here\'s what you can do:</p>' .
 		'<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">' .
 		tb_email_action( get_comment_link( $comment ), 'Reply on the site', 'Opens the post at this comment. Click <strong>Reply</strong> under it, type your answer and press <strong>Post comment</strong>. If you\'re logged in, your reply shows with your Chef badge.', false ) .
-		tb_email_action( admin_url( 'comment.php?action=trash&c=' . $id . '#wpbody-content' ), 'Delete it', 'For rude or off-topic comments. You may be asked to log in, then press the button to confirm. Changed your mind? It stays in Comments → Trash for 30 days.' ) .
-		tb_email_action( admin_url( 'comment.php?action=spam&c=' . $id . '#wpbody-content' ), 'It\'s spam', 'For junk and ads. Removes it and helps block that sender next time.' ) .
+		tb_email_action( admin_url( 'comment.php?action=trash&c=' . $id . '#wpbody-content' ), 'Delete it', 'For rude or off-topic comments. You may be asked to log in first, then press <strong>Move to Trash</strong>. Changed your mind? It stays in Comments → Trash for 30 days.' ) .
+		tb_email_action( admin_url( 'comment.php?action=spam&c=' . $id . '#wpbody-content' ), 'It\'s spam', 'For junk and ads. You may be asked to log in first, then press <strong>Mark as spam</strong>. Removes it and helps block that sender next time.' ) .
 		'</table>';
 	return tb_email_layout(
 		wp_strip_all_tags( $comment->comment_content ),
@@ -162,9 +162,9 @@ add_filter( 'comment_moderation_text', function ( $text, $comment_id ) {
 		'<p style="margin:20px 0 6px;"><strong>This one is waiting for a check because it contains a link.</strong></p>' .
 		'<p style="margin:0 0 20px;">Links are how most spam gets in, so it isn\'t on the site yet. Pick one:</p>' .
 		'<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">' .
-		tb_email_action( admin_url( 'comment.php?action=approve&c=' . $id . '#wpbody-content' ), 'Approve it', 'Looks genuine? This puts it on the site. You may be asked to log in, then press the button to confirm.', false ) .
-		tb_email_action( admin_url( 'comment.php?action=spam&c=' . $id . '#wpbody-content' ), 'It\'s spam', 'Removes it and helps block that sender next time.' ) .
-		tb_email_action( admin_url( 'comment.php?action=trash&c=' . $id . '#wpbody-content' ), 'Delete it', 'Not spam, but you don\'t want it on the site.' ) .
+		tb_email_action( admin_url( 'comment.php?action=approve&c=' . $id . '#wpbody-content' ), 'Approve it', 'Looks genuine? You may be asked to log in first, then press <strong>Approve comment</strong> to put it on the site.', false ) .
+		tb_email_action( admin_url( 'comment.php?action=spam&c=' . $id . '#wpbody-content' ), 'It\'s spam', 'Press <strong>Mark as spam</strong> on the next screen. Removes it and helps block that sender next time.' ) .
+		tb_email_action( admin_url( 'comment.php?action=trash&c=' . $id . '#wpbody-content' ), 'Delete it', 'Not spam, but you don\'t want it on the site. Press <strong>Move to Trash</strong> on the next screen.' ) .
 		'</table>' .
 		'<p style="margin:4px 0 0;font-size:14px;color:#5A5048;">Do nothing and it simply never appears.</p>';
 	return tb_email_layout(

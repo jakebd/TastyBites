@@ -86,10 +86,42 @@ function tba_is_blank( $block ) {
 
 /** A paragraph whose whole content is bold, returning the inner HTML without the bold wrapper. */
 function tba_bold_inner( $block ) {
-	if ( 'core/paragraph' === $block['blockName'] && preg_match( '#^\s*<p[^>]*>\s*<(strong|b)>(.*)</\1>\s*</p>\s*$#is', $block['innerHTML'], $m ) ) {
-		return trim( $m[2] );
+	if ( 'core/paragraph' !== $block['blockName'] ) {
+		return null;
 	}
-	return null;
+	// The text may be bold in several pieces: "<strong>New Hampshire</strong>, <strong>Vermont</strong>".
+	$inner = tba_paragraph_inner( $block );
+	if ( ! preg_match( '#<(strong|b)\b#i', $inner ) ) {
+		return null;
+	}
+	$outside = wp_strip_all_tags( preg_replace( '#<(strong|b)\b[^>]*>.*?</\1>#is', '', $inner ) );
+	if ( preg_match( '/[\p{L}\p{N}]/u', html_entity_decode( $outside, ENT_QUOTES | ENT_HTML5, 'UTF-8' ) ) ) {
+		return null; // Some words aren't bold.
+	}
+	return trim( tba_unbold( $inner ) );
+}
+
+/** Headings are bold already, so bold tags inside them are dropped. */
+function tba_unbold( $html ) {
+	return preg_replace( '#</?(strong|b)\b[^>]*>#i', '', $html );
+}
+
+/** Tags open and close in proper order: a new heading must never leave a tag open. */
+function tba_tags_balanced( $html ) {
+	preg_match_all( '#<(/?)([a-z][a-z0-9]*)\b[^>]*?(/?)>#i', $html, $tags, PREG_SET_ORDER );
+	$open = array();
+	foreach ( $tags as $tag ) {
+		$name = strtolower( $tag[2] );
+		if ( '/' === $tag[3] || in_array( $name, array( 'br', 'img', 'hr', 'wbr' ), true ) ) {
+			continue;
+		}
+		if ( '' === $tag[1] ) {
+			$open[] = $name;
+		} elseif ( array_pop( $open ) !== $name ) {
+			return false;
+		}
+	}
+	return ! $open;
 }
 
 function tba_paragraph_inner( $block ) {
@@ -207,10 +239,13 @@ function tba_tidy_top( $blocks, &$changes ) {
 		}
 		$text   = tba_block_text( $block );
 		$bold   = tba_bold_inner( $block );
-		$inner  = $bold ?? tba_paragraph_inner( $block );
+		$inner  = $bold ?? tba_unbold( tba_paragraph_inner( $block ) );
 		$next   = isset( $real[ $pos + 1 ] ) ? $blocks[ $real[ $pos + 1 ] ] : null;
 		$before = $prev_heading;
 		$prev_heading = null;
+		if ( ! tba_tags_balanced( $inner ) ) {
+			continue; // Unusual markup: leave the line as it is.
+		}
 
 		if ( preg_match( '/^Day\s+\d+\b/iu', $text ) && tba_is_short_line( $text, 10 ) ) {
 			$blocks[ $i ] = tba_make_heading( $inner, 2 );
@@ -308,7 +343,16 @@ function tba_layout_propose( $content ) {
 	foreach ( $top as $block ) {
 		$src = $block['tba_src'] ?? null;
 		unset( $block['tba_src'], $block['tba_lossy'] );
-		$after .= ( null !== $src && $block == $original[ $src ] ) ? $segments[ $src ] : serialize_block( $block );
+		if ( null !== $src && $block == $original[ $src ] ) {
+			$after .= $segments[ $src ];
+			continue;
+		}
+		$html = serialize_block( $block );
+		// Same words isn't enough: a rewritten block must also close every tag it opens.
+		if ( ! tba_tags_balanced( preg_replace( '/<!--.*?-->/s', '', $html ) ) ) {
+			return new WP_Error( 'tba_unbalanced', 'The tidy-up would have left an HTML tag open, so it was discarded.' );
+		}
+		$after .= $html;
 	}
 	if ( ! tba_words_unchanged( $content, $after ) ) {
 		return new WP_Error( 'tba_words_changed', 'The tidy-up would have changed words or photos, so it was discarded.' );

@@ -201,7 +201,7 @@ Follow-ups:
 > **Build progress:** step 1 (plugin foundation: `plugins/tastybites-assistant`, job queue, AI log table, off
 > switches, after-publish trigger, Tools → Assistant, staging cron) on staging 2026-10-25, branch
 > `ai-features` (integration branch; all AI work stays on staging and ships to production together).
-> Step 2 (2.1 featured photo) on staging 2026-10-25. Shawn's emails start **off** until Jacob's check-in with him.
+> Step 2 (2.1 featured photo) and step 3 (2.11 layout tidy-ups, propose mode) on staging 2026-10-25. Shawn's emails start **off** until Jacob's check-in with him.
 
 Runs on the server when Shawn **publishes or updates a published post**, never on draft saves,
 because he writes over several days. It fills in what is missing and never changes his
@@ -255,6 +255,16 @@ Claude as the provider. Estimate the cost before building; it should be small at
   - legacy row/column layouts that squeeze text are unwrapped.
   Runs on publish, shows a before/after for approval (or applies automatically once trusted). Never
   changes his words.
+  **Built (propose mode, staging 2026-10-25):** Tools → Layout tidy-ups shows each proposal as the real page,
+  now vs. after, side by side (with a phone-width toggle), plus Apply / Reject; Apply saves a revision (undo =
+  Restore). Rules, from a survey of all 38 posts: Day lines → H2; a bold route line right after a Day heading →
+  H3; "Worth a second stop" / "Don't waste your time" → H2; a short bold line followed by text → H3 (bold lines
+  followed by photos are usually captions, so they stay, for the AI step later); 3+ photos in a row → gallery;
+  typed list dashes and empty paragraphs/headings/list items removed. No Columns layouts exist, so no unwrap
+  rule. Guards: same words in the same order and the same photos; every rewritten block closes its tags;
+  untouched blocks are copied byte for byte; blocks WordPress can't re-save exactly are left alone; Apply is
+  refused if the post changed since or is open in the editor. 22 proposals waiting on staging for Jacob.
+  `wp tba layout [--store] [--verbose]` for a dry run.
 - (?) **2.12 Image tidy-up on upload:** convert large PNG photos to JPEG/WebP and cap their dimensions so
       posts stay light (Italian Center is ~12 MB of PNGs today). Doesn't need AI.
 
@@ -418,4 +428,5 @@ Real issues inside the posts themselves. Parked on purpose: they need Shawn, or 
 | 2026-10-25 | Spelling fixed automatically after publish (2.8); unsure words emailed to Jacob and Shawn immediately | Typos matter to the content; code checks only single words change |
 | 2026-10-25 | Question emails per publish, no weekly 5-question cap; Jacob controls who gets which email (2.13) | A busy week would exhaust a weekly cap; Jacob can take over if Shawn is overrun |
 | 2026-10-25 | AI Mode drafts get the §2 helpers before publish (exception to "publish only") | An AI Mode draft is complete, not half-written |
+| 2026-10-25 | Layout tidy-ups may remove typed dashes and empty lines inside recipe/review patterns, but never change their structure | ~90 dashed ingredient lines are all inside patterns; text-level fixes don't affect the pattern |
 | 2026-10-24 | Research that reads the web runs in a separate agent | Keeps outside content (possible prompt injection) out of the main session |

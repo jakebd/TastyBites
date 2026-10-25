@@ -194,6 +194,10 @@ Follow-ups:
 
 ## 2. The quiet assistant (AI in the background)
 
+> **Research (2026-10-25):** `docs/research/authoring-ai-2026-10/REPORT.md` covers prior art, what helped other
+> (older) authors, the tiered after-publish design, architecture, build order and per-item specs. Read it before
+> building anything in §2 or §4.
+
 Runs on the server when Shawn **publishes or updates a published post**, never on draft saves,
 because he writes over several days. It fills in what is missing and never changes his
 wording without approval. Built on WordPress 7.1's core AI client (Settings → Connectors) with
@@ -263,6 +267,9 @@ Claude as the provider. Estimate the cost before building; it should be small at
 ---
 
 ## 4. "AI Mode": voice-first authoring (idea, needs discussion)
+
+> See `docs/research/authoring-ai-2026-10/REPORT.md` (memoir-app precedent, "arrange, don't rewrite", speech-to-text
+> bake-off, disclosure options).
 
 Shawn talks; AI turns it into posts in his voice. Proposed by Jacob, 2026-10-24.
 

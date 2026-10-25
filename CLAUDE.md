@@ -17,3 +17,4 @@ decisions go in ROADMAP.md.
 - Line endings are LF (`.gitattributes`); the server copy must match byte-for-byte for the drift check.
 - The site admin address is **GengiesTastyBites@outlook.com** (Jacob's alias). Use it wherever the site needs a
   contact or notification email; the theme reads it from Settings → General (`admin_email`).
+- Before building any AI feature (ROADMAP §2/§4), read `docs/research/authoring-ai-2026-10/REPORT.md`.

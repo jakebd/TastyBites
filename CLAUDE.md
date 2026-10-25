@@ -1,7 +1,8 @@
 # Notes for Claude
 
-Custom WordPress theme for gengiestastybites.ca. Read README.md (overview, backlog) and
-DEPLOYMENT.md (pipeline, staging, troubleshooting) first.
+Custom WordPress theme for gengiestastybites.ca. Read README.md (overview), DEPLOYMENT.md (pipeline, staging,
+troubleshooting) and ROADMAP.md (backlog, ideas, decisions) first. New feature ideas and
+decisions go in ROADMAP.md.
 
 - Change theme code here, test on staging, then merge to `main`. Never edit files on the server:
   the deploy drift check will block the next deploy.

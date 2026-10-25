@@ -6,231 +6,611 @@
  * @since GengiesTastyBites 1.0
  */
 
-/**
- * First, let's set the maximum content width based on the theme's
- * design and stylesheet.
- * This will limit the width of all uploaded images and embeds.
- */
-
 if ( ! isset( $content_width ) ) {
-	$content_width = 800; /* pixels */
+	$content_width = 720; /* pixels: the reading column of single posts */
 }
 
-if ( ! function_exists( 'default_setup' ) ) :
+/**
+ * Category slugs used by the homepage sections. If a category doesn't exist yet
+ * (e.g. on a site where the content hasn't been reorganised), sections fall back
+ * to the old "blog" category or hide themselves.
+ */
+const TB_CAT_TRIPS     = 'road-trips';
+const TB_CAT_TWO_CENTS = 'my-2-cents';
+const TB_CAT_EARLY     = 'the-early-years';
+const TB_CAT_FALLBACK  = 'blog';
+
+/**
+ * Sets up theme defaults and registers support for various WordPress features.
+ */
+function tb_setup() {
+	add_theme_support( 'automatic-feed-links' );
 
 	/**
-	 * Sets up theme defaults and registers support for various
-	 * WordPress features.
-	 *
-	 * Note that this function is hooked into the after_setup_theme
-	 * hook, which runs before the init hook. The init hook is too late
-	 * for some features, such as indicating support post thumbnails.
+	 * Let WordPress output the <title> tag in <head>.
 	 */
-	function default_setup() {
+	add_theme_support( 'title-tag' );
 
-		/**
-		 * Add default posts and comments RSS feed links to <head>.
-		 */
-		add_theme_support( 'automatic-feed-links' );
+	add_theme_support( 'post-thumbnails' );
+	add_image_size( 'square', 480, 480, true );
 
-		/**
-		 * Let WordPress output the <title> tag in <head>.
-		 */
-		add_theme_support( 'title-tag' );
+	add_theme_support( 'html5', array( 'search-form', 'comment-form', 'comment-list', 'gallery', 'caption', 'style', 'script' ) );
+	add_theme_support( 'responsive-embeds' );
+	add_theme_support( 'custom-logo', array( 'flex-width' => true, 'flex-height' => true ) );
 
-		/**
-		 * Enable support for post thumbnails and featured images.
-		 */
-		add_theme_support( 'post-thumbnails' );
-		add_image_size( 'square', 480, 480, true);
+	// Make the block editor look like the site, so Shawn sees what readers will see.
+	add_theme_support( 'editor-styles' );
+	add_editor_style( 'assets/css/editor.css' );
 
-		/**
-		 * Add support for two custom navigation menus.
-		 */
-		register_nav_menus( array(
-			'primary'   => __( 'Primary Menu', 'ChatTheme' ),
-			'secondary' => __( 'Secondary Menu', 'ChatTheme' ),
-		) );
-
-		/**
-		 * Enable support for the following post formats:
-		 * aside, gallery, quote, image, and video
-		 */
-		add_theme_support( 'post-formats', array( 'aside', 'gallery', 'quote', 'image', 'video' ) );
-	}
-endif; // default_setup
-add_action( 'after_setup_theme', 'default_setup' );
-
-
-//add Bootstrap style and js
-function gengie_enqueue_styles(){
-	
-	//bootstrap css and js
-	wp_enqueue_style('bootstrap_styles', 'https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css');
-	wp_enqueue_script('boostrapscript',"https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js");
-	wp_enqueue_script('jquery');
-	wp_enqueue_style('gengies_theme_styles', get_stylesheet_uri());
-
-    //Load in styles for about page.
-    wp_enqueue_style('front-page-theme-styles', get_template_directory_uri() . '/assets/css/front-styles.css');
-
-    //load styles for single
-    wp_enqueue_style('single-post-theme-styles', get_template_directory_uri() . '/assets/css/single-styles.css');
-
-    // Register the script
-    wp_register_script('custom-navbar-js', get_template_directory_uri() . '/assets/js/menu.js', array('jquery'), null, true);
-
-    // Enqueue the script
-    wp_enqueue_script('custom-navbar-js');
-
-    if (is_page('blog')) { 
-        wp_enqueue_style('blog-page-theme-styles', get_template_directory_uri() . '/assets/css/blog-styles.css');
-    }
-    if (is_page('recipes')) { 
-        wp_enqueue_style('recipes-page-theme-styles', get_template_directory_uri() . '/assets/css/recipes-styles.css');
-    }
-    if (is_page('reviews')) { 
-        wp_enqueue_style('reviews-page-theme-styles', get_template_directory_uri() . '/assets/css/reviews-styles.css');
-    }
-
+	register_nav_menus( array(
+		'primary'   => __( 'Primary Menu', 'tastybites' ),
+		'secondary' => __( 'Secondary Menu', 'tastybites' ),
+	) );
 }
-add_action( 'wp_enqueue_scripts', 'gengie_enqueue_styles');
+add_action( 'after_setup_theme', 'tb_setup' );
+
+function tb_enqueue_assets() {
+	// Version by file time, so browsers and the cache pick up every deploy.
+	$dir = get_template_directory();
+	wp_enqueue_style( 'tastybites', get_stylesheet_uri(), array(), (string) filemtime( $dir . '/style.css' ) );
+	wp_enqueue_script( 'tastybites-nav', get_template_directory_uri() . '/assets/js/menu.js', array(), (string) filemtime( $dir . '/assets/js/menu.js' ), true );
+	if ( is_singular() && comments_open() && get_option( 'thread_comments' ) ) {
+		wp_enqueue_script( 'comment-reply' );
+	}
+}
+add_action( 'wp_enqueue_scripts', 'tb_enqueue_assets' );
 
 //register my recipe pattern
-require_once get_template_directory() . '/patterns/recipe_pattern.php';
+require_once get_template_directory() . '/inc/patterns/recipe_pattern.php';
 
 //register my review pattern
-require_once get_template_directory() . '/patterns/review_pattern.php';
+require_once get_template_directory() . '/inc/patterns/review_pattern.php';
 
+// Reading tools (heading anchors, table of contents, review info box) and SEO/sharing tags.
+require_once get_template_directory() . '/inc/entry-tools.php';
+require_once get_template_directory() . '/inc/seo.php';
+require_once get_template_directory() . '/inc/comments.php';
 
-//pull the rating number
-//build the div with logic for the icons
-//output the final div
-//call the short code in the review pattern
-
+/**
+ * [render_rating] shortcode used by the review pattern: the drumstick "Bite Rating" out of 10.
+ */
 function render_rating_shortcode() {
-    // Get the current post ID
-    $post_id = get_the_ID();
-    
-    // Retrieve the review rating meta value
-    $review_rating = get_post_meta($post_id, 'review_rating', true);
+	$review_rating = get_post_meta( get_the_ID(), 'review_rating', true );
 
-    // Check if review rating exists
-    if ($review_rating) {
-        // Customize how you want to display the rating
-        $output = '<div class="reviewcard-rating-wrapper">';
-        $output .= '<div class="review-rating-title">Bite Rating</div>';
-        $output .= '<div class="reviewcard-rating-container">';
-        for ($i = 0; $i < 10; $i++) {
-            for($i=0; $i<10; $i++){
-                if($i < (int)$review_rating){
-                    $output .= '<i class="fa-solid fa-drumstick-bite checked"></i>';
-                }else{
-                    $output .= '<i class="fa-solid fa-drumstick-bite"></i>';
-                }
-            }
-        }
-        $output .= '<div class="review-rating-number">'.$review_rating.'/10</div>';
-        $output .= '</div>';
-        $output .= '</div>';
-        return $output;
-    } else {
-        return '<div class="recipe-time">No rating available.</div>';
-    }
+	if ( ! $review_rating ) {
+		return '';
+	}
+
+	return '<div class="bite-rating"><span class="bite-rating__label">Bite Rating</span>' . tb_rating_markup( $review_rating ) . '</div>';
 }
-add_shortcode('render_rating', 'render_rating_shortcode');
+add_shortcode( 'render_rating', 'render_rating_shortcode' );
 
+/**
+ * Ten drumsticks, filled up to the rating, followed by the number.
+ */
+function tb_rating_markup( $rating ) {
+	$filled = (int) round( (float) $rating );
+	$output = '<span class="bite-rating__sticks" aria-hidden="true">';
+	for ( $i = 0; $i < 10; $i++ ) {
+		$output .= '<i class="fa-solid fa-drumstick-bite' . ( $i < $filled ? ' is-on' : '' ) . '"></i>';
+	}
+	$output .= '</span><span class="bite-rating__score">' . esc_html( tb_format_score( $rating ) ) . '<small>/10</small></span>';
+	return $output;
+}
+
+function tb_format_score( $rating ) {
+	return number_format( (float) $rating, 1 );
+}
 
 /**
  * Register custom block template for Recipes.
  */
 function tastybites_register_recipes_content_template() {
-    $post_type_object = get_post_type_object( 'recipes_content' );
-    
-    if ( $post_type_object ) {
-        $post_type_object->template = array( 
-            array( 'core/pattern', array(
-                'slug' => 'tastybites/recipe_pattern',
-            ) )
-        );
-    }
+	$post_type_object = get_post_type_object( 'recipes_content' );
+
+	if ( $post_type_object ) {
+		$post_type_object->template = array(
+			array( 'core/pattern', array(
+				'slug' => 'tastybites/recipe_pattern',
+			) )
+		);
+	}
 }
 add_action( 'init', 'tastybites_register_recipes_content_template', 20 );
-
 
 /**
  * Register custom block template for reviews.
  */
 function tastybites_register_reviews_content_template() {
-    $post_type_object = get_post_type_object( 'review_content' );
-    
-    if ( $post_type_object ) {
-        $post_type_object->template = array( 
-            array( 'core/pattern', array(
-                'slug' => 'tastybites/review_pattern',
-            ) )
-        );
-    }
+	$post_type_object = get_post_type_object( 'review_content' );
+
+	if ( $post_type_object ) {
+		$post_type_object->template = array(
+			array( 'core/pattern', array(
+				'slug' => 'tastybites/review_pattern',
+			) )
+		);
+	}
 }
 add_action( 'init', 'tastybites_register_reviews_content_template', 20 );
 
+/**
+ * Destinations: where a post took place (New Orleans, Vancouver...). Each one has a short
+ * "stamp" code (NOLA, YVR) shown as a passport stamp on cards.
+ */
+function tb_register_destinations() {
+	register_taxonomy( 'destination', array( 'post', 'review_content' ), array(
+		'labels'            => array(
+			'name'          => 'Destinations',
+			'singular_name' => 'Destination',
+			'add_new_item'  => 'Add New Destination',
+			'search_items'  => 'Search Destinations',
+		),
+		'public'            => true,
+		'hierarchical'      => false,
+		'show_admin_column' => true,
+		'show_in_rest'      => true,
+		'rewrite'           => array( 'slug' => 'destination' ),
+	) );
+	register_term_meta( 'destination', 'stamp', array(
+		'type'              => 'string',
+		'single'            => true,
+		'show_in_rest'      => true,
+		'sanitize_callback' => 'tb_sanitize_stamp',
+	) );
+}
+add_action( 'init', 'tb_register_destinations' );
 
-
-//Build a custom nav output
-function wp_nav_menu_no_ul() {
-    $options = array(
-        'echo' => false,
-        'container' => false,
-		'menu_class'=> 'menuItems', 
-        'theme_location' => 'primary',
-        'fallback_cb' => 'default_page_menu',
-        'walker' => new Custom_Walker_Nav_Menu()
-    );
-
-     $menu = wp_nav_menu($options);
-    echo $menu;
+function tb_sanitize_stamp( $value ) {
+	return strtoupper( substr( sanitize_text_field( $value ), 0, 6 ) );
 }
 
-class Custom_Walker_Nav_Menu extends Walker_Nav_Menu {
-    // Start the list before the elements are added.
-    function start_lvl(&$output, $depth = 0, $args = null) {
-        if ($depth == 0) { // Only add this wrapper for top level
-            $output .= '<ul class="sub-menu">';
-        }
-    }
+function tb_stamp_field_add() {
+	echo '<div class="form-field"><label for="tb-stamp">Stamp code</label><input type="text" name="tb_stamp" id="tb-stamp" maxlength="6"><p>Up to 6 letters shown as a passport stamp, e.g. NOLA or YVR.</p></div>';
+}
+add_action( 'destination_add_form_fields', 'tb_stamp_field_add' );
 
-    // End the list of after the elements are added.
-    function end_lvl(&$output, $depth = 0, $args = null) {
-        if ($depth == 0) {
-            $output .= '</ul>';
-        }
-    }
+function tb_stamp_field_edit( $term ) {
+	$stamp = get_term_meta( $term->term_id, 'stamp', true );
+	echo '<tr class="form-field"><th scope="row"><label for="tb-stamp">Stamp code</label></th><td><input type="text" name="tb_stamp" id="tb-stamp" maxlength="6" value="' . esc_attr( $stamp ) . '"><p class="description">Up to 6 letters shown as a passport stamp, e.g. NOLA or YVR.</p></td></tr>';
+}
+add_action( 'destination_edit_form_fields', 'tb_stamp_field_edit' );
 
-    // Start the element output.
-    function start_el(&$output, $item, $depth = 0, $args = null, $id = 0) {
-        $title = apply_filters('the_title', $item->title, $item->ID);
+function tb_stamp_field_save( $term_id ) {
+	if ( isset( $_POST['tb_stamp'] ) && current_user_can( 'manage_categories' ) ) {
+		update_term_meta( $term_id, 'stamp', tb_sanitize_stamp( wp_unslash( $_POST['tb_stamp'] ) ) );
+	}
+}
+add_action( 'created_destination', 'tb_stamp_field_save' );
+add_action( 'edited_destination', 'tb_stamp_field_save' );
 
-        // Get original classes
-        $classes = implode(' ', $item->classes);
-
-        // Check if this item has children 
-        $has_children = in_array('menu-item-has-children', $item->classes);
-
-        if ($depth === 0) {
-            // Top-level menu item
-            $class_names = $has_children ? ' class="menu-item-has-children"' : '';
-            $output .= '<li class="' . $class_names . ' ' . $classes . '">';
-            $output .= '<a class="nav-link" data-active="'.esc_html($title).'" href="' . esc_attr($item->url) . '" data-item="' . esc_attr($title) . '">' . esc_html($title) . '</a>';
-        } else {
-            // Submenu items
-            $output .= '<li class="' . $classes . '"><a class="nav-link" href="' . esc_attr($item->url) . '">' . esc_html($title) . '</a>';
-        }
-    }
-
-    // End the element output.
-    function end_el(&$output, $item, $depth = 0, $args = null, $id = 0) {
-        $output .= '</li>';
-    }
+/**
+ * The stamp code for a post's first destination, or '' if it has none.
+ */
+function tb_post_stamp( $post_id = null ) {
+	$terms = get_the_terms( $post_id ?: get_the_ID(), 'destination' );
+	if ( empty( $terms ) || is_wp_error( $terms ) ) {
+		return '';
+	}
+	$stamp = get_term_meta( $terms[0]->term_id, 'stamp', true );
+	return $stamp ? $stamp : '';
 }
 
-?>
+/**
+ * Customizer: "Next stops" and "Meet Shawn" homepage content (Appearance > Customize > Homepage).
+ */
+function tb_customize_register( $wp_customize ) {
+	$wp_customize->add_section( 'tb_home', array(
+		'title'    => 'Homepage',
+		'priority' => 30,
+	) );
+
+	$wp_customize->add_setting( 'tb_next_stops', array( 'default' => '', 'sanitize_callback' => 'sanitize_textarea_field' ) );
+	$wp_customize->add_control( 'tb_next_stops', array(
+		'section'     => 'tb_home',
+		'type'        => 'textarea',
+		'label'       => 'Next stops',
+		'description' => 'One trip per line: YYYY-MM | Places. Example: 2027-03 | Hong Kong, Hanoi, Bangkok. Trips disappear once their month has passed. Leave empty to hide the section.',
+	) );
+
+	$wp_customize->add_setting( 'tb_chef_quote', array( 'default' => '', 'sanitize_callback' => 'sanitize_textarea_field' ) );
+	$wp_customize->add_control( 'tb_chef_quote', array(
+		'section' => 'tb_home',
+		'type'    => 'textarea',
+		'label'   => 'Meet Shawn: quote',
+	) );
+
+	$wp_customize->add_setting( 'tb_chef_photo', array( 'default' => 0, 'sanitize_callback' => 'absint' ) );
+	$wp_customize->add_control( new WP_Customize_Media_Control( $wp_customize, 'tb_chef_photo', array(
+		'section'   => 'tb_home',
+		'label'     => 'Meet Shawn: photo',
+		'mime_type' => 'image',
+	) ) );
+}
+add_action( 'customize_register', 'tb_customize_register' );
+
+/**
+ * Upcoming trips from the Customizer, skipping any whose month has passed.
+ *
+ * @return array[] Each item: [ 'label' => 'Mar 2027', 'places' => 'Hong Kong, Hanoi' ].
+ */
+function tb_next_stops() {
+	$lines = preg_split( '/\r\n|\r|\n/', (string) get_theme_mod( 'tb_next_stops', '' ) );
+	$this_month = current_time( 'Y-m' );
+	$stops = array();
+	foreach ( $lines as $line ) {
+		$parts = array_map( 'trim', explode( '|', $line, 2 ) );
+		if ( count( $parts ) !== 2 || '' === $parts[1] || ! preg_match( '/^\d{4}-\d{2}$/', $parts[0] ) ) {
+			continue;
+		}
+		if ( $parts[0] < $this_month ) {
+			continue;
+		}
+		$stops[] = array(
+			'label'  => date_i18n( 'M Y', strtotime( $parts[0] . '-01' ) ),
+			'places' => $parts[1],
+		);
+	}
+	return $stops;
+}
+
+/**
+ * Latest posts in a category, falling back to the old "blog" category when it doesn't exist.
+ */
+function tb_category_query( $slug, $count, $exclude = array(), $fallback = true ) {
+	$category = get_category_by_slug( $slug );
+	if ( ! $category && $fallback ) {
+		$category = get_category_by_slug( TB_CAT_FALLBACK );
+	}
+	if ( ! $category ) {
+		return new WP_Query( array( 'post__in' => array( 0 ) ) );
+	}
+	return new WP_Query( array(
+		'cat'                 => $category->term_id,
+		'posts_per_page'      => $count,
+		'post__not_in'        => $exclude,
+		'ignore_sticky_posts' => true,
+	) );
+}
+
+/**
+ * The first sentence of a post (or its excerpt, if Shawn wrote one), for the homepage hero.
+ */
+function tb_lead_sentence( $post = null ) {
+	$post = get_post( $post );
+	if ( has_excerpt( $post ) ) {
+		return get_the_excerpt( $post );
+	}
+	// Paragraph text only: drop headings, captions and the recipe "time to cook" field first.
+	$html = preg_replace( '#<(h[1-6]|figcaption)[^>]*>.*?</\1>#is', ' ', $post->post_content );
+	$html = preg_replace( '#<div[^>]*meta-field[^>]*>.*?</div>#is', ' ', $html );
+	$text = trim( preg_replace( '/\s+/', ' ', wp_strip_all_tags( strip_shortcodes( excerpt_remove_blocks( $html ) ) ) ) );
+	// Shawn often starts with a short heading like "Day 1", so skip leading fragments.
+	$text = preg_replace( '/^(day \d+\s+)/i', '', $text );
+	if ( preg_match( '/^(.{40,260}?[.!?])(\s|$)/u', $text, $m ) ) {
+		return $m[1];
+	}
+	return wp_trim_words( $text, 30 );
+}
+
+/**
+ * Excerpts on cards: shorter, with a plain ellipsis.
+ */
+add_filter( 'excerpt_length', function () {
+	return 26;
+} );
+add_filter( 'excerpt_more', function () {
+	return '…';
+} );
+
+// Automatic excerpts come from the post's paragraphs only, so headings like "Day 1" or the review
+// pattern's "Overview" don't lead the excerpt, and don't end in "…." when the cut lands on punctuation.
+add_filter( 'wp_trim_excerpt', function ( $excerpt, $raw ) {
+	if ( '' !== $raw ) {
+		return $excerpt;
+	}
+	$content = preg_replace( '#<(h[1-6]|figcaption)[^>]*>.*?</\1>#is', ' ', get_the_content() );
+	$text    = wp_strip_all_tags( strip_shortcodes( excerpt_remove_blocks( $content ) ) );
+	$text    = preg_replace( '/^\s*day \d+\s+/i', '', $text );
+	$excerpt = wp_trim_words( $text, apply_filters( 'excerpt_length', 26 ), '…' );
+	return preg_replace( '/[\s.,;:!?]+…$/u', '…', $excerpt );
+}, 10, 2 );
+
+// Archive headings: "Road Trips", not "Category: Road Trips".
+add_filter( 'get_the_archive_title_prefix', '__return_empty_string' );
+
+/**
+ * Template ground rules for post content (see ROADMAP §0): generic rules that hold for every post,
+ * so the theme never needs per-post special cases.
+ */
+
+// An empty heading or list item (left over from the block patterns) is not rendered at all.
+function tb_drop_empty_blocks( $content, $block ) {
+	if ( '' === trim( html_entity_decode( wp_strip_all_tags( $content ), ENT_QUOTES | ENT_HTML5 ), " \t\n\r\0\x0B\xC2\xA0" ) && false === strpos( $content, '<img' ) ) {
+		return '';
+	}
+	return $content;
+}
+add_filter( 'render_block_core/heading', 'tb_drop_empty_blocks', 10, 2 );
+add_filter( 'render_block_core/list-item', 'tb_drop_empty_blocks', 10, 2 );
+
+// Tell browsers how wide content images actually display, so they download a reading-column-sized
+// file instead of the full-size original.
+add_filter( 'wp_calculate_image_sizes', function ( $sizes ) {
+	if ( is_admin() || ! is_singular() ) {
+		return $sizes;
+	}
+	return '(max-width: 760px) calc(100vw - 32px), 720px';
+} );
+
+/**
+ * Housekeeping that keeps the site's URLs clean.
+ */
+
+// Rewrite rules must be rebuilt when the theme adds URL types (the Destinations taxonomy).
+// Bump the version when that happens again; the first request after a deploy rebuilds them once.
+const TB_REWRITE_VERSION = '1';
+add_action( 'init', function () {
+	if ( get_option( 'tb_rewrite_version' ) !== TB_REWRITE_VERSION ) {
+		flush_rewrite_rules( false );
+		update_option( 'tb_rewrite_version', TB_REWRITE_VERSION );
+	}
+}, 99 );
+
+// The homepage is a static page, so /page/2/ would just repeat it: send it home.
+add_action( 'template_redirect', function () {
+	if ( is_front_page() && ( get_query_var( 'paged' ) > 1 || get_query_var( 'page' ) > 1 ) ) {
+		wp_safe_redirect( home_url( '/' ), 301 );
+		exit;
+	}
+} );
+
+// Keep empty category/tag/destination pages out of search engines.
+add_filter( 'wp_robots', function ( $robots ) {
+	if ( ( is_category() || is_tag() || is_tax() ) && ! have_posts() ) {
+		$robots['noindex'] = true;
+	}
+	return $robots;
+} );
+
+/**
+ * Search covers posts, recipes and reviews, but not pages.
+ */
+function tb_search_post_types( $query ) {
+	if ( $query->is_search() && $query->is_main_query() && ! is_admin() ) {
+		$query->set( 'post_type', array( 'post', 'recipes_content', 'review_content' ) );
+		$type = tb_search_type();
+		if ( $type ) {
+			foreach ( tb_search_types()[ $type ]['args'] as $key => $value ) {
+				$query->set( $key, $value );
+			}
+		}
+	}
+}
+add_action( 'pre_get_posts', 'tb_search_post_types' );
+
+/**
+ * The main RSS feed carries reviews and recipes too, not just blog posts. Category, tag and
+ * comment feeds are left alone.
+ */
+function tb_feed_post_types( $query ) {
+	if ( $query->is_feed() && $query->is_main_query() && ! $query->is_comment_feed() && ! $query->is_archive() && ! $query->is_search() && ! $query->is_singular() ) {
+		$query->set( 'post_type', array( 'post', 'recipes_content', 'review_content' ) );
+	}
+}
+add_action( 'pre_get_posts', 'tb_feed_post_types' );
+
+/**
+ * A human label for a post's type or category, for card eyebrows.
+ */
+function tb_post_label( $post = null ) {
+	$post = get_post( $post );
+	if ( 'recipes_content' === $post->post_type ) {
+		return 'Recipe';
+	}
+	if ( 'review_content' === $post->post_type ) {
+		return 'Review';
+	}
+	foreach ( get_the_category( $post->ID ) as $category ) {
+		if ( TB_CAT_FALLBACK !== $category->slug && 'uncategorized' !== $category->slug ) {
+			return $category->name;
+		}
+	}
+	return 'Journal';
+}
+
+/**
+ * Bite Rating bands: the 1–10 scale explained in Shawn's own phrases (from his posts). The index on
+ * the Reviews page and the verdict next to each score both use this list.
+ * Wording drafted from his posts; Shawn to approve (ROADMAP §1).
+ */
+function tb_rating_bands() {
+	return array(
+		array( 'min' => 9, 'range' => '9–10', 'verdict' => 'Off the charts', 'note' => 'The best of the best. Worth the drive, worth the trip.' ),
+		array( 'min' => 8, 'range' => '8–8.9', 'verdict' => 'Top 5 material', 'note' => 'If you\'re ever in town, eat here. Worth going out of your way for.' ),
+		array( 'min' => 7, 'range' => '7–7.9', 'verdict' => 'Solid', 'note' => 'Tasty, good value, homemade where it counts. I\'d come back.' ),
+		array( 'min' => 6, 'range' => '6–6.9', 'verdict' => 'It\'s OK', 'note' => 'It wasn\'t terrible, but I know there are better options.' ),
+		array( 'min' => 0, 'range' => 'Under 6', 'verdict' => 'Don\'t waste your time', 'note' => 'Out of a box, or just not done right. There are better options.' ),
+	);
+}
+
+function tb_rating_band( $rating ) {
+	foreach ( tb_rating_bands() as $band ) {
+		if ( (float) $rating >= $band['min'] ) {
+			return $band;
+		}
+	}
+	$bands = tb_rating_bands();
+	return end( $bands );
+}
+
+/**
+ * Breadcrumbs: Home › section › page, plus matching BreadcrumbList JSON-LD (built from the same trail).
+ * Not shown on the homepage.
+ */
+function tb_breadcrumb_trail() {
+	$trail = array( array( 'Home', home_url( '/' ) ) );
+
+	if ( is_singular( 'recipes_content' ) ) {
+		$trail[] = array( 'Recipes', home_url( '/recipes/' ) );
+	} elseif ( is_singular( 'review_content' ) ) {
+		$trail[] = array( 'Reviews', home_url( '/reviews/' ) );
+		$places = get_the_terms( get_queried_object_id(), 'destination' );
+		if ( $places && ! is_wp_error( $places ) ) {
+			$trail[] = array( $places[0]->name, get_term_link( $places[0] ) );
+		}
+	} elseif ( is_singular( 'post' ) ) {
+		foreach ( get_the_category( get_queried_object_id() ) as $category ) {
+			if ( 'uncategorized' !== $category->slug ) {
+				$trail[] = array( $category->name, get_category_link( $category ) );
+				break;
+			}
+		}
+	} elseif ( is_search() ) {
+		$trail[] = array( 'Search', '' );
+		return $trail;
+	} elseif ( is_404() ) {
+		$trail[] = array( 'Page not found', '' );
+		return $trail;
+	}
+
+	if ( is_singular() ) {
+		$trail[] = array( wp_strip_all_tags( get_the_title( get_queried_object_id() ) ), '' );
+	} elseif ( is_category() || is_tag() || is_tax() ) {
+		$trail[] = array( single_term_title( '', false ), '' );
+	} elseif ( is_archive() ) {
+		$trail[] = array( wp_strip_all_tags( get_the_archive_title() ), '' );
+	}
+	return $trail;
+}
+
+function tb_breadcrumbs() {
+	if ( is_front_page() ) {
+		return;
+	}
+	$trail = tb_breadcrumb_trail();
+	if ( count( $trail ) < 2 ) {
+		return;
+	}
+	echo '<nav class="breadcrumbs" aria-label="Breadcrumb"><ol>';
+	$last = count( $trail ) - 1;
+	foreach ( $trail as $i => list( $name, $url ) ) {
+		if ( $i === $last || ! $url ) {
+			echo '<li><span aria-current="page">' . esc_html( $name ) . '</span></li>';
+		} else {
+			echo '<li><a href="' . esc_url( $url ) . '">' . esc_html( $name ) . '</a></li>';
+		}
+	}
+	echo '</ol></nav>';
+
+	$items = array();
+	foreach ( $trail as $i => list( $name, $url ) ) {
+		$item = array( '@type' => 'ListItem', 'position' => $i + 1, 'name' => $name );
+		if ( $url && $i !== $last ) {
+			$item['item'] = $url;
+		}
+		$items[] = $item;
+	}
+	echo '<script type="application/ld+json">' . wp_json_encode( array(
+		'@context'        => 'https://schema.org',
+		'@type'           => 'BreadcrumbList',
+		'itemListElement' => $items,
+	), JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE ) . '</script>';
+}
+
+/**
+ * Related posts: up to 3, same destination first, then same category / content type, then recent.
+ *
+ * @return array{ title: string, posts: WP_Post[] }
+ */
+function tb_related_posts( $post = null, $count = 3 ) {
+	$post    = get_post( $post );
+	$found   = array();
+	$exclude = array( $post->ID );
+	$title   = '';
+	$base    = array(
+		'posts_per_page'      => $count,
+		'ignore_sticky_posts' => true,
+		'no_found_rows'       => true,
+		'post_status'         => 'publish',
+	);
+	$take = function ( $args ) use ( &$found, &$exclude, $count, $base ) {
+		if ( count( $found ) >= $count ) {
+			return;
+		}
+		$args['posts_per_page'] = $count - count( $found );
+		$args['post__not_in']   = $exclude;
+		foreach ( get_posts( array_merge( $base, $args ) ) as $match ) {
+			$found[]   = $match;
+			$exclude[] = $match->ID;
+		}
+	};
+
+	$places = get_the_terms( $post, 'destination' );
+	if ( $places && ! is_wp_error( $places ) ) {
+		$take( array(
+			'post_type' => array( 'post', 'review_content' ),
+			'tax_query' => array( array( 'taxonomy' => 'destination', 'terms' => wp_list_pluck( $places, 'term_id' ) ) ),
+		) );
+		if ( count( $found ) >= $count ) {
+			$title = 'More from ' . $places[0]->name;
+		}
+	}
+
+	if ( 'post' === $post->post_type ) {
+		$categories = wp_list_pluck( get_the_category( $post->ID ), 'term_id' );
+		if ( $categories ) {
+			$take( array( 'category__in' => $categories ) );
+		}
+		$title = $title ?: 'More from the journal';
+	} else {
+		$take( array( 'post_type' => $post->post_type, 'orderby' => 'rand' ) );
+		$title = $title ?: ( 'recipes_content' === $post->post_type ? 'More recipes' : 'More reviews' );
+	}
+
+	$take( array( 'post_type' => 'post' ) );
+	return array( 'title' => $title, 'posts' => $found );
+}
+
+/**
+ * Search filters: content-type chips (?type=…). Each maps to query args.
+ */
+function tb_search_types() {
+	return array(
+		'trips'   => array( 'label' => 'Road Trips', 'args' => array( 'post_type' => 'post', 'category_name' => TB_CAT_TRIPS ) ),
+		'reviews' => array( 'label' => 'Reviews', 'args' => array( 'post_type' => 'review_content' ) ),
+		'recipes' => array( 'label' => 'Recipes', 'args' => array( 'post_type' => 'recipes_content' ) ),
+		'opinion' => array( 'label' => 'My 2 Cents', 'args' => array( 'post_type' => 'post', 'category_name' => TB_CAT_TWO_CENTS ) ),
+	);
+}
+
+function tb_search_type() {
+	$type = isset( $_GET['type'] ) ? sanitize_key( wp_unslash( $_GET['type'] ) ) : '';
+	return array_key_exists( $type, tb_search_types() ) ? $type : '';
+}
+
+/**
+ * Result count for a search term per filter ('' = all types).
+ */
+function tb_search_count( $term, $type = '' ) {
+	$args = array(
+		's'              => $term,
+		'post_type'      => array( 'post', 'recipes_content', 'review_content' ),
+		'post_status'    => 'publish',
+		'posts_per_page' => 1,
+		'fields'         => 'ids',
+	);
+	if ( $type ) {
+		$args = array_merge( $args, tb_search_types()[ $type ]['args'] );
+	}
+	$query = new WP_Query( $args );
+	return (int) $query->found_posts;
+}
+
+/**
+ * The site logo: the Customizer logo if one is set, otherwise the original logo upload.
+ */
+function tb_logo_url() {
+	$logo_id = get_theme_mod( 'custom_logo' ) ?: 385;
+	return wp_get_attachment_image_url( $logo_id, 'medium' );
+}

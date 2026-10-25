@@ -1,48 +1,48 @@
 <?php
-    get_header();
-    echo "<div id='".get_the_title()."'>";
+/**
+ * About page: "Meet Shawn" intro, then the About Content posts as alternating photo/text rows.
+ */
+get_header();
 
-    $categories = get_categories();
+$tb_quote    = get_theme_mod( 'tb_chef_quote', '' );
+$tb_photo    = get_theme_mod( 'tb_chef_photo', 0 );
+$tb_about    = get_category_by_slug( 'about-content' );
+$tb_sections = $tb_about ? new WP_Query( array(
+	'cat'            => $tb_about->term_id,
+	'posts_per_page' => 10,
+	'order'          => 'ASC',
+) ) : null;
+$tb_early    = get_category_by_slug( TB_CAT_EARLY );
+?>
+<main id="main" class="about">
+	<header class="archive__header wrap">
+		<?php tb_breadcrumbs(); ?>
+		<span class="stamp stamp--tilt">Culinary school · class of 1982</span>
+		<h1 class="archive__title">Meet Shawn</h1>
+		<?php if ( $tb_quote ) : ?>
+			<blockquote class="chef__quote"><p><?php echo esc_html( $tb_quote ); ?></p></blockquote>
+		<?php endif; ?>
+	</header>
 
-    foreach($categories as $category){
-        $id = $category->term_id;
-        $catergory_url = get_category_link( $id );
-        $category_name = $category->name;
+	<?php if ( $tb_sections && $tb_sections->have_posts() ) : ?>
+		<div class="wrap about__rows">
+			<?php while ( $tb_sections->have_posts() ) : $tb_sections->the_post(); ?>
+				<section class="about__row">
+					<?php if ( has_post_thumbnail() ) : ?>
+						<?php the_post_thumbnail( 'large', array( 'class' => 'about__img', 'alt' => '' ) ); ?>
+					<?php endif; ?>
+					<div class="about__text prose prose--flush">
+						<h2><?php the_title(); ?></h2>
+						<?php the_content(); ?>
+					</div>
+				</section>
+			<?php endwhile; wp_reset_postdata(); ?>
+		</div>
+	<?php endif; ?>
 
-        if($category_name == "About Content"){
-            $args = array(
-                        'posts_per_page' => 5,
-                        'order' => 'ASC',
-		                'cat' => $id,
-                        );
-            $found_category = new WP_Query($args);
-
-            echo "<div class='aboutcard-container'>";
-            if($found_category->have_posts()){
-                $counter = 0;
-                while($found_category->have_posts()){
-                    $found_category->the_post();
-                    $counter++;
-                    $reverse_class = ($counter % 2 == 0) ? 'reverse' : '';
-                    ?>
-                        <div class="aboutcard">
-                            <div class="aboutcard-innerbox <?= $reverse_class; ?>">
-                                <img class="aboutcard-img" src="<?= get_the_post_thumbnail_url($post,'large'); ?>" />
-                                <div class="aboutcard-textbox">
-                                    <div class="aboutcard-title"><?= the_title(); ?></div>
-                                    <div class="aboutcard-bar"></div>
-                                    <div class="aboutcard-description"><?= the_content(); ?></div>
-                                </div>
-                            </div>
-                        </div>
-                    <?php
-                }
-            }
-            echo "</div>";
-        echo "</div>"; // close the parent container
-        }
-        wp_reset_postdata();
-    }
-
-    get_footer();
-?> 
+	<?php if ( $tb_early ) : ?>
+		<p class="wrap about__more"><a class="button" href="<?php echo esc_url( get_category_link( $tb_early ) ); ?>">Read The Early Years</a></p>
+	<?php endif; ?>
+</main>
+<?php
+get_footer();

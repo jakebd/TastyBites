@@ -50,23 +50,13 @@ database live on the server. **How to deploy, roll back and use staging: see [DE
 - **User Accounts:**
   - Potentially adding user accounts, allowing visitors to log in, save favorite recipes, and more.
 
-### Maintenance backlog
-Found while reviewing the site in October 2026. Test each on staging first.
-
-- [ ] Update outdated plugins (ACF 6.3 → 6.8, WP Mail SMTP, Custom Post Type UI, WPForms Lite,
-      LiteSpeed Cache, Font Awesome, Display a Meta Field as Block, Simple Local Avatars).
-      Take a DB backup first (see DEPLOYMENT.md).
-- [ ] Turn off `WP_DEBUG` on production (it's on, and `public_html/error_log` is ~19 MB; it is not publicly readable).
-- [ ] Replace hard-coded image attachment IDs: the logo (`385` in `header.php`, could use WordPress's custom logo setting) and the blog card icon (`384` in `front-page.php`).
-- [ ] Remove the Font Awesome 4.7 CDN link in `header.php`. The icons use FA 6 classes from the Font Awesome plugin.
-- [ ] Query categories by slug (`'category_name' => 'blog'`) instead of looping over every category in `front-page.php` and `page-about.php`.
-- [ ] Remove the redundant nested loop in `render_rating_shortcode()` (`functions.php`).
-- [ ] Escape output in templates (`esc_attr( get_the_title() )` in the wrapper `id`s, `esc_url()` on image URLs).
-- [ ] Add a theme header (`Theme Name:` etc.) to the top of `style.css` so WP admin shows proper theme details.
+### Roadmap
+The redesign ("Road Journal"), the AI assistant ideas, other features and the maintenance
+backlog are tracked in **[ROADMAP.md](ROADMAP.md)**.
 
 ## Technologies Used
 - **WordPress** 7.1 on PHP 8.2, LiteSpeed web server.
-- **Theme:** this repo: classic PHP templates, Bootstrap 5.3 (CDN), custom CSS per page in `assets/css/`.
+- **Theme:** this repo: classic PHP templates + `theme.json` design tokens ("Road Journal" design), one stylesheet (`style.css`), self-hosted Young Serif and Source Sans 3 fonts.
 - **Plugins:**
   - **Advanced Custom Fields (ACF):** custom fields on posts.
   - **Custom Post Type UI:** the recipe and review post types.
@@ -81,12 +71,15 @@ Found while reviewing the site in October 2026. Test each on staging first.
 ## Repository layout
 
 ```
-*.php, style.css        theme templates and main stylesheet
-assets/css, assets/js   per-page styles and the mobile menu script
-patterns/               block patterns used as templates for new recipes and reviews
-scripts/                deploy, rollback, staging refresh (not shipped to the server)
+*.php, style.css        theme templates and the stylesheet
+theme.json              design tokens (colours, fonts, sizes) and editor settings
+template-parts/         cards shared by the homepage, archives and search
+assets/                 fonts, editor stylesheet, phone-menu script
+inc/patterns/           block patterns used as templates for new recipes and reviews
+scripts/                deploy, rollback, staging refresh, content migrations (not shipped to the server)
 .github/workflows/      GitHub Actions deploy workflow
 DEPLOYMENT.md           how deployment and staging work
+ROADMAP.md              feature backlog, ideas and decisions
 ```
 
 ## Getting started on a new machine

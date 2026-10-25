@@ -1,39 +1,44 @@
 <!DOCTYPE html>
-<html <?php language_attributes(); ?> class="no-js">
+<html <?php language_attributes(); ?>>
 <head>
-  <meta charset="<?php bloginfo( 'charset' ); ?>">
-  <meta name="viewport" content="width=device-width">
-  <link rel="profile" href="http://gmpg.org/xfn/11">
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <?php wp_head(); ?>
+	<meta charset="<?php bloginfo( 'charset' ); ?>">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<?php wp_head(); ?>
 </head>
- 
+
 <body <?php body_class(); ?>>
-  <div class="brand-section">
-    <div class="logo-slogan-container">
-        <?php 
-        // Retrieve the site icon URL
-        $full_site_logo = wp_get_attachment_image_url(385, "full");
-        if($full_site_logo){
-            echo '<div class="logo-container"><a href="'. get_home_url() .'"> <img src="' . esc_url($full_site_logo) . '" class="brand-logo" alt="Site Icon"> </a> </div>';
-        }
-        ?>
-    </div>
+<?php wp_body_open(); ?>
+<a class="skip-link" href="#main">Skip to content</a>
 
-    <div class="primary_menu">
-      <div class="nav-container">
-        <nav>
-          <?php 
-          wp_nav_menu_no_ul()
-          ?>
-        </nav>
-      </div>
-    </div>
+<header class="site-header">
+	<div class="site-header__inner">
+		<a class="site-header__logo" href="<?php echo esc_url( home_url( '/' ) ); ?>">
+			<?php $logo = tb_logo_url(); ?>
+			<?php if ( $logo ) : ?>
+				<img src="<?php echo esc_url( $logo ); ?>" alt="<?php echo esc_attr( get_bloginfo( 'name' ) ); ?> home" width="120" height="68">
+			<?php else : ?>
+				<span class="site-header__name"><?php bloginfo( 'name' ); ?></span>
+			<?php endif; ?>
+		</a>
 
-    <button class="menu-toggle" aria-label="Toggle navigation">
-        &#9776;
-    </button>
-    
-  </div>
+		<button class="site-header__toggle" type="button" aria-expanded="false" aria-controls="site-nav">
+			<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h16"/></svg>
+			<span>Menu</span>
+		</button>
+
+		<div class="site-header__panel" id="site-nav">
+			<nav class="site-nav" aria-label="Main">
+				<?php
+				wp_nav_menu( array(
+					'theme_location' => 'primary',
+					'container'      => false,
+					'menu_class'     => 'site-nav__list',
+					'depth'          => 1,
+					'fallback_cb'    => false,
+				) );
+				?>
+			</nav>
+			<?php get_search_form(); ?>
+		</div>
+	</div>
+</header>

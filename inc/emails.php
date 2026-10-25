@@ -59,7 +59,7 @@ function tb_email_layout( $preheader, $heading, $body ) {
 		<tr><td bgcolor="#1F1B17" style="background:#1F1B17;border-radius:8px 8px 0 0;padding:18px 24px;">
 			<table role="presentation" cellpadding="0" cellspacing="0" border="0"><tr>
 				<?php if ( $logo ) : ?>
-					<td style="padding-right:14px;"><img src="<?php echo esc_url( $logo ); ?>" width="52" height="52" alt="" style="display:block;border:0;border-radius:50%;"></td>
+					<td style="padding-right:14px;"><img src="<?php echo esc_url( $logo ); ?>" width="100" height="60" alt="" style="display:block;border:0;width:100px;height:60px;"></td>
 				<?php endif; ?>
 				<td style="font-family:Georgia,'Times New Roman',serif;font-size:22px;color:#F3ECDF;"><?php echo $site; // phpcs:ignore WordPress.Security.EscapeOutput -- escaped above. ?></td>
 			</tr></table>

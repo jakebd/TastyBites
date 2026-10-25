@@ -167,7 +167,8 @@ Follow-ups:
       WordPress shows next. No IP, host or email (still in wp-admin → Comments). Replies go to the admin address.
       Live on production 2026-10-25. (first chance to see email; staging blocks it).
 - [x] `/category/blog/` (and its pages and feed) 301 to Road Trips (the old Blog category was removed). Live 2026-10-25.
-- [ ] Shawn check-in (list below).
+- [ ] Shawn check-in (list below). **Deferred by Jacob (2026-10-25) until the AI features are in**, so it's one
+      sitting covering both.
 
 ### Production rollout (as planned)
 1. **Check-in with Shawn** (Jacob, one sitting; parked until then):
@@ -321,6 +322,9 @@ Found while reviewing the site in October 2026. Test each on staging first.
       apart; 1 of ~1,040 groups done after 30 min. Next step for Jacob: LiteSpeed Cache → General → link a free
       QUIC.cloud account using the admin address (account sign-up is a manual step), then check
       `litespeed-image status` again.
+      Done 2026-10-25: Jacob linked a free QUIC.cloud account. 7 groups optimised the same hour, then the new account's
+      daily quota ran out; WP-Cron carries on each day (the daily allowance grows as the account ages). WebP is served
+      (e.g. `Gengies_Logo_Light-1-300x180.png.webp`). Nothing to do but check progress now and then.
 - [x] Turn off `WP_DEBUG` on production (2026-10-25; WP_DEBUG, WP_DEBUG_LOG and WP_DEBUG_DISPLAY now false; it was
       showing PHP notices to visitors). Backup: `~/deploy/production/wp-config.before-debug-off-20261025.php`.
 - [x] Old logs deleted on production (2026-10-25): the ~19 MB `error_log`, `debug.log` and 10 small `error_log`s

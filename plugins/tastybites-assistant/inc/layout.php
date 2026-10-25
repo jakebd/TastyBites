@@ -42,8 +42,9 @@ function tba_words( $content, $drop_markers = false ) {
 	if ( $drop_markers ) {
 		$content = preg_replace( '#(<li\b[^>]*>(?:\s*<[a-z][^>]*>)*)\s*[-–•]\s*#iu', '$1', $content );
 	}
-	// Block boundaries and tags separate words; strip_all_tags also removes block comments.
-	$text = wp_strip_all_tags( preg_replace( '/</', ' <', $content ) );
+	// Inline tags (bold, links...) sit inside words' flow; any other tag or block comment separates words.
+	$text = preg_replace( '#</?(?:strong|b|em|i|u|s|a|span|mark|code|small|sub|sup|abbr|del|ins)\b[^>]*>#i', '', $content );
+	$text = wp_strip_all_tags( preg_replace( '/</', ' <', $text ) );
 	$text = html_entity_decode( $text, ENT_QUOTES | ENT_HTML5, 'UTF-8' );
 	if ( class_exists( 'Normalizer' ) ) {
 		$text = Normalizer::normalize( $text, Normalizer::FORM_C );

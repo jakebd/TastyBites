@@ -23,9 +23,11 @@ require TBA_DIR . '/inc/switches.php';
 require TBA_DIR . '/inc/jobs.php';
 require TBA_DIR . '/inc/publish.php';
 require TBA_DIR . '/inc/thumbs.php';
+require TBA_DIR . '/inc/layout.php';
 
 if ( is_admin() ) {
 	require TBA_DIR . '/inc/admin.php';
+	require TBA_DIR . '/inc/layout-admin.php';
 }
 if ( defined( 'WP_CLI' ) && WP_CLI ) {
 	require TBA_DIR . '/inc/cli.php';

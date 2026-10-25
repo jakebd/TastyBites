@@ -17,12 +17,6 @@
 						<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><rect x="3" y="3" width="18" height="18" rx="5"/><circle cx="12" cy="12" r="4"/><circle cx="17.3" cy="6.7" r="0.6" fill="currentColor"/></svg>
 					</a>
 				</li>
-				<li>
-					<a class="social-link" href="<?php echo esc_url( get_feed_link() ); ?>">
-						<span class="screen-reader-text">Follow by RSS feed</span>
-						<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M5 11a8 8 0 0 1 8 8M5 5a14 14 0 0 1 14 14"/><circle cx="6" cy="18" r="1.2" fill="currentColor"/></svg>
-					</a>
-				</li>
 			</ul>
 		</div>
 		<nav class="site-footer__nav" aria-labelledby="footer-browse">

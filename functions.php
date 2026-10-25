@@ -54,6 +54,9 @@ function tb_enqueue_assets() {
 	$dir = get_template_directory();
 	wp_enqueue_style( 'tastybites', get_stylesheet_uri(), array(), (string) filemtime( $dir . '/style.css' ) );
 	wp_enqueue_script( 'tastybites-nav', get_template_directory_uri() . '/assets/js/menu.js', array(), (string) filemtime( $dir . '/assets/js/menu.js' ), true );
+	if ( is_singular() && comments_open() && get_option( 'thread_comments' ) ) {
+		wp_enqueue_script( 'comment-reply' );
+	}
 }
 add_action( 'wp_enqueue_scripts', 'tb_enqueue_assets' );
 
@@ -66,6 +69,7 @@ require_once get_template_directory() . '/inc/patterns/review_pattern.php';
 // Reading tools (heading anchors, table of contents, review info box) and SEO/sharing tags.
 require_once get_template_directory() . '/inc/entry-tools.php';
 require_once get_template_directory() . '/inc/seo.php';
+require_once get_template_directory() . '/inc/comments.php';
 
 /**
  * [render_rating] shortcode used by the review pattern: the drumstick "Bite Rating" out of 10.
@@ -384,6 +388,17 @@ function tb_search_post_types( $query ) {
 	}
 }
 add_action( 'pre_get_posts', 'tb_search_post_types' );
+
+/**
+ * The main RSS feed carries reviews and recipes too, not just blog posts. Category, tag and
+ * comment feeds are left alone.
+ */
+function tb_feed_post_types( $query ) {
+	if ( $query->is_feed() && $query->is_main_query() && ! $query->is_comment_feed() && ! $query->is_archive() && ! $query->is_search() && ! $query->is_singular() ) {
+		$query->set( 'post_type', array( 'post', 'recipes_content', 'review_content' ) );
+	}
+}
+add_action( 'pre_get_posts', 'tb_feed_post_types' );
 
 /**
  * A human label for a post's type or category, for card eyebrows.

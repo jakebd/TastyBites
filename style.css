@@ -894,9 +894,65 @@ h1, h2, h3, h4 {
 .prose h2[id], .prose h3[id] { scroll-margin-top: 24px; }
 html { scroll-behavior: smooth; }
 
+/* ---------------------------------------------------------------
+   Comments
+---------------------------------------------------------------- */
+.entry__comments { color: var(--tomato); font-weight: 600; }
+.comments { padding-block: 8px 40px; }
+.comments__title { font-family: var(--font-display); font-weight: 400; font-size: 1.7rem; margin: 0 0 16px; padding-top: 28px; border-top: 2px solid var(--ink); }
+.comments__empty, .comments__closed, .comment-notes { color: var(--ink-soft); }
+.comment-list, .comment-list .children { list-style: none; margin: 0; padding: 0; }
+.comment-list .children { margin-left: clamp(14px, 4vw, 36px); padding-left: clamp(12px, 3vw, 20px); border-left: 2px solid #E2D6C2; }
+.comment__body { padding: 16px 0; border-bottom: 1px solid #E2D6C2; }
+.comment__meta { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 10px; }
+.comment__avatar { width: 40px; height: 40px; border-radius: 50%; flex: none; object-fit: cover; }
+.comment__avatar--initial { display: inline-grid; place-items: center; background: var(--paper-deep); color: var(--ink); font-family: var(--font-display); font-size: 1.1rem; }
+.comment__author { font-weight: 700; }
+.comment__badge { background: var(--tomato); color: #fff; font-size: 0.72rem; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; padding: 2px 8px; border-radius: 4px; }
+.comment__date { color: var(--ink-soft); font-size: 0.9rem; text-decoration: none; }
+.comment__date:hover { color: var(--tomato); }
+.comment__held { margin: 10px 0 0; padding: 8px 12px; background: #FBF1D6; border-left: 4px solid var(--mustard); }
+.comment__text { margin-top: 8px; }
+.comment__text p { margin: 0 0 0.8em; }
+.comment__text p:last-child { margin-bottom: 0; }
+.comment__reply a { display: inline-block; margin-top: 6px; padding-block: 8px; color: var(--tomato); font-weight: 700; }
+.bypostauthor > .comment__body { background: #FBF7EF; margin-inline: -12px; padding-inline: 12px; border-radius: var(--radius); }
+
+.comment-respond { margin-top: 28px; }
+.comment-reply-title { font-family: var(--font-display); font-weight: 400; font-size: 1.4rem; margin: 0 0 6px; }
+.comment-reply-title small { margin-left: 10px; font-family: var(--font-body); font-size: 0.95rem; }
+.comment-reply-title small a { color: var(--tomato); }
+.comment-form { display: grid; gap: 14px; }
+.comment-form p { margin: 0; }
+.comment-form label { display: block; font-weight: 700; margin-bottom: 4px; }
+.comment-form input[type="text"], .comment-form input[type="email"], .comment-form textarea {
+	width: 100%;
+	box-sizing: border-box;
+	font: inherit;
+	color: var(--ink);
+	background: #fff;
+	border: 2px solid var(--ink);
+	border-radius: var(--radius);
+	padding: 10px 12px;
+	min-height: 44px;
+}
+.comment-form textarea { min-height: 9em; resize: vertical; }
+.comment-form input:focus, .comment-form textarea:focus { outline: 3px solid var(--mustard); outline-offset: 2px; }
+.comment-form .required { color: var(--tomato); }
+.comment-form-cookies-consent { display: flex; gap: 10px; align-items: flex-start; }
+.comment-form-cookies-consent input { width: 20px; height: 20px; margin-top: 2px; flex: none; }
+.comment-form-cookies-consent label { font-weight: 400; margin: 0; }
+.comment-form .form-submit .button { border: 0; cursor: pointer; font: inherit; font-weight: 700; }
+@media (min-width: 600px) {
+	.comment-form { grid-template-columns: 1fr 1fr; }
+	.comment-form > * { grid-column: 1 / -1; }
+	.comment-form .comment-form-author { grid-column: 1; }
+	.comment-form .comment-form-email { grid-column: 2; }
+}
+
 /* Print: recipes and posts print as clean text, no site chrome. */
 @media print {
-	.site-header, .site-footer, .skip-link, .breadcrumbs, .related, .post-nav, .entry__tools, .toc,
+	.site-header, .site-footer, .skip-link, .breadcrumbs, .related, .post-nav, .comments, .entry__comments, .entry__tools, .toc,
 	.entry__hero, .lightbox-trigger, #wpadminbar, .wp-block-image img, .wp-block-gallery { display: none !important; }
 	body { background: #fff; color: #000; font-size: 12pt; }
 	.prose > * { max-width: none; padding-inline: 0; }

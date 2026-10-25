@@ -20,6 +20,9 @@ while ( have_posts() ) :
 				<div class="entry__meta">
 					<?php echo get_avatar( get_the_author_meta( 'ID' ), 44, '', '', array( 'class' => 'entry__avatar' ) ); ?>
 					<span>By <?php the_author(); ?></span>
+					<?php if ( get_comments_number() ) : ?>
+						<a class="entry__comments" href="#comments"><?php echo esc_html( sprintf( _n( '%s comment', '%s comments', get_comments_number() ), number_format_i18n( get_comments_number() ) ) ); ?></a>
+					<?php endif; ?>
 					<?php if ( $tb_stamp ) : ?>
 						<span class="stamp stamp--tilt"><?php echo esc_html( $tb_stamp ); ?></span>
 					<?php endif; ?>
@@ -75,6 +78,8 @@ while ( have_posts() ) :
 				<?php the_content(); ?>
 			</div>
 		</article>
+
+		<?php comments_template(); ?>
 
 		<?php $tb_related = tb_related_posts(); ?>
 		<?php if ( $tb_related['posts'] ) : ?>

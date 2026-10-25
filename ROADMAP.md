@@ -123,24 +123,47 @@ Research notes behind these choices: `docs/research/blog-best-practices-2026-10.
 - [x] Meta description + Open Graph/Twitter tags on every page (Facebook previews); homepage and recipe descriptions.
 - [x] Fuller footer: about line, Browse and More links, RSS, ©. (No privacy page exists yet: see below.)
 - [x] 200% text size: overflow check on 14 key pages at 320/360px; fixed scoreboard names, drumsticks, note tilt.
-- [ ] **Image formats:** tried Modern Image Formats on staging and removed it. On this host AVIF came out *larger*
+- [x] **Image formats:** tried Modern Image Formats on staging and removed it. On this host AVIF came out *larger*
       than JPEG (GD encoder), WebP+JPEG mode didn't run from WP-CLI, and its first run re-pointed the original
-      file record to .avif (restored). Recommended instead: LiteSpeed Cache image optimisation (plugin already
-      installed; uses the QUIC.cloud service, so needs Jacob's OK to connect). Meanwhile the `sizes` fix already
-      makes browsers fetch column-sized images.
-- [ ] **Privacy page:** needed before comments/newsletter. Content/legal decision for Jacob and Shawn; the footer
-      links it automatically once WordPress has one set (Settings → Privacy).
+      file record to .avif (restored). Decision (Jacob, 2026-10-25): use LiteSpeed Cache image optimisation via
+      QUIC.cloud, **connected on production as a backlog item** (§5), not now. The `sizes` fix already makes
+      browsers fetch column-sized images.
 - [ ] Check on a real iPhone (Safari) before production.
 
+### Comments and privacy (2026-10-25, on staging)
+- [x] **Comments on** for posts, reviews and recipes (pages stay closed). Publish straight away, no approval
+      queue; Antispam Bee filters spam on the server (honeypot, too-fast submissions, known spam IPs, BBCode;
+      nothing sent to outside services); spam kept 30 days then deleted. Comments containing a link are held
+      (§2.7 triage later). No website field, no Gravatar look-ups (readers get an initial; Shawn gets his photo
+      and a "Chef" badge). Replies thread 3 deep. Shawn is emailed about new comments on his posts.
+      Script: `scripts/migrations/comments-and-privacy.php`.
+- [x] Tested on staging as an anonymous visitor: a bot-style post (honeypot filled) went to spam, a genuine
+      comment published instantly, one with a link was held with a "waiting for a quick check" note. Note: a
+      spam hit marks that IP, so a genuine comment from the same IP right after is also caught (by design).
+- [~] **Privacy page** (`/privacy/`, set as WordPress's privacy page, linked from the footer and the comment form).
+      Plain language, matches what the site actually does: no ads, analytics or tracking; what comments store;
+      the opt-in cookie; links out; hosted in Canada. **Needs Jacob's and Shawn's OK** (not legal advice), and a
+      contact method: it currently says to message the Facebook page. Add an email if Shawn wants one.
+- [x] **RSS feed** now includes reviews and recipes, not just posts. The RSS icon was removed from the social row:
+      `/feed/` is raw XML for feed-reader apps (Feedly etc.), which confused people next to Facebook/Instagram.
+      The footer's More list keeps a plain "RSS feed" link, and readers find the feed automatically from the site
+      address. (A styled feed page via XSLT was ruled out: Chrome is removing XSLT support.)
+
 ### Production rollout (in this order)
-1. Shawn OKs the category names above (rename in the migration script first if he wants different ones) and the
-   Bite Rating index wording.
+1. **Check-in with Shawn** (Jacob, one sitting; parked until then):
+   - category names (rename in the migration script first if he wants different ones);
+   - Bite Rating index wording ("How I rate" note and verdict bands);
+   - the Privacy page wording and how readers should contact him;
+   - that he's happy to get an email for every new comment;
+   - the public "I don't use any AI hacks" note (§4).
 2. Merge `road-journal` → `main` and approve the production deploy. Until step 3 runs, the homepage
    falls back to the old "Blog" category and the menu stays as it was: nothing breaks.
 3. Straight after, in order (each takes a DB backup first; they need the new theme's Destinations taxonomy,
    which is why they run after the deploy):
    - `bash scripts/migrate.sh production scripts/migrations/road-journal-content.php`
    - `bash scripts/migrate.sh production scripts/migrations/polish-data-fixes.php`
+   - Install Antispam Bee: `source scripts/lib.sh && remote 'wp --path=public_html plugin install antispam-bee --activate'`
+   - `bash scripts/migrate.sh production scripts/migrations/comments-and-privacy.php`
    - Optional: fill "Restaurant details" on the 7 reviews (city, cuisine, price) so the info boxes fill out.
 4. Confirm the XML sitemap is served on production (`/wp-sitemap.xml`; on staging it's off because search
    engines are discouraged there).
@@ -193,7 +216,7 @@ Claude as the provider. Estimate the cost before building; it should be small at
 
 ## 3. Site features
 
-- [ ] **Comments**, designed to need no moderation (approved by Jacob 2026-10-24; next after the polish pass):
+- [x] **Comments**, designed to need no moderation (approved by Jacob 2026-10-24; built 2026-10-25, see §1):
   - Why: posts actively ask for it ("Well please leave feedback, positive or negative", "if you have
     recommendations let me know") but there is no comment form, contact page or email anywhere.
   - Publish immediately unless flagged; Antispam Bee for spam filtering (free, no account, runs on the server);
@@ -202,8 +225,8 @@ Claude as the provider. Estimate the cost before building; it should be small at
   - Consider "notify me of replies" and an email to Shawn when someone comments (he'd enjoy reading them).
 - [ ] **Ways to follow:** visible RSS link, optional email signup; links to any video channels Shawn starts
       (his 2025 update promises cooking videos).
-- [ ] **Open Graph / meta tags** so Facebook and Instagram shares show a photo, title and description.
-- [ ] **Structured data:** Recipe schema on recipes, Review schema on reviews, BreadcrumbList.
+- [x] **Open Graph / meta tags** so Facebook and Instagram shares show a photo, title and description.
+- [x] **Structured data:** Recipe schema on recipes, Review schema on reviews, BreadcrumbList.
 - [ ] **Clean URLs:** `/recipes/…` and `/reviews/…` instead of `/recipes_content/…`; fix numeric slugs
       (`/414-2/` Costco, `/recipes_content/792/`, `/review_content/553/`), all with redirects.
 - [ ] **Review info box:** city, address, cuisine, price, visit date, website/map. Filled by the assistant
@@ -212,7 +235,7 @@ Claude as the provider. Estimate the cost before building; it should be small at
 - [ ] **Trip post navigation:** day-by-day contents and a styled "Worth a second stop / Don't waste your
       time" summary box. Depends on headings being real headings (§2.11).
 - [ ] **Places hub:** destinations as navigation, with trips and reviews per place.
-- [ ] **Fuller footer:** contact, copyright, privacy note (needed with comments or a newsletter).
+- [x] **Fuller footer:** contact, copyright, privacy note (needed with comments or a newsletter).
 - (?) **Map of everywhere he's eaten:** one pin per reviewed restaurant, linking to its post. Depends on
       §2.4 for the data. Photo GPS data from §4 could place pins.
 
@@ -268,6 +291,9 @@ Shawn talks; AI turns it into posts in his voice. Proposed by Jacob, 2026-10-24.
 Found while reviewing the site in October 2026. Test each on staging first.
 
 - [x] Update outdated plugins: done by Jacob on staging and production, 2026-10-24.
+- [ ] **Image optimisation on production:** connect LiteSpeed Cache to QUIC.cloud (LiteSpeed Cache → Image
+      Optimization) and convert to WebP. Approved by Jacob 2026-10-25 as a production backlog item, after the
+      redesign rollout. Not on staging (shared account; one connection).
 - [ ] Turn off `WP_DEBUG` on production (it's on, and `public_html/error_log` is ~19 MB; it is not publicly readable).
 - [x] Replace hard-coded image attachment IDs: the redesign uses the Customizer logo (falls back to `385`); the blog card icon is gone.
 - [x] Remove the Font Awesome 4.7 CDN link in `header.php` (redesign). The Font Awesome *plugin* stays:
@@ -309,6 +335,9 @@ Real issues inside the posts themselves. Parked on purpose: they need Shawn, or 
 | 2026-10-24 | Deploy via GitHub Actions; staging on a WHC subdomain | Repeatable deploys with rollback; a safe place to test |
 | 2026-10-24 | Design direction A · Road Journal | Jacob and Shawn both preferred it |
 | 2026-10-24 | Restyle the classic theme + `theme.json`, not a full block theme | Keeps the Site Editor away from a non-technical author |
+| 2026-10-25 | Image optimisation via LiteSpeed/QUIC.cloud, on production as a backlog item | Modern Image Formats made bigger AVIFs and broke a file record on staging |
+| 2026-10-25 | RSS icon out of the social row; text link kept | `/feed/` is for feed readers and looked broken to people clicking it |
+| 2026-10-25 | Shawn-facing approvals (categories, rating wording, privacy, comment emails) batched into one check-in | Fewer interruptions for Shawn |
 | 2026-10-24 | Comments: auto-publish with spam filtering, no approval queue; do right after the redesign | Nobody will moderate; bots are the main risk |
 | 2026-10-24 | AI acts on publish only, never on draft saves | Shawn writes over several days |
 | 2026-10-24 | Design first; AI work after, behind the scenes | Minimal disruption to Shawn's workflow |

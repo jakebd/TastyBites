@@ -22,6 +22,7 @@ require TBA_DIR . '/inc/install.php';
 require TBA_DIR . '/inc/switches.php';
 require TBA_DIR . '/inc/jobs.php';
 require TBA_DIR . '/inc/publish.php';
+require TBA_DIR . '/inc/thumbs.php';
 
 if ( is_admin() ) {
 	require TBA_DIR . '/inc/admin.php';

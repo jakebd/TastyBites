@@ -200,15 +200,17 @@ Follow-ups:
 >
 > **Build progress:** step 1 (plugin foundation: `plugins/tastybites-assistant`, job queue, AI log table, off
 > switches, after-publish trigger, Tools → Assistant, staging cron) on staging 2026-10-25, branch
-> `assistant-foundation`. Shawn's emails start **off** until Jacob's check-in with him.
+> `ai-features` (integration branch; all AI work stays on staging and ships to production together).
+> Step 2 (2.1 featured photo) on staging 2026-10-25. Shawn's emails start **off** until Jacob's check-in with him.
 
 Runs on the server when Shawn **publishes or updates a published post**, never on draft saves,
 because he writes over several days. It fills in what is missing and never changes his
 wording without approval. Built on WordPress 7.1's core AI client (Settings → Connectors) with
 Claude as the provider. Estimate the cost before building; it should be small at his volume.
 
-- [ ] **2.1 Featured photo fallback** (no AI): on publish, if there is no featured image, use the
-      first image in the post. Later: let AI pick the best photo instead.
+- [x] **2.1 Featured photo fallback** (no AI; on staging 2026-10-25): on publish, if there is no featured
+      image, use the first image in the post (≥300px wide: 11 of Shawn's own picks are 480px or less). All 38
+      published posts already have one, so no backfill was needed. Later: let AI pick the best photo instead.
 - [ ] **2.2 Alt text:** describe each image that has none (Claude vision). Includes a one-off pass over
       the ~1,060 existing images, of which only 4 have alt text today.
 - [ ] **2.3 Summary + social preview:** write the excerpt and the Open Graph/meta description when they

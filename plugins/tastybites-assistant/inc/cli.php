@@ -6,6 +6,7 @@
  *   wp tba status    switches, last background run, job counts
  *   wp tba run       run due jobs now (the server cron does this every 5 minutes)
  *   wp tba jobs      list recent jobs
+ *   wp tba thumbs    posts with no featured photo, and what the fallback would pick (--apply to set them)
  */
 
 defined( 'ABSPATH' ) || exit;
@@ -82,6 +83,28 @@ class TBA_CLI {
 			(int) ( $assoc['limit'] ?? 20 )
 		), ARRAY_A );
 		WP_CLI\Utils\format_items( 'table', $rows, array( 'id', 'type', 'object_id', 'status', 'attempts', 'next_run', 'last_error' ) );
+	}
+
+	/**
+	 * List published posts with no featured photo and the photo the fallback would use.
+	 *
+	 * [--apply]
+	 * : Set them (otherwise a dry run).
+	 */
+	public function thumbs( $args, $assoc ) {
+		$apply = ! empty( $assoc['apply'] );
+		$ids   = get_posts( array( 'post_type' => tba_post_types(), 'post_status' => 'publish', 'numberposts' => -1, 'fields' => 'ids' ) );
+		$found = 0;
+		foreach ( $ids as $id ) {
+			$post = get_post( $id );
+			if ( has_post_thumbnail( $post ) && wp_attachment_is_image( get_post_thumbnail_id( $post ) ) ) {
+				continue;
+			}
+			$found++;
+			$pick = tba_apply_thumb( $post, ! $apply );
+			WP_CLI::line( sprintf( '#%d %s -> %s', $id, $post->post_title, $pick ? "photo #$pick" . ( $apply ? ' (set)' : '' ) : 'no usable photo in the post' ) );
+		}
+		WP_CLI::success( sprintf( '%d of %d published posts had no featured photo.%s', $found, count( $ids ), $apply || ! $found ? '' : ' Dry run; add --apply to set them.' ) );
 	}
 }
 

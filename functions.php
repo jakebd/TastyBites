@@ -366,6 +366,22 @@ add_action( 'template_redirect', function () {
 	}
 } );
 
+// The old "Blog" category was split up and removed (2026-10): send its links, feed and pages to Road Trips.
+add_action( 'template_redirect', function () {
+	if ( ! is_404() || get_category_by_slug( TB_CAT_FALLBACK ) ) {
+		return;
+	}
+	$path = trim( (string) wp_parse_url( $_SERVER['REQUEST_URI'] ?? '', PHP_URL_PATH ), '/' ); // phpcs:ignore WordPress.Security.ValidatedSanitizedInput
+	if ( preg_match( '#^category/' . TB_CAT_FALLBACK . '(?:/(feed))?(?:/|$)#', $path, $match ) ) {
+		$trips = get_category_by_slug( TB_CAT_TRIPS );
+		if ( $trips ) {
+			$url = get_category_link( $trips );
+			wp_safe_redirect( empty( $match[1] ) ? $url : get_category_feed_link( $trips->term_id ), 301 );
+			exit;
+		}
+	}
+} );
+
 // Keep empty category/tag/destination pages out of search engines.
 add_filter( 'wp_robots', function ( $robots ) {
 	if ( ( is_category() || is_tag() || is_tax() ) && ! have_posts() ) {

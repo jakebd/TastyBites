@@ -614,3 +614,12 @@ function tb_logo_url() {
 	$logo_id = get_theme_mod( 'custom_logo' ) ?: 385;
 	return wp_get_attachment_image_url( $logo_id, 'medium' );
 }
+
+/**
+ * [site_email]: the site admin address (Settings → General) as a mailto link, encoded against
+ * address-harvesting bots. One place to change it.
+ */
+add_shortcode( 'site_email', function () {
+	$email = antispambot( get_option( 'admin_email' ) );
+	return '<a href="mailto:' . esc_attr( $email ) . '">' . esc_html( $email ) . '</a>';
+} );

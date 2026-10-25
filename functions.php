@@ -70,6 +70,7 @@ require_once get_template_directory() . '/inc/patterns/review_pattern.php';
 require_once get_template_directory() . '/inc/entry-tools.php';
 require_once get_template_directory() . '/inc/seo.php';
 require_once get_template_directory() . '/inc/comments.php';
+require_once get_template_directory() . '/inc/emails.php';
 
 /**
  * [render_rating] shortcode used by the review pattern: the drumstick "Bite Rating" out of 10.
@@ -362,6 +363,23 @@ add_action( 'template_redirect', function () {
 	if ( is_front_page() && ( get_query_var( 'paged' ) > 1 || get_query_var( 'page' ) > 1 ) ) {
 		wp_safe_redirect( home_url( '/' ), 301 );
 		exit;
+	}
+} );
+
+// The old "Blog" category was split up and removed (2026-10): send its links, feed and pages to Road Trips.
+add_action( 'template_redirect', function () {
+	// WordPress answers a missing category's feed with an empty feed rather than a 404, so match on the path.
+	if ( ! ( is_404() || is_feed() ) || get_category_by_slug( TB_CAT_FALLBACK ) ) {
+		return;
+	}
+	$path = trim( (string) wp_parse_url( $_SERVER['REQUEST_URI'] ?? '', PHP_URL_PATH ), '/' ); // phpcs:ignore WordPress.Security.ValidatedSanitizedInput
+	if ( preg_match( '#^category/' . TB_CAT_FALLBACK . '(?:/(feed))?(?:/|$)#', $path, $match ) ) {
+		$trips = get_category_by_slug( TB_CAT_TRIPS );
+		if ( $trips ) {
+			$url = get_category_link( $trips );
+			wp_safe_redirect( empty( $match[1] ) ? $url : get_category_feed_link( $trips->term_id ), 301 );
+			exit;
+		}
 	}
 } );
 

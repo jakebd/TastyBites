@@ -158,12 +158,16 @@ errors in the log. Shawn's check-in happens after launch instead of before (Jaco
 
 Follow-ups:
 - [ ] Real iPhone check, and Facebook Sharing Debugger on a post.
-- [~] Site admin address **GengiesTastyBites@outlook.com** (Jacob's alias, forwards to him): WordPress admin
+- [x] Site admin address **GengiesTastyBites@outlook.com** (Jacob's alias, forwards to him): WordPress admin
       email, copied on every new-comment email, footer "Email us", Privacy page contact (`[site_email]`).
-      Staging done; production needs the deploy, then `scripts/migrations/admin-contact.php`.
-- [ ] Confirm Shawn and the admin address receive the new-comment email (first chance to see email; staging blocks it).
-- [ ] `/category/blog/` now 404s (the old Blog category was emptied and removed). Redirect it to Road Trips in
-      case search engines or old links still point there.
+      Live on staging and production (2026-10-25, `scripts/migrations/admin-contact.php`).
+- [x] Shawn and the admin address receive the new-comment email (Jacob tested 2026-10-25).
+- [~] Branded comment emails (`inc/emails.php`): site colours and logo, who said what, plain "what you can do"
+      buttons (Reply on the site / Delete it / It's spam; held ones: Approve it), each naming the exact confirm button
+      WordPress shows next. No IP, host or email (still in wp-admin → Comments). Replies go to the admin address.
+      On staging; production after the next deploy. (first chance to see email; staging blocks it).
+- [~] `/category/blog/` (and its pages and feed) 301 to Road Trips (the old Blog category was removed). On staging;
+      production after the `housekeeping` deploy.
 - [ ] Shawn check-in (list below).
 
 ### Production rollout (as planned)
@@ -312,11 +316,16 @@ Found while reviewing the site in October 2026. Test each on staging first.
       (no account; `server_ip` set to 198.100.159.124). Lossy JPEG/PNG + WebP (also in srcset), originals kept as
       `.bk` files (LiteSpeed Cache → Image Optimization can revert), EXIF kept, new uploads auto-requested. The free
       tier takes one small batch every few minutes, so the ~1,040 images finish over days via WP-Cron. Check
-      progress: `wp --path=public_html litespeed-image status`. First result: logo 132 KB → 33 KB, no visible change.
+      progress: `wp --path=public_html litespeed-image status` (WP-Cron requests and pulls every 15 min). First result: logo 132 KB → 33 KB, no visible change.
       Not on staging (basic auth blocks QUIC.cloud).
 - [x] Turn off `WP_DEBUG` on production (2026-10-25; WP_DEBUG, WP_DEBUG_LOG and WP_DEBUG_DISPLAY now false; it was
       showing PHP notices to visitors). Backup: `~/deploy/production/wp-config.before-debug-off-20261025.php`.
-- [ ] Old ~19 MB `public_html/error_log`: archive or delete once nothing in it is needed.
+- [x] Old logs deleted on production (2026-10-25): the ~19 MB `error_log`, `debug.log` and 10 small `error_log`s
+      left in core folders by bots requesting PHP files directly. Root cause of the big log: the `WP_DEBUG` lines had
+      been added *below* `require wp-settings.php` in `wp-config.php`, so they never took effect on the site and logged
+      two "already defined" warnings on every request. Moved above "stop editing" (backup:
+      `~/deploy/production/wp-config.before-debug-move-20261025.php`). Remaining host noise: an Imagick version warning
+      (WHC's PHP build, harmless).
 - [x] Replace hard-coded image attachment IDs: the redesign uses the Customizer logo (falls back to `385`); the blog card icon is gone.
 - [x] Remove the Font Awesome 4.7 CDN link in `header.php` (redesign). The Font Awesome *plugin* stays:
       it draws the Bite Rating drumsticks.

@@ -6,6 +6,7 @@
  *   wp tba status    switches, last background run, job counts
  *   wp tba run       run due jobs now (the server cron does this every 5 minutes)
  *   wp tba jobs      list recent jobs
+ *   wp tba layout    layout tidy-ups each published post would get (--store to queue them for review)
  *   wp tba thumbs    posts with no featured photo, and what the fallback would pick (--apply to set them)
  */
 
@@ -105,6 +106,51 @@ class TBA_CLI {
 			WP_CLI::line( sprintf( '#%d %s -> %s', $id, $post->post_title, $pick ? "photo #$pick" . ( $apply ? ' (set)' : '' ) : 'no usable photo in the post' ) );
 		}
 		WP_CLI::success( sprintf( '%d of %d published posts had no featured photo.%s', $found, count( $ids ), $apply || ! $found ? '' : ' Dry run; add --apply to set them.' ) );
+	}
+
+	/**
+	 * Show the layout tidy-ups each published post would get. Changes nothing unless --store.
+	 *
+	 * [<id>...]
+	 * : Only these posts.
+	 *
+	 * [--store]
+	 * : Save the proposals for review on Tools → Layout tidy-ups.
+	 *
+	 * [--verbose]
+	 * : List every change, not just counts.
+	 */
+	public function layout( $args, $assoc ) {
+		$ids    = $args ?: get_posts( array( 'post_type' => tba_post_types(), 'post_status' => 'publish', 'numberposts' => -1, 'fields' => 'ids' ) );
+		$totals = array( 'posts' => 0, 'with' => 0, 'failed' => 0, 'roundtrip' => 0 );
+		foreach ( $ids as $id ) {
+			$post = get_post( $id );
+			$totals['posts']++;
+			// Parsing and re-saving untouched content must give back the same text, or no rule can be trusted.
+			if ( serialize_blocks( parse_blocks( $post->post_content ) ) !== $post->post_content ) {
+				$totals['roundtrip']++;
+				WP_CLI::line( "#$id {$post->post_title}: parse/serialize round trip differs" );
+			}
+			$result = ! empty( $assoc['store'] ) ? tba_layout_refresh( $post ) : tba_layout_propose( $post->post_content );
+			if ( is_wp_error( $result ) ) {
+				$totals['failed']++;
+				WP_CLI::line( "#$id {$post->post_title}: CHECK FAILED " . $result->get_error_message() );
+				continue;
+			}
+			if ( ! $result ) {
+				continue;
+			}
+			$totals['with']++;
+			$by_rule = array_count_values( array_column( $result['changes'], 0 ) );
+			WP_CLI::line( "#$id {$post->post_title}: " . implode( ', ', array_map( fn( $r, $n ) => "$r x$n", array_keys( $by_rule ), $by_rule ) ) );
+			if ( ! empty( $assoc['verbose'] ) ) {
+				foreach ( $result['changes'] as $change ) {
+					WP_CLI::line( "    - {$change[1]}" );
+				}
+			}
+		}
+		WP_CLI::success( sprintf( '%d posts: %d with tidy-ups, %d failed the words check, %d round-trip differences.%s',
+			$totals['posts'], $totals['with'], $totals['failed'], $totals['roundtrip'], empty( $assoc['store'] ) ? ' Dry run.' : ' Stored for review.' ) );
 	}
 }
 

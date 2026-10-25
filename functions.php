@@ -70,6 +70,7 @@ require_once get_template_directory() . '/inc/patterns/review_pattern.php';
 require_once get_template_directory() . '/inc/entry-tools.php';
 require_once get_template_directory() . '/inc/seo.php';
 require_once get_template_directory() . '/inc/comments.php';
+require_once get_template_directory() . '/inc/emails.php';
 
 /**
  * [render_rating] shortcode used by the review pattern: the drumstick "Bite Rating" out of 10.

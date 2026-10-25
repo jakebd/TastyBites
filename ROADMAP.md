@@ -149,7 +149,21 @@ Research notes behind these choices: `docs/research/blog-best-practices-2026-10.
       The footer's More list keeps a plain "RSS feed" link, and readers find the feed automatically from the site
       address. (A styled feed page via XSLT was ruled out: Chrome is removing XSLT support.)
 
-### Production rollout (in this order)
+### Production rollout: done 2026-10-25
+Deployed `7bf781e` (PR #3), then ran road-journal-content, polish-data-fixes, Antispam Bee install and
+comments-and-privacy on production (DB backups in `~/deploy/production/db-backups/before-*-20261025-*.sql`).
+Checked: 15 key URLs, sitemap (includes destinations), indexable, no staging leftovers, JSON-LD, comment form +
+honeypot, one live test comment (published instantly, then deleted; Shawn's emails paused for the test), no theme
+errors in the log. Shawn's check-in happens after launch instead of before (Jacob's call).
+
+Follow-ups:
+- [ ] Real iPhone check, and Facebook Sharing Debugger on a post.
+- [ ] Confirm Shawn receives the new-comment email (first chance to see email; staging blocks it).
+- [ ] `/category/blog/` now 404s (the old Blog category was emptied and removed). Redirect it to Road Trips in
+      case search engines or old links still point there.
+- [ ] Shawn check-in (list below).
+
+### Production rollout (as planned)
 1. **Check-in with Shawn** (Jacob, one sitting; parked until then):
    - category names (rename in the migration script first if he wants different ones);
    - Bite Rating index wording ("How I rate" note and verdict bands);

@@ -368,7 +368,8 @@ add_action( 'template_redirect', function () {
 
 // The old "Blog" category was split up and removed (2026-10): send its links, feed and pages to Road Trips.
 add_action( 'template_redirect', function () {
-	if ( ! is_404() || get_category_by_slug( TB_CAT_FALLBACK ) ) {
+	// WordPress answers a missing category's feed with an empty feed rather than a 404, so match on the path.
+	if ( ! ( is_404() || is_feed() ) || get_category_by_slug( TB_CAT_FALLBACK ) ) {
 		return;
 	}
 	$path = trim( (string) wp_parse_url( $_SERVER['REQUEST_URI'] ?? '', PHP_URL_PATH ), '/' ); // phpcs:ignore WordPress.Security.ValidatedSanitizedInput

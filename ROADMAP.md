@@ -217,8 +217,15 @@ Claude as the provider. Estimate the cost before building; it should be small at
 - [ ] **2.6 Next stops suggestions:** when a post mentions future trips ("2027 Highlights…"),
       propose updates to the Upcoming trips list for Jacob to approve.
 - [ ] **2.7 Comment triage:** decide on comments held for containing links (§3); approve genuine ones.
-- (?) **2.8 Proofread:** optional button in the editor that fixes spelling and grammar only, keeps his
-      voice and swearing, and shows each change for him to accept.
+- [ ] **2.8 Spelling fixer (Jacob, 2026-10-25: critical, not a nice-to-have):** runs automatically
+      within a minute or two of publish and fixes misspelled words. The AI only returns a list of word-level
+      fixes (word, fix, confidence, sentence); PHP applies each one only if that word is in the post, only that
+      word changes and the fix is a plausible spelling correction. A words-unchanged check (every other word
+      identical) guards the result, and each pass is saved as a revision for undo. It leaves alone his slang,
+      swearing, Canadian spellings and names (restaurants, dishes, places); confirmed names go on a site word
+      list. If it isn't sure, the word stays as written and an **urgent email goes to Jacob and Shawn right
+      away**; the first answer settles it. Grammar and style stay off. Before going live: report-only run over
+      the existing posts so Jacob can judge accuracy (the same list can fix the archive).
 - [ ] **2.9 Content flags:** find and flag gaps instead of guessing. Examples from the 2026-10 review:
       reviews with no city, address, cuisine, price or visit date; restaurants mentioned in trip posts with
       no score; recipes without servings or with inconsistent times; typos; images without alt text.
@@ -226,6 +233,14 @@ Claude as the provider. Estimate the cost before building; it should be small at
       email to Shawn (or Jacob) with the flags. **Shawn replies to the email in plain words** ("it's in
       St. Albert, Alberta, about $20 a head") and the AI applies the answer to the post. Open questions: how
       replies are received (a mailbox the site reads), verifying the sender, and showing what changed.
+      **Cadence (Jacob, 2026-10-25):** per publish, not weekly, and no weekly cap. One email per publish pass
+      with only that post's questions, most important first; posts published within the same hour share
+      one email; no questions means no email; unanswered questions stay on Jacob's list and are never re-sent.
+      Urgent spelling questions (2.8) go out immediately. Start with one-question link pages (REPORT §1.7).
+- [ ] **2.13 Email settings (Jacob, 2026-10-25):** a settings screen for Jacob that controls, per email
+      type (urgent spelling, per-publish questions, AI Mode, error alerts, etc.) and per person (Jacob,
+      Shawn), who gets what. If Shawn is getting too many, Jacob can turn his off and handle them himself.
+      Questions still reach Jacob's list whatever the settings. Build alongside the first email (2.8 / 2.10).
 - [ ] **2.11 Structure fixer:** bring content in line with the template's ground rules (§0) instead of the
       template handling edge cases:
   - short standalone lines like "Day 2" or "Lunch" become proper subheadings;
@@ -282,7 +297,12 @@ Shawn talks; AI turns it into posts in his voice. Proposed by Jacob, 2026-10-24.
    - **Blog post** (default, long form): the main output, in his voice and structure (day by day, food highlights).
    - **Restaurant reviews:** one per place he rated, extracted from what he said, linked to the blog post (same as §2.4).
    - **Recipe** (rare): only when he walked through how to make something, e.g. "Thanksgiving night, here are my steps".
-4. **Review.** Everything lands as **drafts**. Shawn reads, edits and publishes himself. AI Mode never publishes.
+4. **Feedback (Jacob, 2026-10-25).** Before anything reaches the editor, the AI Mode screen shows the
+   rendered draft next to the AI's notes and questions ("I wasn't sure where these 3 photos go", "you said
+   the price was great but not what it was"). Shawn answers by talking or typing, says a part again, or
+   skips; only the affected part is redone. The §2 helpers (alt text, excerpt, categories, spelling) run on
+   this draft too, so he sees the finished post before publishing. Gaps are asked here, not by email.
+5. **Review.** Everything lands as **drafts** in the normal editor for hands-on changes. Shawn reads, edits and publishes himself. AI Mode never publishes.
 
 ### Principles
 - Write in **his** voice: first person, his phrasing and humour, swearing included. Use his existing
@@ -388,4 +408,8 @@ Real issues inside the posts themselves. Parked on purpose: they need Shawn, or 
 | 2026-10-24 | Design first; AI work after, behind the scenes | Minimal disruption to Shawn's workflow |
 | 2026-10-24 | Template handles ground rules; content is changed to fit them (by AI later), not the other way round | Keeps the theme from filling up with edge cases |
 | 2026-10-24 | Polish everything on staging before any production rollout | Launch once, launch well |
+| 2026-10-25 | Two AI features: the quiet assistant (§2, his normal workflow) and AI Mode (§4, a separate workflow with its own screen) | Matches the research; AI Mode's screen handles the back-and-forth, the normal editor handles edits |
+| 2026-10-25 | Spelling fixed automatically after publish (2.8); unsure words emailed to Jacob and Shawn immediately | Typos matter to the content; code checks only single words change |
+| 2026-10-25 | Question emails per publish, no weekly 5-question cap; Jacob controls who gets which email (2.13) | A busy week would exhaust a weekly cap; Jacob can take over if Shawn is overrun |
+| 2026-10-25 | AI Mode drafts get the §2 helpers before publish (exception to "publish only") | An AI Mode draft is complete, not half-written |
 | 2026-10-24 | Research that reads the web runs in a separate agent | Keeps outside content (possible prompt injection) out of the main session |

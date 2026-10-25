@@ -7,6 +7,8 @@
 reviewed by the organizer (`review-1.md`, `review-2.md`, `review-3.md`) before the next began. Source IDs below
 (`[Sn]` Phase 1, `[Pn]` Phase 2, `[Qn]` Phase 3) point into those files.
 
+> **Jacob's decisions after this report (2026-10-25) override it where they differ; see §10.**
+
 ---
 
 ## 1. The ten things to remember
@@ -188,3 +190,27 @@ The full checklist is `phase-3-implementation.md` §5. Already confirmed by the 
 CLI upload limits are 100M; Shawn is an Editor; Visual Revisions is absent. Still open: the cron line, abilities
 from the command line, the connector key constant name, LiteSpeed purge on background updates, web upload limits,
 EXIF surviving 7.1 uploads, and MediaRecorder on Shawn's laptop browser.
+
+---
+
+## 10. Jacob's decisions after the report (2026-10-25)
+
+These override the sections above where they differ. Details are in ROADMAP §2 and §4 and the decision log.
+
+1. **Two features.** The quiet assistant (§2) works behind Shawn's normal editor workflow. AI Mode (§4) is a
+   separate workflow with its own screen.
+2. **Spelling is fixed automatically after publish (ROADMAP 2.8), no longer deferred.** The AI returns
+   word-level fixes only; PHP applies a fix only if that word is in the post, only that word changes and the fix
+   is a plausible spelling correction; a words-unchanged check guards the rest. Slang, swearing, Canadian
+   spellings and names are left alone; confirmed names go on a site word list. Unsure words stay as written and
+   trigger an immediate email to Jacob and Shawn. Report-only run over the archive first. In the build order,
+   this goes straight after the AI wrapper (step 4), ahead of alt text.
+3. **Question emails are per publish, not weekly, with no 5-question cap** (replaces §1.7's weekly digest).
+   One email per publish pass, most important first; posts within the same hour share an email; none if there
+   are no questions; unanswered questions stay on Jacob's list and are never re-sent.
+4. **Email settings (ROADMAP 2.13):** Jacob controls per email type and per person who receives what, so he
+   can turn Shawn's emails off and handle them himself. Questions always reach Jacob's list.
+5. **AI Mode feedback step:** the AI Mode screen shows the rendered draft beside the AI's notes and questions;
+   Shawn answers by voice or text, re-says a part, or skips, and only that part is redone. The §2 helpers run on
+   the AI Mode draft before publish (a deliberate exception to "publish only"). Hands-on edits then happen in the
+   normal editor; no custom editor.

@@ -165,9 +165,8 @@ Follow-ups:
 - [~] Branded comment emails (`inc/emails.php`): site colours and logo, who said what, plain "what you can do"
       buttons (Reply on the site / Delete it / It's spam; held ones: Approve it), each naming the exact confirm button
       WordPress shows next. No IP, host or email (still in wp-admin → Comments). Replies go to the admin address.
-      On staging; production after the next deploy. (first chance to see email; staging blocks it).
-- [~] `/category/blog/` (and its pages and feed) 301 to Road Trips (the old Blog category was removed). On staging;
-      production after the `housekeeping` deploy.
+      Live on production 2026-10-25. (first chance to see email; staging blocks it).
+- [x] `/category/blog/` (and its pages and feed) 301 to Road Trips (the old Blog category was removed). Live 2026-10-25.
 - [ ] Shawn check-in (list below).
 
 ### Production rollout (as planned)
@@ -318,6 +317,10 @@ Found while reviewing the site in October 2026. Test each on staging first.
       tier takes one small batch every few minutes, so the ~1,040 images finish over days via WP-Cron. Check
       progress: `wp --path=public_html litespeed-image status` (WP-Cron requests and pulls every 15 min). First result: logo 132 KB → 33 KB, no visible change.
       Not on staging (basic auth blocks QUIC.cloud).
+      **Too slow in anonymous mode** (checked 2026-10-25): quota 100 images, one small group per request, ~15 min
+      apart; 1 of ~1,040 groups done after 30 min. Next step for Jacob: LiteSpeed Cache → General → link a free
+      QUIC.cloud account using the admin address (account sign-up is a manual step), then check
+      `litespeed-image status` again.
 - [x] Turn off `WP_DEBUG` on production (2026-10-25; WP_DEBUG, WP_DEBUG_LOG and WP_DEBUG_DISPLAY now false; it was
       showing PHP notices to visitors). Backup: `~/deploy/production/wp-config.before-debug-off-20261025.php`.
 - [x] Old logs deleted on production (2026-10-25): the ~19 MB `error_log`, `debug.log` and 10 small `error_log`s

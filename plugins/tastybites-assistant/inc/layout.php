@@ -259,8 +259,16 @@ function tba_tidy_top( $blocks, &$changes ) {
  * result failed the words-unchanged check, or array( content, changes ).
  */
 function tba_layout_propose( $content ) {
-	$changes = array();
-	$blocks  = parse_blocks( $content );
+	$changes  = array();
+	$original = parse_blocks( $content );
+	$segments = tba_split_top( $content, $original );
+	if ( null === $segments ) {
+		return new WP_Error( 'tba_unparsable', 'The post\'s blocks could not be matched to its text, so it was left alone.' );
+	}
+	$blocks = $original;
+	foreach ( $blocks as $i => $block ) {
+		$blocks[ $i ]['tba_src'] = $i; // Lets untouched blocks be copied back byte for byte.
+	}
 
 	// Text-level rules everywhere; top-level empties are dropped outright.
 	$blocks = array_values( array_filter( tba_tidy_inner( $blocks, $changes ), fn( $b ) => null !== $b ) );
@@ -282,11 +290,72 @@ function tba_layout_propose( $content ) {
 	if ( ! $changes ) {
 		return null;
 	}
-	$after = serialize_blocks( $top );
+	// WordPress's own parse + serialize isn't lossless (an empty {} setting comes back as []), so only
+	// blocks a rule changed are re-serialised; everything else keeps its stored text exactly.
+	$after = '';
+	foreach ( $top as $block ) {
+		$src = $block['tba_src'] ?? null;
+		unset( $block['tba_src'] );
+		$after .= ( null !== $src && $block == $original[ $src ] ) ? $segments[ $src ] : serialize_block( $block );
+	}
 	if ( ! tba_words_unchanged( $content, $after ) ) {
 		return new WP_Error( 'tba_words_changed', 'The tidy-up would have changed words or photos, so it was discarded.' );
 	}
 	return array( 'content' => $after, 'changes' => $changes );
+}
+
+/**
+ * The stored text of each top-level block, aligned with parse_blocks( $content ). Null if they don't line
+ * up (then nothing is changed). Uses the same delimiter pattern as WP_Block_Parser.
+ */
+function tba_split_top( $content, $parsed ) {
+	$pattern = '/<!--\s+(?P<closer>\/)?wp:(?P<namespace>[a-z][a-z0-9_-]*\/)?(?P<name>[a-z][a-z0-9_-]*)\s+(?P<attrs>{(?:(?:[^}]+|}+(?=})|(?!}\s+\/?-->).)*+)?}\s+)?(?P<void>\/)?-->/s';
+	preg_match_all( $pattern, $content, $matches, PREG_SET_ORDER | PREG_OFFSET_CAPTURE );
+
+	$segments = array();
+	$depth    = 0;
+	$start    = 0;
+	$cursor   = 0; // End of the last top-level block.
+	foreach ( $matches as $m ) {
+		$offset = $m[0][1];
+		$end    = $offset + strlen( $m[0][0] );
+		$closer = ! empty( $m['closer'][0] );
+		$void   = ! empty( $m['void'][0] );
+		if ( 0 === $depth && ! $closer ) {
+			if ( $offset > $cursor ) {
+				$segments[] = substr( $content, $cursor, $offset - $cursor ); // Text between blocks.
+			}
+			if ( $void ) {
+				$segments[] = substr( $content, $offset, $end - $offset );
+				$cursor     = $end;
+				continue;
+			}
+			$start = $offset;
+			$depth = 1;
+		} elseif ( ! $void ) {
+			$depth += $closer ? -1 : 1;
+			if ( 0 === $depth ) {
+				$segments[] = substr( $content, $start, $end - $start );
+				$cursor     = $end;
+			}
+		}
+	}
+	if ( $depth ) {
+		return null;
+	}
+	if ( $cursor < strlen( $content ) ) {
+		$segments[] = substr( $content, $cursor );
+	}
+	if ( count( $segments ) !== count( $parsed ) ) {
+		return null;
+	}
+	foreach ( $segments as $i => $segment ) {
+		$again = parse_blocks( $segment );
+		if ( count( $again ) !== 1 || $again[0] != $parsed[ $i ] ) {
+			return null;
+		}
+	}
+	return $segments;
 }
 
 /* ---------- Proposals ---------- */

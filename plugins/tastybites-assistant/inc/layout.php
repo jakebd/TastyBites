@@ -410,6 +410,11 @@ function tba_layout_apply( $post_id ) {
 	if ( ! $post || ! $proposal ) {
 		return new WP_Error( 'tba_no_proposal', 'There is no tidy-up waiting for this post.' );
 	}
+	require_once ABSPATH . 'wp-admin/includes/post.php';
+	$editing = wp_check_post_lock( $post_id );
+	if ( $editing ) {
+		return new WP_Error( 'tba_locked', get_the_author_meta( 'display_name', $editing ) . " has this post open in the editor right now. Try again once they're done." );
+	}
 	if ( md5( $post->post_content ) !== $proposal['base'] ) {
 		tba_layout_refresh( $post );
 		return new WP_Error( 'tba_stale', 'The post was edited since this tidy-up was made, so it has been re-checked. Look again before applying.' );

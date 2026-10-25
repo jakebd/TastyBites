@@ -129,7 +129,7 @@ class TBA_CLI {
 			// Parsing and re-saving untouched content must give back the same text, or no rule can be trusted.
 			if ( serialize_blocks( parse_blocks( $post->post_content ) ) !== $post->post_content ) {
 				$totals['roundtrip']++;
-				WP_CLI::line( "#$id {$post->post_title}: parse/serialize round trip differs" );
+				WP_CLI::line( "#$id {$post->post_title}: some blocks can't be re-saved exactly by WordPress (those are left alone)" );
 			}
 			$result = ! empty( $assoc['store'] ) ? tba_layout_refresh( $post ) : tba_layout_propose( $post->post_content );
 			if ( is_wp_error( $result ) ) {

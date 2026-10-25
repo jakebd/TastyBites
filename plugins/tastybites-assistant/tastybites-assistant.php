@@ -27,6 +27,7 @@ require TBA_DIR . '/inc/layout.php';
 
 if ( is_admin() ) {
 	require TBA_DIR . '/inc/admin.php';
+	require TBA_DIR . '/inc/layout-admin.php';
 }
 if ( defined( 'WP_CLI' ) && WP_CLI ) {
 	require TBA_DIR . '/inc/cli.php';

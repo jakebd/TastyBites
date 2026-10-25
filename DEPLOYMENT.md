@@ -1,14 +1,16 @@
 # Deploying Gengies Tasty Bites
 
-This repo is the **TastyBites theme only**. WordPress core, plugins, uploads and the
-database live on the WHC (cPanel) server and are managed through WP admin.
+This repo holds the **TastyBites theme** and our own **Tasty Bites Assistant plugin**
+(`plugins/tastybites-assistant/`, see *Assistant plugin* below). WordPress core, other plugins,
+uploads and the database live on the WHC (cPanel) server and are managed through WP admin.
 
 | Environment | URL | Server path (from `~`) | Deployed from |
 |---|---|---|---|
 | Production | https://gengiestastybites.ca | `public_html` | `main` branch |
 | Staging | https://staging.gengiestastybites.ca (password protected) | `staging.gengiestastybites.ca` | `staging` branch |
 
-Theme path in both: `wp-content/themes/TastyBites`. Never edit the theme on the server
+Theme path in both: `wp-content/themes/TastyBites`; plugin path: `wp-content/plugins/tastybites-assistant`.
+Never edit either on the server
 (WP theme editor, cPanel File Manager, SFTP). Change it here and deploy, otherwise the
 next deploy will stop and ask what to do with your edit (see *Drift check* below).
 
@@ -40,11 +42,13 @@ Every script runs from **Git Bash** in the repo folder and uses your local deplo
 without GitHub:
 
 ```bash
-bash scripts/deploy.sh staging               # deploys the committed HEAD
+bash scripts/deploy.sh staging               # deploys the committed HEAD (plugin, then theme)
+bash scripts/deploy.sh staging plugin        # just one target: theme or plugin
 bash scripts/deploy.sh production            # only allowed from main
 FORCE=1 bash scripts/deploy.sh production    # overwrite live edits made outside git (backup still taken)
 bash scripts/rollback.sh production          # list backups
-bash scripts/rollback.sh production latest   # restore the most recent backup
+bash scripts/rollback.sh production latest   # restore the most recent theme backup
+TARGET=plugin bash scripts/rollback.sh production latest   # the same for the plugin
 bash scripts/refresh-staging.sh              # re-clone prod -> staging (files + DB)
 bash scripts/pull-live-theme.sh production   # copy the server's theme into your working tree
 bash scripts/migrate.sh staging scripts/migrations/<file>.php   # run a content migration (DB backup first)
@@ -59,10 +63,13 @@ Write migrations so they are safe to run twice. Run on staging first, then produ
 
 ## What a deploy does
 
-On the server (`scripts/remote/deploy-remote.sh`):
+On the server (`scripts/remote/deploy-remote.sh`), once per target: the plugin first, then the theme.
+Each target has its own fingerprint (`manifest.md5` for the theme, `manifest-tastybites-assistant.md5`)
+and its own backups.
 
-1. Unpacks the **committed** code (`git archive HEAD`, minus the `export-ignore` paths in
-   `.gitattributes`: docs, scripts, workflow). Uncommitted changes are never deployed.
+1. Unpacks the **committed** code. Theme: `git archive HEAD`, minus the `export-ignore` paths in
+   `.gitattributes` (docs, scripts, workflow, plugins). Plugin: `git archive HEAD:plugins/tastybites-assistant`.
+   Uncommitted changes are never deployed.
 2. Lints every PHP file with the server's PHP. Any syntax error aborts before anything changes.
 3. **Drift check.** Compares the live theme with a fingerprint taken at the last deploy. If someone
    edited it outside this pipeline, it aborts and lists the files. Run
@@ -74,7 +81,8 @@ On the server (`scripts/remote/deploy-remote.sh`):
 Then from the machine running the deploy (your PC or the GitHub runner), `scripts/deploy.sh`:
 
 7. Smoke tests `/`, `/recipes/`, `/reviews/` and `/about/` for HTTP 200 with no PHP errors.
-   On failure it runs `rollback.sh <env> latest`.
+   On failure it runs `rollback.sh <env> run` for each target, which restores the backup that deploy
+   took (or removes the plugin if that was its first deploy).
 
 Deploy history: `~/deploy/<env>/history.log` on the server. A deploy takes about 5–30 seconds.
 
@@ -101,8 +109,23 @@ refreshed by `scripts/refresh-staging.sh`. That script only reads from productio
 - (re)creates the `staging-admin` WordPress administrator.
 
 **Refreshing overwrites everything on staging**, including whatever branch you'd deployed there, so
-redeploy afterwards. Do it whenever staging content has drifted far from production, or before
+redeploy afterwards. Until the Assistant plugin is on production, a refresh also removes it from
+staging: redeploy, then `wp plugin activate tastybites-assistant` and `wp tba setup` on staging. Do it whenever staging content has drifted far from production, or before
 testing plugin/WordPress updates.
+
+### Assistant plugin
+
+Our own plugin for the AI features (ROADMAP §2 and §4; read `docs/research/authoring-ai-2026-10/REPORT.md`
+first). It deploys with the theme but must be activated once per environment:
+`wp --path=<root> plugin activate tastybites-assistant` then `wp --path=<root> tba setup` (creates its
+tables and the "Assistant" Editor user that background jobs run as).
+
+- **Background jobs** run from a server cron line every 5 minutes (`crontab -l` over SSH). Staging:
+  `cd $HOME/staging.gengiestastybites.ca && wp cron event run --due-now --quiet >> $HOME/deploy/staging/cron.log 2>&1`.
+  Production gets the same line (with `public_html`) when the plugin goes live there.
+- **Status:** Tools → Assistant in WP admin, or `wp tba status` / `wp tba jobs` / `wp tba run`.
+- **Off switches:** `define( 'TBA_DISABLED', true );` in `wp-config.php` stops everything; each helper
+  can be turned off on Tools → Assistant; or deactivate the plugin.
 
 ### Logging in to staging
 

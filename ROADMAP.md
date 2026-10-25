@@ -165,10 +165,10 @@ Follow-ups:
 - [~] Branded comment emails (`inc/emails.php`): site colours and logo, who said what, plain "what you can do"
       buttons (Reply on the site / Delete it / It's spam; held ones: Approve it), each naming the exact confirm button
       WordPress shows next. No IP, host or email (still in wp-admin → Comments). Replies go to the admin address.
-      On staging; production after the next deploy. (first chance to see email; staging blocks it).
-- [~] `/category/blog/` (and its pages and feed) 301 to Road Trips (the old Blog category was removed). On staging;
-      production after the `housekeeping` deploy.
-- [ ] Shawn check-in (list below).
+      Live on production 2026-10-25. (first chance to see email; staging blocks it).
+- [x] `/category/blog/` (and its pages and feed) 301 to Road Trips (the old Blog category was removed). Live 2026-10-25.
+- [ ] Shawn check-in (list below). **Deferred by Jacob (2026-10-25) until the AI features are in**, so it's one
+      sitting covering both.
 
 ### Production rollout (as planned)
 1. **Check-in with Shawn** (Jacob, one sitting; parked until then):
@@ -193,6 +193,10 @@ Follow-ups:
 ---
 
 ## 2. The quiet assistant (AI in the background)
+
+> **Research (2026-10-25):** `docs/research/authoring-ai-2026-10/REPORT.md` covers prior art, what helped other
+> (older) authors, the tiered after-publish design, architecture, build order and per-item specs. Read it before
+> building anything in §2 or §4.
 
 Runs on the server when Shawn **publishes or updates a published post**, never on draft saves,
 because he writes over several days. It fills in what is missing and never changes his
@@ -264,6 +268,9 @@ Claude as the provider. Estimate the cost before building; it should be small at
 
 ## 4. "AI Mode": voice-first authoring (idea, needs discussion)
 
+> See `docs/research/authoring-ai-2026-10/REPORT.md` (memoir-app precedent, "arrange, don't rewrite", speech-to-text
+> bake-off, disclosure options).
+
 Shawn talks; AI turns it into posts in his voice. Proposed by Jacob, 2026-10-24.
 
 ### Flow
@@ -318,6 +325,13 @@ Found while reviewing the site in October 2026. Test each on staging first.
       tier takes one small batch every few minutes, so the ~1,040 images finish over days via WP-Cron. Check
       progress: `wp --path=public_html litespeed-image status` (WP-Cron requests and pulls every 15 min). First result: logo 132 KB → 33 KB, no visible change.
       Not on staging (basic auth blocks QUIC.cloud).
+      **Too slow in anonymous mode** (checked 2026-10-25): quota 100 images, one small group per request, ~15 min
+      apart; 1 of ~1,040 groups done after 30 min. Next step for Jacob: LiteSpeed Cache → General → link a free
+      QUIC.cloud account using the admin address (account sign-up is a manual step), then check
+      `litespeed-image status` again.
+      Done 2026-10-25: Jacob linked a free QUIC.cloud account. 7 groups optimised the same hour, then the new account's
+      daily quota ran out; WP-Cron carries on each day (the daily allowance grows as the account ages). WebP is served
+      (e.g. `Gengies_Logo_Light-1-300x180.png.webp`). Nothing to do but check progress now and then.
 - [x] Turn off `WP_DEBUG` on production (2026-10-25; WP_DEBUG, WP_DEBUG_LOG and WP_DEBUG_DISPLAY now false; it was
       showing PHP notices to visitors). Backup: `~/deploy/production/wp-config.before-debug-off-20261025.php`.
 - [x] Old logs deleted on production (2026-10-25): the ~19 MB `error_log`, `debug.log` and 10 small `error_log`s

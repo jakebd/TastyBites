@@ -108,6 +108,9 @@ function tba_make_heading( $inner_html, $level ) {
 }
 
 function tba_make_gallery( $images ) {
+	foreach ( $images as $i => $image ) {
+		unset( $images[ $i ]['tba_src'], $images[ $i ]['tba_lossy'] );
+	}
 	$open    = "\n<figure class=\"wp-block-gallery has-nested-images columns-default is-cropped\">";
 	$content = array( $open );
 	foreach ( $images as $i => $image ) {
@@ -198,7 +201,7 @@ function tba_tidy_top( $blocks, &$changes ) {
 
 	foreach ( $real as $pos => $i ) {
 		$block = $blocks[ $i ];
-		if ( 'core/paragraph' !== $block['blockName'] ) {
+		if ( 'core/paragraph' !== $block['blockName'] || ! empty( $block['tba_lossy'] ) ) {
 			$prev_heading = null;
 			continue;
 		}
@@ -243,7 +246,7 @@ function tba_tidy_top( $blocks, &$changes ) {
 		$run = array();
 	};
 	foreach ( $blocks as $block ) {
-		if ( 'core/image' === $block['blockName'] || ( $run && tba_is_blank( $block ) ) ) {
+		if ( ( 'core/image' === $block['blockName'] && empty( $block['tba_lossy'] ) ) || ( $run && tba_is_blank( $block ) ) ) {
 			$run[] = $block;
 			continue;
 		}
@@ -268,10 +271,19 @@ function tba_layout_propose( $content ) {
 	$blocks = $original;
 	foreach ( $blocks as $i => $block ) {
 		$blocks[ $i ]['tba_src'] = $i; // Lets untouched blocks be copied back byte for byte.
+		// A block WordPress can't re-save exactly as stored (e.g. a cover with an empty {} setting) is
+		// never rewritten, so no rule touches it.
+		if ( serialize_block( $block ) !== $segments[ $i ] ) {
+			$blocks[ $i ]['tba_lossy'] = true;
+		}
 	}
 
 	// Text-level rules everywhere; top-level empties are dropped outright.
-	$blocks = array_values( array_filter( tba_tidy_inner( $blocks, $changes ), fn( $b ) => null !== $b ) );
+	$tidied = array();
+	foreach ( $blocks as $block ) {
+		$tidied[] = empty( $block['tba_lossy'] ) ? ( tba_tidy_inner( array( $block ), $changes )[0] ) : $block;
+	}
+	$blocks = array_values( array_filter( $tidied, fn( $b ) => null !== $b ) );
 
 	// Structural rules only on the parts of the post outside the patterns.
 	$top = array();
@@ -295,7 +307,7 @@ function tba_layout_propose( $content ) {
 	$after = '';
 	foreach ( $top as $block ) {
 		$src = $block['tba_src'] ?? null;
-		unset( $block['tba_src'] );
+		unset( $block['tba_src'], $block['tba_lossy'] );
 		$after .= ( null !== $src && $block == $original[ $src ] ) ? $segments[ $src ] : serialize_block( $block );
 	}
 	if ( ! tba_words_unchanged( $content, $after ) ) {

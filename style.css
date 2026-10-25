@@ -342,7 +342,7 @@ h1, h2, h3, h4 {
 	border-radius: 4px;
 }
 .trip-card__img--empty { background: var(--paper-deep); }
-.trip-card__title { font-size: 1.35rem; margin: 0; line-height: 1.2; }
+.trip-card__title { font-size: 1.35rem; margin: 0; line-height: 1.2; overflow-wrap: anywhere; }
 .trip-card__link:hover .trip-card__title { color: var(--tomato); }
 .trip-card__excerpt { margin: 0; color: var(--ink-soft); line-height: 1.5; font-size: 1.02rem; }
 
@@ -762,6 +762,7 @@ h1, h2, h3, h4 {
 	.related__grid { gap: 16px; }
 	.related .trip-card__link { flex-direction: row; align-items: center; gap: 14px; }
 	.related .trip-card__media { flex: 0 0 104px; }
+	.related .trip-card__body { min-width: 0; }
 	.related .trip-card__img { aspect-ratio: 1 / 1; }
 	.related .trip-card__title { font-size: 1.15rem; }
 	.related .trip-card__excerpt, .related .stamp--photo { display: none; }

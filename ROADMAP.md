@@ -197,6 +197,10 @@ Follow-ups:
 > **Research (2026-10-25):** `docs/research/authoring-ai-2026-10/REPORT.md` covers prior art, what helped other
 > (older) authors, the tiered after-publish design, architecture, build order and per-item specs. Read it before
 > building anything in §2 or §4.
+>
+> **Build progress:** step 1 (plugin foundation: `plugins/tastybites-assistant`, job queue, AI log table, off
+> switches, after-publish trigger, Tools → Assistant, staging cron) on staging 2026-10-25, branch
+> `assistant-foundation`. Shawn's emails start **off** until Jacob's check-in with him.
 
 Runs on the server when Shawn **publishes or updates a published post**, never on draft saves,
 because he writes over several days. It fills in what is missing and never changes his

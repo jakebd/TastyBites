@@ -1,6 +1,7 @@
 # Notes for Claude
 
-Custom WordPress theme for gengiestastybites.ca. Read README.md (overview), DEPLOYMENT.md (pipeline, staging,
+Custom WordPress theme for gengiestastybites.ca, plus our own plugin `plugins/tastybites-assistant/` (the AI
+features; deployed with the theme, see DEPLOYMENT.md). Read README.md (overview), DEPLOYMENT.md (pipeline, staging,
 troubleshooting) and ROADMAP.md (backlog, ideas, decisions) first. New feature ideas and
 decisions go in ROADMAP.md.
 

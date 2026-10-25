@@ -43,6 +43,8 @@
 				<?php if ( $tb_updates ) : ?>
 					<li><a href="<?php echo esc_url( get_category_link( $tb_updates ) ); ?>">Updates</a></li>
 				<?php endif; ?>
+				<?php $tb_email = antispambot( get_option( 'admin_email' ) ); ?>
+				<li><a href="mailto:<?php echo esc_attr( $tb_email ); ?>">Email us</a></li>
 				<li><a href="<?php echo esc_url( get_feed_link() ); ?>">RSS feed</a></li>
 				<?php if ( get_privacy_policy_url() ) : ?>
 					<li><a href="<?php echo esc_url( get_privacy_policy_url() ); ?>">Privacy</a></li>

@@ -15,3 +15,5 @@ decisions go in ROADMAP.md.
 - Production and staging share one cPanel account, one LiteSpeed cache store (`~/lscache`) and one MariaDB server.
   The staging DB is `<user>_staging`; scripts refuse to write to any other DB.
 - Line endings are LF (`.gitattributes`); the server copy must match byte-for-byte for the drift check.
+- The site admin address is **GengiesTastyBites@outlook.com** (Jacob's alias). Use it wherever the site needs a
+  contact or notification email; the theme reads it from Settings → General (`admin_email`).

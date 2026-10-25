@@ -149,7 +149,24 @@ Research notes behind these choices: `docs/research/blog-best-practices-2026-10.
       The footer's More list keeps a plain "RSS feed" link, and readers find the feed automatically from the site
       address. (A styled feed page via XSLT was ruled out: Chrome is removing XSLT support.)
 
-### Production rollout (in this order)
+### Production rollout: done 2026-10-25
+Deployed `7bf781e` (PR #3), then ran road-journal-content, polish-data-fixes, Antispam Bee install and
+comments-and-privacy on production (DB backups in `~/deploy/production/db-backups/before-*-20261025-*.sql`).
+Checked: 15 key URLs, sitemap (includes destinations), indexable, no staging leftovers, JSON-LD, comment form +
+honeypot, one live test comment (published instantly, then deleted; Shawn's emails paused for the test), no theme
+errors in the log. Shawn's check-in happens after launch instead of before (Jacob's call).
+
+Follow-ups:
+- [ ] Real iPhone check, and Facebook Sharing Debugger on a post.
+- [~] Site admin address **GengiesTastyBites@outlook.com** (Jacob's alias, forwards to him): WordPress admin
+      email, copied on every new-comment email, footer "Email us", Privacy page contact (`[site_email]`).
+      Staging done; production needs the deploy, then `scripts/migrations/admin-contact.php`.
+- [ ] Confirm Shawn and the admin address receive the new-comment email (first chance to see email; staging blocks it).
+- [ ] `/category/blog/` now 404s (the old Blog category was emptied and removed). Redirect it to Road Trips in
+      case search engines or old links still point there.
+- [ ] Shawn check-in (list below).
+
+### Production rollout (as planned)
 1. **Check-in with Shawn** (Jacob, one sitting; parked until then):
    - category names (rename in the migration script first if he wants different ones);
    - Bite Rating index wording ("How I rate" note and verdict bands);
@@ -291,10 +308,15 @@ Shawn talks; AI turns it into posts in his voice. Proposed by Jacob, 2026-10-24.
 Found while reviewing the site in October 2026. Test each on staging first.
 
 - [x] Update outdated plugins: done by Jacob on staging and production, 2026-10-24.
-- [ ] **Image optimisation on production:** connect LiteSpeed Cache to QUIC.cloud (LiteSpeed Cache → Image
-      Optimization) and convert to WebP. Approved by Jacob 2026-10-25 as a production backlog item, after the
-      redesign rollout. Not on staging (shared account; one connection).
-- [ ] Turn off `WP_DEBUG` on production (it's on, and `public_html/error_log` is ~19 MB; it is not publicly readable).
+- [~] **Image optimisation on production** (2026-10-25): LiteSpeed Cache linked to QUIC.cloud in anonymous mode
+      (no account; `server_ip` set to 198.100.159.124). Lossy JPEG/PNG + WebP (also in srcset), originals kept as
+      `.bk` files (LiteSpeed Cache → Image Optimization can revert), EXIF kept, new uploads auto-requested. The free
+      tier takes one small batch every few minutes, so the ~1,040 images finish over days via WP-Cron. Check
+      progress: `wp --path=public_html litespeed-image status`. First result: logo 132 KB → 33 KB, no visible change.
+      Not on staging (basic auth blocks QUIC.cloud).
+- [x] Turn off `WP_DEBUG` on production (2026-10-25; WP_DEBUG, WP_DEBUG_LOG and WP_DEBUG_DISPLAY now false; it was
+      showing PHP notices to visitors). Backup: `~/deploy/production/wp-config.before-debug-off-20261025.php`.
+- [ ] Old ~19 MB `public_html/error_log`: archive or delete once nothing in it is needed.
 - [x] Replace hard-coded image attachment IDs: the redesign uses the Customizer logo (falls back to `385`); the blog card icon is gone.
 - [x] Remove the Font Awesome 4.7 CDN link in `header.php` (redesign). The Font Awesome *plugin* stays:
       it draws the Bite Rating drumsticks.

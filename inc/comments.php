@@ -16,6 +16,17 @@ add_filter( 'comment_form_default_fields', function ( $fields ) {
 	return $fields;
 } );
 
+/**
+ * New-comment emails go to the post author (Shawn) and the site admin address (Settings → General).
+ */
+add_filter( 'comment_notification_recipients', function ( $emails ) {
+	$admin = get_option( 'admin_email' );
+	if ( $admin && ! in_array( strtolower( $admin ), array_map( 'strtolower', $emails ), true ) ) {
+		$emails[] = $admin;
+	}
+	return $emails;
+} );
+
 function tb_comment_form_args() {
 	$privacy = get_privacy_policy_url();
 	return array(

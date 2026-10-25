@@ -107,7 +107,7 @@ $content = <<<HTML
 <!-- /wp:heading -->
 
 <!-- wp:paragraph -->
-<p>The site is hosted in Canada. Comments are kept until they are deleted. To see, correct or delete anything you've posted, send a message to <a href="https://www.facebook.com/profile.php?id=61564620414792">Gengie's Tasty Bites on Facebook</a> and we'll take care of it.</p>
+<p>The site is hosted in Canada. Comments are kept until they are deleted. To see, correct or delete anything you've posted, email [site_email] and we'll take care of it.</p>
 <!-- /wp:paragraph -->
 
 <!-- wp:paragraph {"className":"privacy__updated"} -->

@@ -24,6 +24,7 @@ function tba_layout_rules() {
 		'route_subtitle'  => 'Route line under a Day heading becomes a sub-heading',
 		'summary_heading' => '"Worth a second stop" / "Don\'t waste your time" become headings',
 		'bold_title'      => 'Short bold line before text becomes a sub-heading',
+		'bold_gap'        => 'A bold line with a few letters missed gets them bolded',
 		'photo_run'       => 'Photos next to each other (however they were boxed) become one gallery',
 		'list_dash'       => 'Typed dash at the start of a list item removed',
 		'empty'           => 'Empty paragraphs, headings and list items removed',
@@ -95,11 +96,25 @@ function tba_bold_inner( $block ) {
 	if ( ! preg_match( '#<(strong|b)\b#i', $inner ) ) {
 		return null;
 	}
-	$outside = wp_strip_all_tags( preg_replace( '#<(strong|b)\b[^>]*>.*?</\1>#is', '', $inner ) );
+	$outside = wp_strip_all_tags( preg_replace( '#<(strong|b)\b[^>]*>.*?</\1>#is', '', tba_drop_missed_bold( $inner ) ) );
 	if ( preg_match( '/[\p{L}\p{N}]/u', html_entity_decode( $outside, ENT_QUOTES | ENT_HTML5, 'UTF-8' ) ) ) {
 		return null; // Some words aren't bold.
 	}
 	return trim( tba_unbold( $inner ) );
+}
+
+/**
+ * Removes up to 3 letters that are stuck to a bold word but were missed when bolding it, as in
+ * "V<strong>iew from our room</strong>". Letters with a space before the bold part are a separate word, so stay.
+ */
+function tba_drop_missed_bold( $inner ) {
+	$inner = preg_replace( '#(?<![\p{L}\p{N}])[\p{L}\p{N}]{1,3}(?=<(strong|b)\b[^>]*>[\p{L}\p{N}])#iu', '', $inner );
+	return preg_replace( '#([\p{L}\p{N}]</(?:strong|b)>)[\p{L}\p{N}]{1,3}(?![\p{L}\p{N}])#iu', '$1', $inner );
+}
+
+/** True when a bold line has letters that missed the bold (see tba_drop_missed_bold). */
+function tba_has_missed_bold( $inner ) {
+	return tba_drop_missed_bold( $inner ) !== $inner;
 }
 
 /** Headings are bold already, so bold tags inside them are dropped. */
@@ -308,6 +323,12 @@ function tba_tidy_top( $blocks, &$changes ) {
 		} elseif ( null !== $bold && tba_is_short_line( $text, 8 ) && $next && 'core/paragraph' === $next['blockName'] && null === tba_bold_inner( $next ) && '' !== tba_block_text( $next ) ) {
 			$blocks[ $i ] = tba_make_heading( $inner, 3 );
 			$changes[]    = array( 'bold_title', "\"$text\" became a sub-heading" );
+		} elseif ( null !== $bold && tba_has_missed_bold( tba_paragraph_inner( $block ) ) ) {
+			$fix = fn( $html ) => preg_replace_callback( '#^(\s*<p\b[^>]*>).*(</p>\s*)$#is', fn( $m ) => $m[1] . '<strong>' . $bold . '</strong>' . $m[2], $html );
+			$block['innerHTML']       = $fix( $block['innerHTML'] );
+			$block['innerContent'][0] = $fix( $block['innerContent'][0] );
+			$blocks[ $i ] = $block;
+			$changes[]    = array( 'bold_gap', "Bolded the letters missed in \"$text\"" );
 		}
 	}
 

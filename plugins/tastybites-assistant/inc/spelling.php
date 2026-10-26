@@ -95,7 +95,7 @@ function tba_is_spelling_variant( $a, $b ) {
 
 /** Never touch swearing, either way. */
 function tba_is_swearing( $word ) {
-	return (bool) preg_match( '/fuck|shit|damn|bitch|bastard|crap|piss|\bass\b|asshole|hell\b|bloody|bugger/iu', $word );
+	return (bool) preg_match( '/fuck|shit|bitch|bastard|asshole|b(damn(ed|it)?|crap(py)?|piss(ed)?|ass(es)?|hell|bloody|bugger)b/iu', $word );
 }
 
 /** The site word list: names and words confirmed as written (lower case). */
@@ -207,7 +207,6 @@ TXT;
 	}
 
 	$site_words = tba_site_words();
-	$all_text   = implode( "\n", $lines );
 	$items      = array();
 	foreach ( $answer['fixes'] as $f ) {
 		$line = (int) $f['line'];
@@ -231,8 +230,8 @@ TXT;
 			'context'   => tba_spell_context( $text, $word ),
 		);
 		$found = '' === $word ? 0 : preg_match_all( tba_word_pattern( $word ), $text );
-		// Spelled the same way 2+ times across the post: he may well mean it (a name he always writes so).
-		$repeats = '' === $word ? 0 : preg_match_all( tba_word_pattern( $word ), $all_text );
+		// Capitalised in the middle of a sentence: probably a name (a restaurant, a town), so ask, never fix.
+		$mid_caps = preg_match( '/^\p{Lu}/u', $word ) && preg_match( '/[\p{L}\p{N},;)]\s+' . substr( tba_word_pattern( $word ), 1 ), $text );
 
 		if ( ! $found ) {
 			$item += array( 'decision' => 'skip', 'reason' => 'Not found in that line' );
@@ -252,8 +251,8 @@ TXT;
 			$item += array( 'decision' => 'ask', 'reason' => 'Too big a change to be sure it is a typo' );
 		} elseif ( ! $item['sure'] ) {
 			$item += array( 'decision' => 'ask', 'reason' => 'The AI is not sure' );
-		} elseif ( $repeats >= 2 && preg_match( '/^\p{Lu}/u', $word ) ) {
-			$item += array( 'decision' => 'ask', 'reason' => "Capitalised and written this way $repeats times: might be a name" );
+		} elseif ( $mid_caps ) {
+			$item += array( 'decision' => 'ask', 'reason' => 'Capitalised mid-sentence: might be a name' );
 		} elseif ( $item['real_word'] && $found > 1 ) {
 			$item += array( 'decision' => 'ask', 'reason' => 'A real word that appears more than once in the line' );
 		} else {

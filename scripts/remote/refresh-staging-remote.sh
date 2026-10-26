@@ -23,6 +23,7 @@ rsync -a --delete \
 	--exclude=/wp-content/litespeed/ --exclude=/wp-content/cache/ \
 	--exclude='/wp-content/upgrade*/' \
 	--exclude=/wp-content/mu-plugins/zz-staging.php \
+	--exclude=/wp-content/plugins/tastybites-assistant/ \
 	"$PROD/" "$STG/"
 
 echo "--> Writing wp-config.php"
@@ -37,6 +38,12 @@ wp config set WP_ENVIRONMENT_TYPE staging --path="$STG" --quiet
 wp config set WP_DEBUG_DISPLAY false --raw --path="$STG" --quiet
 wp config set WP_AUTO_UPDATE_CORE false --raw --path="$STG" --quiet
 wp config shuffle-salts --path="$STG" --quiet
+# Secrets (the AI key) are never copied: each environment loads its own file outside the web root,
+# ~/.tastybites-secrets-<environment>.php, chosen by WP_ENVIRONMENT_TYPE (set to staging above). Drop
+# anything secret that ever ends up in production's wp-config, and refuse to go on if a key slipped through.
+sed -i -E '/ANTHROPIC|tastybites-secrets/d' "$STG/wp-config.php"
+! grep -q 'sk-ant-' "$STG/wp-config.php" || { echo "An API key is still in the staging wp-config, aborting"; exit 1; }
+[ "$(wp config get WP_ENVIRONMENT_TYPE --path="$STG")" = staging ] || { echo "Staging WP_ENVIRONMENT_TYPE not set, aborting"; exit 1; }
 
 # Double-check the copied config really points at the staging DB before writing to it.
 [ "$(wp config get DB_NAME --path="$STG")" = "$DB" ] || { echo "Staging wp-config DB_NAME mismatch, aborting"; exit 1; }
@@ -54,6 +61,17 @@ for pair in "$PROD_URL|$STG_URL" "http://gengiestastybites.ca|$STG_URL" "https:/
 	$WPS search-replace "${pair%%|*}" "${pair##*|}" --all-tables-with-prefix --skip-columns=guid --precise --quiet
 done
 $WPS option update blog_public 0 --quiet
+
+echo "--> Scrubbing production-only data"
+# Production's queued Assistant jobs must not run (and spend) on staging, and no key ever lives in the DB.
+PREFIX="$($WPS db prefix)"
+TABLES=",$($WPS db tables --all-tables-with-prefix --format=csv),"
+{
+	echo "DELETE FROM ${PREFIX}options WHERE option_name LIKE '%anthropic%' OR option_name = 'tba_runner_lock';"
+	if [[ "$TABLES" == *",${PREFIX}tba_jobs,"* ]]; then echo "TRUNCATE ${PREFIX}tba_jobs;"; fi
+} > "$TMP/scrub.sql"
+$WPS db query < "$TMP/scrub.sql"
+rm -f "$TMP/scrub.sql"
 
 echo "--> Ensuring staging admin login"
 # Production only has WHC's SSO admin (no known password), so staging gets its own
@@ -112,6 +130,14 @@ chmod 644 "$HOME/.htpasswds/staging"
 	echo
 	cat "$PROD/.htaccess"
 } > "$STG/.htaccess"
+
+# Staging keeps its own deployed copy of the Assistant plugin (excluded from the file copy above); make
+# sure it's active and set up on the cloned DB.
+if [ -d "$STG/wp-content/plugins/tastybites-assistant" ]; then
+	echo "--> Re-activating the Assistant plugin"
+	wp --path="$STG" plugin activate tastybites-assistant --quiet
+	wp --path="$STG" tba setup
+fi
 
 wp --path="$STG" litespeed-purge all >/dev/null 2>&1 || true
 wp --path="$STG" rewrite flush --quiet 2>/dev/null || true

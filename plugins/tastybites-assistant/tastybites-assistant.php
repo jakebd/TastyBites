@@ -31,6 +31,7 @@ require TBA_DIR . '/inc/spelling.php';
 if ( is_admin() ) {
 	require TBA_DIR . '/inc/admin.php';
 	require TBA_DIR . '/inc/layout-admin.php';
+	require TBA_DIR . '/inc/spelling-admin.php';
 }
 if ( defined( 'WP_CLI' ) && WP_CLI ) {
 	require TBA_DIR . '/inc/cli.php';

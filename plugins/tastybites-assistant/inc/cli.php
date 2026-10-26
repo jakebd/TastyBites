@@ -97,7 +97,7 @@ class TBA_CLI {
 	 * [--store]
 	 * : Save the results for the Spelling report screen.
 	 *
-	 * [--json=<file>]
+	 * [--out=<file>]
 	 * : Also write every item to this JSON file (for comparing models).
 	 */
 	public function spelling( $args, $assoc ) {
@@ -123,8 +123,8 @@ class TBA_CLI {
 					$item['reason'], $item['sure'] ? 'sure' : 'unsure', $item['real_word'] ? ', real word' : '', $item['why'] ) );
 			}
 		}
-		if ( ! empty( $assoc['json'] ) ) {
-			file_put_contents( $assoc['json'], wp_json_encode( $all, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE ) );
+		if ( ! empty( $assoc['out'] ) ) {
+			file_put_contents( $assoc['out'], wp_json_encode( $all, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE ) );
 		}
 		WP_CLI::success( sprintf( '%d posts with %s: %d fix, %d ask, %d skip. Spent today: $%.4f.', count( $ids ), $model,
 			$count['fix'], $count['ask'], $count['skip'], tba_ai_spent_today() ) );

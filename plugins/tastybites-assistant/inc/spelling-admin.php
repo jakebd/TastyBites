@@ -70,7 +70,7 @@ function tba_spelling_page() {
 						<td><span style="display:inline-block;padding:2px 8px;border-radius:10px;color:#fff;background:<?php echo esc_attr( $colors[ $item['decision'] ] ); ?>"><?php echo esc_html( $labels[ $item['decision'] ] ); ?></span></td>
 						<td><s><?php echo esc_html( $item['word'] ); ?></s> → <strong><?php echo esc_html( $item['fix'] ); ?></strong></td>
 						<td><?php echo $ctx; // Escaped above. ?></td>
-						<td><?php echo esc_html( $item['reason'] ); ?><br><span class="description">AI: <?php echo esc_html( ( $item['sure'] ? 'sure' : 'unsure' ) . ( $item['real_word'] ? ', wrong word' : '' ) . ' — ' . $item['why'] ); ?></span></td>
+						<td><?php echo esc_html( $item['reason'] ); ?><br><span class="description">AI: <?php echo esc_html( ( $item['sure'] ? 'sure' : 'unsure' ) . ( $item['real_word'] ? ', wrong word' : '' ) . ( ! empty( $item['name'] ) ? ', maybe a name' : '' ) . ' — ' . $item['why'] ); ?></span></td>
 					</tr>
 				<?php endforeach; ?>
 				</tbody>

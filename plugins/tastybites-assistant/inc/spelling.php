@@ -169,6 +169,7 @@ For each misspelled word:
 - word: copied exactly as written, a single word (or the two parts of a split word) with no punctuation around it;
 - fix: the correct spelling (same capitalisation);
 - sure: true only when it is certainly a typo with one obvious correction. If it might be a name or an intended word, or there's more than one reasonable correction, set sure to false;
+- name: true if the word is, or might be, part of the name of a person, restaurant, business, place, brand or product (he capitalises ordinary food words like Winter Melon too: those are not names);
 - why: a few words.
 List each misspelled word once per line it appears in. If nothing is misspelled, return an empty list.
 TXT;
@@ -190,9 +191,10 @@ TXT;
 							'fix'       => array( 'type' => 'string' ),
 							'sure'      => array( 'type' => 'boolean' ),
 							'real_word' => array( 'type' => 'boolean' ),
+							'name'      => array( 'type' => 'boolean' ),
 							'why'       => array( 'type' => 'string' ),
 						),
-						'required'             => array( 'line', 'word', 'fix', 'sure', 'real_word', 'why' ),
+						'required'             => array( 'line', 'word', 'fix', 'sure', 'real_word', 'name', 'why' ),
 						'additionalProperties' => false,
 					),
 				),
@@ -226,12 +228,11 @@ TXT;
 			'fix'       => $fix,
 			'sure'      => (bool) $f['sure'],
 			'real_word' => (bool) $f['real_word'],
+			'name'      => (bool) $f['name'],
 			'why'       => (string) $f['why'],
 			'context'   => tba_spell_context( $text, $word ),
 		);
 		$found = '' === $word ? 0 : preg_match_all( tba_word_pattern( $word ), $text );
-		// Capitalised in the middle of a sentence: probably a name (a restaurant, a town), so ask, never fix.
-		$mid_caps = preg_match( '/^\p{Lu}/u', $word ) && preg_match( '/[\p{L}\p{N},;)]\s+' . substr( tba_word_pattern( $word ), 1 ), $text );
 
 		if ( ! $found ) {
 			$item += array( 'decision' => 'skip', 'reason' => 'Not found in that line' );
@@ -251,8 +252,8 @@ TXT;
 			$item += array( 'decision' => 'ask', 'reason' => 'Too big a change to be sure it is a typo' );
 		} elseif ( ! $item['sure'] ) {
 			$item += array( 'decision' => 'ask', 'reason' => 'The AI is not sure' );
-		} elseif ( $mid_caps ) {
-			$item += array( 'decision' => 'ask', 'reason' => 'Capitalised mid-sentence: might be a name' );
+		} elseif ( $item['name'] ) {
+			$item += array( 'decision' => 'ask', 'reason' => 'Might be a name (restaurant, person, place or brand)' );
 		} elseif ( $item['real_word'] && $found > 1 ) {
 			$item += array( 'decision' => 'ask', 'reason' => 'A real word that appears more than once in the line' );
 		} else {

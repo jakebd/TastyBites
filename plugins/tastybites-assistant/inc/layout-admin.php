@@ -1,10 +1,17 @@
 <?php
 /**
- * Tools → Layout tidy-ups: Jacob reviews each proposal as two real rendered pages side by side (WordPress's
- * revisions screen only shows a code diff on this site), then applies or rejects it. Administrators only.
+ * Tidy-ups (top-level admin menu, under Posts): each proposal shown as two real rendered pages side by side
+ * (WordPress's revisions screen only shows a code diff on this site), then applied or rejected. Editors and
+ * up, so Shawn can find and use it too.
  */
 
 defined( 'ABSPATH' ) || exit;
+
+const TBA_LAYOUT_CAP = 'edit_others_posts';
+
+function tba_layout_url( $post_id = 0 ) {
+	return admin_url( 'admin.php?page=tba-layout' . ( $post_id ? '&post=' . (int) $post_id : '' ) );
+}
 
 function tba_layout_waiting() {
 	return get_posts( array(
@@ -18,13 +25,13 @@ function tba_layout_waiting() {
 
 add_action( 'admin_menu', function () {
 	$count = count( tba_layout_waiting() );
-	$label = 'Layout tidy-ups' . ( $count ? ' <span class="awaiting-mod">' . $count . '</span>' : '' );
-	add_management_page( 'Layout tidy-ups', $label, 'manage_options', 'tba-layout', 'tba_layout_page' );
+	$label = 'Tidy-ups' . ( $count ? ' <span class="awaiting-mod">' . $count . '</span>' : '' );
+	add_menu_page( 'Layout tidy-ups', $label, TBA_LAYOUT_CAP, 'tba-layout', 'tba_layout_page', 'dashicons-art', 6 );
 } );
 
 add_action( 'admin_notices', function () {
 	$screen = get_current_screen();
-	if ( ! current_user_can( 'manage_options' ) || ! $screen || ! in_array( $screen->id, array( 'dashboard', 'edit-post' ), true ) ) {
+	if ( ! current_user_can( TBA_LAYOUT_CAP ) || ! $screen || ! in_array( $screen->id, array( 'dashboard', 'edit-post' ), true ) ) {
 		return;
 	}
 	$count = count( tba_layout_waiting() );
@@ -32,18 +39,18 @@ add_action( 'admin_notices', function () {
 		printf(
 			'<div class="notice notice-info"><p>%s <a href="%s">Review</a></p></div>',
 			esc_html( sprintf( _n( '%d layout tidy-up is waiting for you.', '%d layout tidy-ups are waiting for you.', $count ), $count ) ),
-			esc_url( admin_url( 'tools.php?page=tba-layout' ) )
+			esc_url( tba_layout_url() )
 		);
 	}
 } );
 
 add_action( 'admin_post_tba_layout', function () {
 	$post_id = (int) ( $_POST['post_id'] ?? 0 );
-	if ( ! current_user_can( 'manage_options' ) || ! current_user_can( 'edit_post', $post_id ) ) {
+	if ( ! current_user_can( TBA_LAYOUT_CAP ) || ! current_user_can( 'edit_post', $post_id ) ) {
 		wp_die( 'Not allowed.' );
 	}
 	check_admin_referer( 'tba_layout_' . $post_id );
-	$back = admin_url( 'tools.php?page=tba-layout' );
+	$back = tba_layout_url();
 
 	if ( 'apply' === ( $_POST['decision'] ?? '' ) ) {
 		$result = tba_layout_apply( $post_id );
@@ -110,7 +117,7 @@ function tba_layout_list() {
 				esc_html( get_the_title( $post ) ),
 				implode( '<br>', $summary ),
 				esc_html( human_time_diff( $proposal['created'] ) . ' ago' ),
-				esc_url( admin_url( 'tools.php?page=tba-layout&post=' . $post->ID ) )
+				esc_url( tba_layout_url( $post->ID ) )
 			);
 		}
 		echo '</tbody></table>';
@@ -133,7 +140,7 @@ function tba_layout_review( $post, $proposal ) {
 	$now  = add_query_arg( 'tba_now', time(), get_permalink( $post ) );
 	$then = add_query_arg( 'tba_layout', time(), get_permalink( $post ) );
 	?>
-	<p><a href="<?php echo esc_url( admin_url( 'tools.php?page=tba-layout' ) ); ?>">&larr; All tidy-ups</a></p>
+	<p><a href="<?php echo esc_url( tba_layout_url() ); ?>">&larr; All tidy-ups</a></p>
 	<h2><?php echo esc_html( get_the_title( $post ) ); ?></h2>
 	<details>
 		<summary><strong><?php echo esc_html( count( $proposal['changes'] ) ); ?> changes</strong> (words and photos checked unchanged)</summary>

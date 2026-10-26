@@ -5,7 +5,7 @@
  * empty lines go. Every proposal must pass tba_words_unchanged() (same words in the same order, same
  * images) or it is thrown away.
  *
- * Rules start in propose mode: proposals wait on Tools → Layout tidy-ups for Jacob to apply or reject.
+ * Rules start in propose mode: proposals wait on the Tidy-ups menu (under Posts) for Jacob or Shawn to apply or reject.
  * Recipe and review patterns (named groups, meta-field blocks) only get the text-level rules (dashes,
  * empty lines); their structure is never changed.
  *
@@ -31,7 +31,7 @@ function tba_layout_rules() {
 }
 
 add_filter( 'tba_features', function ( $features ) {
-	$features['layout'] = array( 'label' => 'Layout tidy-ups (proposed to Jacob)', 'ai' => false, 'default' => true );
+	$features['layout'] = array( 'label' => 'Layout tidy-ups (proposed on the Tidy-ups menu)', 'ai' => false, 'default' => true );
 	return $features;
 } );
 
@@ -226,6 +226,29 @@ function tba_set_inner( $block, $inner ) {
 	return $block;
 }
 
+/**
+ * The photo in a block that is just one photo: a plain image, or a layout-only group or a one-photo gallery
+ * around one (Shawn often drops each photo into its own box). Null for anything else.
+ */
+function tba_single_photo( $block ) {
+	if ( ! empty( $block['tba_lossy'] ) ) {
+		return null;
+	}
+	if ( 'core/image' === $block['blockName'] ) {
+		return $block;
+	}
+	$allowed = array( 'core/group' => array( 'layout' ), 'core/gallery' => array( 'linkTo' ) );
+	if ( ! isset( $allowed[ $block['blockName'] ] ) || array_diff( array_keys( $block['attrs'] ), $allowed[ $block['blockName'] ] )
+		|| 1 !== count( $block['innerBlocks'] ) ) {
+		return null;
+	}
+	$wrapper = implode( '', array_filter( $block['innerContent'], 'is_string' ) );
+	if ( '' !== trim( wp_strip_all_tags( $wrapper ) ) ) {
+		return null;
+	}
+	return tba_single_photo( $block['innerBlocks'][0] );
+}
+
 /** Heading and gallery rules, top level only, outside patterns. */
 function tba_tidy_top( $blocks, &$changes ) {
 	// Indexes of the real (non-whitespace) blocks, so "next" and "previous" skip blank separators.
@@ -264,14 +287,16 @@ function tba_tidy_top( $blocks, &$changes ) {
 		}
 	}
 
-	// Runs of 3+ top-level photos (blank separators allowed between them) become one gallery.
+	// Runs of 3+ top-level photos (blank separators allowed between them) become one gallery. A photo in a
+	// box of its own counts too; the box goes.
 	$out = array();
 	$run = array();
 	$flush = function () use ( &$out, &$run, &$changes ) {
-		$images = array_values( array_filter( $run, fn( $b ) => ! tba_is_blank( $b ) ) );
-		if ( count( $images ) >= 3 ) {
-			$out[]     = tba_make_gallery( $images );
-			$changes[] = array( 'photo_run', count( $images ) . ' photos in a row became a gallery' );
+		$photos = array_values( array_filter( $run, fn( $b ) => ! tba_is_blank( $b ) ) );
+		if ( count( $photos ) >= 3 ) {
+			$out[]     = tba_make_gallery( array_map( 'tba_single_photo', $photos ) );
+			$boxed     = count( array_filter( $photos, fn( $b ) => 'core/image' !== $b['blockName'] ) );
+			$changes[] = array( 'photo_run', count( $photos ) . ' photos in a row became a gallery' . ( 1 === $boxed ? " (1 was in a box of its own)" : ( $boxed ? " ($boxed were each in a box of their own)" : "" ) ) );
 			// Keep a separator after the gallery if the run ended with one.
 			if ( tba_is_blank( end( $run ) ) ) {
 				$out[] = end( $run );
@@ -282,7 +307,7 @@ function tba_tidy_top( $blocks, &$changes ) {
 		$run = array();
 	};
 	foreach ( $blocks as $block ) {
-		if ( ( 'core/image' === $block['blockName'] && empty( $block['tba_lossy'] ) ) || ( $run && tba_is_blank( $block ) ) ) {
+		if ( null !== tba_single_photo( $block ) || ( $run && tba_is_blank( $block ) ) ) {
 			$run[] = $block;
 			continue;
 		}
@@ -500,7 +525,7 @@ add_filter( 'tba_publish_pass', function ( $result, $post ) {
 	return $result;
 }, 20, 2 );
 
-// Preview of a proposal on the real page, for people who can edit the post (Tools → Layout tidy-ups).
+// Preview of a proposal on the real page, for people who can edit the post (the Tidy-ups menu).
 add_filter( 'the_content', function ( $content ) {
 	if ( empty( $_GET['tba_layout'] ) || ! is_singular() || ! in_the_loop() || ! current_user_can( 'edit_post', get_the_ID() ) ) {
 		return $content;

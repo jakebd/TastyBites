@@ -115,7 +115,7 @@ class TBA_CLI {
 	 * : Only these posts.
 	 *
 	 * [--store]
-	 * : Save the proposals for review on Tools → Layout tidy-ups.
+	 * : Save the proposals for review on the Tidy-ups menu.
 	 *
 	 * [--verbose]
 	 * : List every change, not just counts.

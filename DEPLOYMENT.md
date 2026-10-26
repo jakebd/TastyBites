@@ -131,7 +131,14 @@ tables and the "Assistant" Editor user that background jobs run as).
   plugin picks the file by `WP_ENVIRONMENT_TYPE` (staging's wp-config sets `staging`; production leaves it
   unset), so staging can never use production's key. Never put a key in `wp-config.php`, the DB or the repo;
   the staging refresh strips and checks for one. Each key sits in its own Anthropic Console workspace
-  (`tastybites-production`, `tastybites-staging`), each with a $20/month spend limit.
+  (`tastybites-production`, `tastybites-staging`), each with a $20/month spend limit. To set or change a key:
+  cPanel → File Manager → Settings → Show Hidden Files, open the home folder (not `public_html`), Edit the
+  file and paste the key between the quotes of `define( 'ANTHROPIC_API_KEY', '' );`. Tools → Assistant shows
+  only whether it's set.
+- **AI calls** all go through `tba_ai()` (`inc/ai.php`, straight to Anthropic's API): only in background jobs or
+  WP-CLI, approved models only, every call logged with its cost, and a daily spend limit (default $1, Tools →
+  Assistant). On staging they also need **AI on staging** ticked on Tools → Assistant; a refresh unticks it.
+  `wp tba ai-test [--model=haiku|sonnet|opus]` makes one tiny call to check everything end to end.
 - **Off switches:** `define( 'TBA_DISABLED', true );` in `wp-config.php` stops everything; each helper
   can be turned off on Tools → Assistant; or deactivate the plugin.
 

@@ -10,7 +10,8 @@
  *   - a daily spend limit (Tools → Assistant, default $1) on top of the $20/month limit in the Console;
  *   - every call, including blocked ones, is logged in {prefix}tba_ai_log with tokens and cost.
  *
- * Answers are structured: the model must fill in a JSON schema (via a forced tool call).
+ * Answers are structured: the API's structured output (`output_config.format`) makes the model reply with
+ * JSON matching the schema. (A forced tool call isn't accepted by every model: Sonnet 5.5 refuses it.)
  *
  *   $answer = tba_ai( 'spelling', array(
  *       'model'     => 'haiku',
@@ -125,16 +126,12 @@ function tba_ai( $feature, $args ) {
 		return $block( 'daily_cap', sprintf( 'Daily spend limit reached ($%.2f of $%.2f).', $spent, tba_ai_daily_cap() ) );
 	}
 
-	$body = array(
-		'model'       => $model['id'],
-		'max_tokens'  => (int) $args['max_tokens'],
-		'messages'    => array( array( 'role' => 'user', 'content' => $args['content'] ) ),
-		'tools'       => array( array(
-			'name'         => 'answer',
-			'description'  => 'Give your answer by filling in these fields.',
-			'input_schema' => $args['schema'],
-		) ),
-		'tool_choice' => array( 'type' => 'tool', 'name' => 'answer' ),
+	$schema = $args['schema'] + array( 'additionalProperties' => false );
+	$body   = array(
+		'model'         => $model['id'],
+		'max_tokens'    => (int) $args['max_tokens'],
+		'messages'      => array( array( 'role' => 'user', 'content' => $args['content'] ) ),
+		'output_config' => array( 'format' => array( 'type' => 'json_schema', 'schema' => $schema ) ),
 	);
 	if ( '' !== $args['system'] ) {
 		$body['system'] = $args['system'];
@@ -177,15 +174,17 @@ function tba_ai( $feature, $args ) {
 		tba_ai_log( $log + array( 'outcome' => 'wrong_model', 'error' => "Answered by $used; discarded." ) );
 		return new WP_Error( 'tba_ai_wrong_model', "Answered by $used instead of {$model['id']}; discarded." );
 	}
-	$answer = null;
+	$text = '';
 	foreach ( (array) ( $data['content'] ?? array() ) as $part ) {
-		if ( 'tool_use' === ( $part['type'] ?? '' ) && 'answer' === ( $part['name'] ?? '' ) ) {
-			$answer = $part['input'] ?? null;
+		if ( 'text' === ( $part['type'] ?? '' ) ) {
+			$text .= $part['text'];
 		}
 	}
+	$answer  = json_decode( $text, true );
+	$stop    = (string) ( $data['stop_reason'] ?? '' );
 	$missing = is_array( $answer ) ? array_diff( (array) ( $args['schema']['required'] ?? array() ), array_keys( $answer ) ) : array();
-	if ( ! is_array( $answer ) || 'max_tokens' === ( $data['stop_reason'] ?? '' ) || $missing ) {
-		$why = 'max_tokens' === ( $data['stop_reason'] ?? '' ) ? 'Answer cut off (max_tokens).' : 'Answer missing or incomplete.';
+	if ( ! is_array( $answer ) || 'end_turn' !== $stop || $missing ) {
+		$why = 'max_tokens' === $stop ? 'Answer cut off (max_tokens).' : ( 'refusal' === $stop ? 'The model declined to answer.' : 'Answer missing or incomplete.' );
 		tba_ai_log( $log + array( 'outcome' => 'bad_answer', 'error' => $why ) );
 		return new WP_Error( 'tba_ai_bad_answer', $why );
 	}

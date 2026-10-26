@@ -139,7 +139,7 @@ function tba_ai( $feature, $args ) {
 
 	$started  = microtime( true );
 	$response = wp_remote_post( TBA_AI_ENDPOINT, array(
-		'timeout' => 120,
+		'timeout' => 300, // Long posts on the bigger models can take over 2 minutes.
 		'headers' => array(
 			'x-api-key'         => tba_ai_key(),
 			'anthropic-version' => '2023-06-01',

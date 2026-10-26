@@ -65,7 +65,9 @@ function tba_text_chunks( $content ) {
 }
 
 function tba_word_pattern( $word ) {
-	return '/(?<![' . TBA_SPELL_WORD_CHARS . '])' . preg_quote( $word, '/' ) . '(?![' . TBA_SPELL_WORD_CHARS . '])/u';
+	// A word Shawn split in two ("cheese cake") matches across any spacing.
+	$quoted = str_replace( '\ ', ' ', preg_quote( $word, '/' ) );
+	return '/(?<![' . TBA_SPELL_WORD_CHARS . '])' . str_replace( ' ', '\s+', $quoted ) . '(?![' . TBA_SPELL_WORD_CHARS . '])/u';
 }
 
 /** Words of a text, for the words check (apostrophes kept inside words). */
@@ -114,10 +116,10 @@ function tba_match_case( $word, $fix ) {
 
 /** Edit distance on letters (ignoring case and apostrophes), small enough for a typo? */
 function tba_is_typo_sized( $word, $fix ) {
-	$a = tba_spell_key( $word );
+	$a = tba_spell_key( str_replace( ' ', '', $word ) );
 	$b = tba_spell_key( str_replace( ' ', '', $fix ) );
 	if ( $a === $b ) {
-		return true; // Only an apostrophe or a split ("dont" → "don't", "alot" → "a lot").
+		return true; // Only an apostrophe, a split or a join ("dont" → "don't", "alot" → "a lot", "with out" → "without").
 	}
 	$allowed = mb_strlen( $a ) >= 8 ? 3 : 2;
 	// levenshtein() counts bytes; swap multi-byte letters for single bytes first.
@@ -150,6 +152,7 @@ You check spelling for Gengie's Tasty Bites, a Canadian food and travel blog wri
 Report a word only if it is misspelled:
 - typos: wrong, missing, extra or swapped letters (restaraunt, recieve, delicous);
 - two words run together (alot -> a lot);
+- one word split in two (cheese cake -> cheesecake, with out -> without, sight seeing -> sightseeing): give both parts as the word, with the space;
 - a contraction missing its apostrophe, when the version without it isn't a word (dont -> don't, didnt -> didn't);
 - a real word clearly typed by mistake for a different word (desert for dessert, loose for lose, their for there): set real_word to true.
 
@@ -163,7 +166,7 @@ Never report:
 
 For each misspelled word:
 - line: the [number] of the line it's in;
-- word: copied exactly as written, a single word with no punctuation around it;
+- word: copied exactly as written, a single word (or the two parts of a split word) with no punctuation around it;
 - fix: the correct spelling (same capitalisation);
 - sure: true only when it is certainly a typo with one obvious correction. If it might be a name or an intended word, or there's more than one reasonable correction, set sure to false;
 - why: a few words.
@@ -211,6 +214,13 @@ TXT;
 		$word = trim( (string) $f['word'] );
 		$fix  = trim( (string) $f['fix'] );
 		$text = 0 === $line ? $lines[0] : ( $chunks[ $line - 1 ]['text'] ?? '' );
+		// The AI sometimes gives only the first half of a split word ("cheese" → "cheesecake" for "cheese cake").
+		// Take the next word along too, or the fix would come out as "cheesecake cake".
+		if ( '' !== $word && ! preg_match( '/\s/u', $word . $fix ) && mb_strlen( $fix ) > mb_strlen( $word ) + 1
+			&& preg_match( '/(?<![' . TBA_SPELL_WORD_CHARS . '])' . preg_quote( $word, '/' ) . '\s+([\p{L}]+)/u', $text, $next )
+			&& tba_spell_key( $word . $next[1] ) === tba_spell_key( $fix ) ) {
+			$word .= ' ' . $next[1];
+		}
 		$item = array(
 			'line'      => $line,
 			'word'      => $word,
@@ -226,7 +236,7 @@ TXT;
 
 		if ( ! $found ) {
 			$item += array( 'decision' => 'skip', 'reason' => 'Not found in that line' );
-		} elseif ( preg_match( '/\s/u', $word ) || preg_match( '/\s.*\s/u', $fix ) || '' === $fix ) {
+		} elseif ( '' === $fix || preg_match_all( '/\s+/u', $word ) + preg_match_all( '/\s+/u', $fix ) > 1 ) {
 			$item += array( 'decision' => 'skip', 'reason' => 'Not a single-word fix' );
 		} elseif ( tba_spell_key( $word ) === tba_spell_key( $fix ) && false === strpbrk( $fix, "'’" ) ) {
 			$item += array( 'decision' => 'skip', 'reason' => 'Only capitalisation differs' );

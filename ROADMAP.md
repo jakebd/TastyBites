@@ -242,6 +242,14 @@ Claude as the provider. Estimate the cost before building; it should be small at
       list. If it isn't sure, the word stays as written and an **urgent email goes to Jacob and Shawn right
       away**; the first answer settles it. Grammar and style stay off. Before going live: report-only run over
       the existing posts so Jacob can judge accuracy (the same list can fix the archive).
+      **5a built (staging 2026-10-26, report only):** `inc/spelling.php`; `wp tba spelling [--model] [--store]`;
+      Tidy-ups → Spelling report. Model eval over all 38 posts: Opus 5.5 found the most real mistakes (~$0.02 a
+      post), Sonnet the fewest, Haiku more false alarms; two Opus runs agreed on ~85% (the rest mostly
+      questions). Final Opus run: 89 would fix, 73 would ask. PHP rules: only words in that line; small changes
+      only (≤2 letters, ≤3 for long words, or joining/splitting a word: "cheese cake" → "cheesecake"); never
+      Canadian/US variants or swearing (whole words); possible names (the AI flags them) and unsure words are
+      asked; a "wrong word" (their/there) is fixed only if it appears once in that paragraph. Next: 5b apply on
+      publish, 5c question emails + 2.13 email settings.
 - [ ] **2.9 Content flags:** find and flag gaps instead of guessing. Examples from the 2026-10 review:
       reviews with no city, address, cuisine, price or visit date; restaurants mentioned in trip posts with
       no score; recipes without servings or with inconsistent times; typos; images without alt text.
@@ -457,5 +465,6 @@ Real issues inside the posts themselves. Parked on purpose: they need Shawn, or 
 | 2026-10-26 | AI calls go straight to Anthropic's API (`tba_ai()`), not WordPress's AI Client | The core client needs an extra provider plugin and can switch models quietly; the alt-text backfill needs the Batches API anyway |
 | 2026-10-26 | Privacy page says "an AI language model (LLM) service", not a vendor name | Jacob: keep the wording general |
 | 2026-10-26 | $1/day spend limit in the plugin, on top of the Console's $20/month | A runaway bug stops within a day |
+| 2026-10-26 | Spelling uses Opus 5.5 | Most real mistakes found in the 38-post test; cost is pennies a month |
 | 2026-10-26 | Tidy-ups get a top-level menu open to Editors | Jacob: Shawn should be able to find it if he uses it; he is an Editor |
 | 2026-10-24 | Research that reads the web runs in a separate agent | Keeps outside content (possible prompt injection) out of the main session |

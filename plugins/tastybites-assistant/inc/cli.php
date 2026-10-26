@@ -81,6 +81,56 @@ class TBA_CLI {
 	}
 
 	/**
+	 * Spelling report (ROADMAP 2.8, report-only): what the fixer would fix, ask or skip. Changes no post.
+	 *
+	 * ## OPTIONS
+	 *
+	 * [<id>...]
+	 * : Post IDs. Default: every published post, review and recipe.
+	 *
+	 * [--model=<model>]
+	 * : haiku, sonnet or opus.
+	 * ---
+	 * default: sonnet
+	 * ---
+	 *
+	 * [--store]
+	 * : Save the results for the Spelling report screen.
+	 *
+	 * [--out=<file>]
+	 * : Also write every item to this JSON file (for comparing models).
+	 */
+	public function spelling( $args, $assoc ) {
+		$ids   = $args ?: get_posts( array( 'post_type' => tba_post_types(), 'post_status' => 'publish', 'numberposts' => -1, 'fields' => 'ids' ) );
+		$model = $assoc['model'];
+		$all   = array();
+		$count = array( 'fix' => 0, 'ask' => 0, 'skip' => 0 );
+		foreach ( $ids as $id ) {
+			$post   = get_post( $id );
+			$result = tba_spelling_check( $post, $model );
+			if ( is_wp_error( $result ) ) {
+				WP_CLI::warning( "#$id: " . $result->get_error_message() );
+				continue;
+			}
+			if ( isset( $assoc['store'] ) ) {
+				tba_spelling_store( $post, $result, $model );
+			}
+			WP_CLI::line( sprintf( '#%d %s: %d found', $id, html_entity_decode( $post->post_title ), count( $result['items'] ) ) );
+			foreach ( $result['items'] as $item ) {
+				$count[ $item['decision'] ]++;
+				$all[] = array( 'post' => (int) $id ) + $item;
+				WP_CLI::line( sprintf( '    %-4s %s → %s  (%s; AI: %s%s) %s', strtoupper( $item['decision'] ), $item['word'], $item['fix'],
+					$item['reason'], $item['sure'] ? 'sure' : 'unsure', $item['real_word'] ? ', real word' : '', $item['why'] ) );
+			}
+		}
+		if ( ! empty( $assoc['out'] ) ) {
+			file_put_contents( $assoc['out'], wp_json_encode( $all, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE ) );
+		}
+		WP_CLI::success( sprintf( '%d posts with %s: %d fix, %d ask, %d skip. Spent today: $%.4f.', count( $ids ), $model,
+			$count['fix'], $count['ask'], $count['skip'], tba_ai_spent_today() ) );
+	}
+
+	/**
 	 * Show switches, the last background run and job counts.
 	 */
 	public function status() {

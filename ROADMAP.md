@@ -255,11 +255,11 @@ Claude as the provider. Estimate the cost before building; it should be small at
   - legacy row/column layouts that squeeze text are unwrapped.
   Runs on publish, shows a before/after for approval (or applies automatically once trusted). Never
   changes his words.
-  **Built (propose mode, staging 2026-10-25):** Tools → Layout tidy-ups shows each proposal as the real page,
+  **Built (propose mode, staging 2026-10-25):** the top-level **Tidy-ups** menu (under Posts, Editors and up so Shawn can use it) shows each proposal as the real page,
   now vs. after, side by side (with a phone-width toggle), plus Apply / Reject; Apply saves a revision (undo =
   Restore). Rules, from a survey of all 38 posts: Day lines → H2; a bold route line right after a Day heading →
   H3; "Worth a second stop" / "Don't waste your time" → H2; a short bold line followed by text → H3 (bold lines
-  followed by photos are usually captions, so they stay, for the AI step later); 3+ photos in a row → gallery;
+  followed by photos are usually captions, so they stay, for the AI step later); 3+ photos in a row → gallery (a photo in a box of its own, i.e. a one-photo group or gallery, counts and is unwrapped);
   typed list dashes and empty paragraphs/headings/list items removed. No Columns layouts exist, so no unwrap
   rule. Guards: same words in the same order and the same photos; every rewritten block closes its tags;
   untouched blocks are copied byte for byte; blocks WordPress can't re-save exactly are left alone; Apply is

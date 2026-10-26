@@ -202,6 +202,16 @@ Follow-ups:
 > switches, after-publish trigger, Tools → Assistant, staging cron) on staging 2026-10-25, branch
 > `ai-features` (integration branch; all AI work stays on staging and ships to production together).
 > Step 2 (2.1 featured photo) and step 3 (2.11 layout tidy-ups, propose mode) on staging 2026-10-25. Shawn's emails start **off** until Jacob's check-in with him.
+> Step 4 (AI connection) on staging 2026-10-26: `tba_ai()` calls Anthropic directly with structured output,
+> approved models only (Haiku/Sonnet/Opus 5.5), every call logged with cost, $1/day limit (Tools → Assistant)
+> under the $20/month Console limit, "AI on staging" switch (off by default and after every refresh), key in
+> `~/.tastybites-secrets-staging.php`; Privacy page "AI helpers" section on staging. Test: `wp tba ai-test`.
+>
+> **Release checklist (production, all at once, Jacob's go):** create the `tastybites-production` Console
+> workspace ($20/month limit) and key → Jacob pastes it into `~/.tastybites-secrets-production.php` (chmod 600);
+> run `scripts/migrations/ai-helpers-privacy.php` on production **before** anything else; merge `ai-features`
+> to `main` (deploys the plugin); `wp plugin activate tastybites-assistant` + `wp tba setup`; add the cron line;
+> `wp tba ai-test`; then switch helpers on one at a time.
 
 Runs on the server when Shawn **publishes or updates a published post**, never on draft saves,
 because he writes over several days. It fills in what is missing and never changes his
@@ -444,5 +454,8 @@ Real issues inside the posts themselves. Parked on purpose: they need Shawn, or 
 | 2026-10-25 | AI Mode drafts get the §2 helpers before publish (exception to "publish only") | An AI Mode draft is complete, not half-written |
 | 2026-10-25 | Layout tidy-ups may remove typed dashes and empty lines inside recipe/review patterns, but never change their structure | ~90 dashed ingredient lines are all inside patterns; text-level fixes don't affect the pattern |
 | 2026-10-26 | AI spend limit $20/month per environment; one key per environment in its own Console workspace, stored in `~/.tastybites-secrets-<env>.php` | Jacob: a hard ceiling while it is tested; staging can never use the production key |
+| 2026-10-26 | AI calls go straight to Anthropic's API (`tba_ai()`), not WordPress's AI Client | The core client needs an extra provider plugin and can switch models quietly; the alt-text backfill needs the Batches API anyway |
+| 2026-10-26 | Privacy page says "an AI language model (LLM) service", not a vendor name | Jacob: keep the wording general |
+| 2026-10-26 | $1/day spend limit in the plugin, on top of the Console's $20/month | A runaway bug stops within a day |
 | 2026-10-26 | Tidy-ups get a top-level menu open to Editors | Jacob: Shawn should be able to find it if he uses it; he is an Editor |
 | 2026-10-24 | Research that reads the web runs in a separate agent | Keeps outside content (possible prompt injection) out of the main session |

@@ -24,7 +24,7 @@ function tba_layout_rules() {
 		'route_subtitle'  => 'Route line under a Day heading becomes a sub-heading',
 		'summary_heading' => '"Worth a second stop" / "Don\'t waste your time" become headings',
 		'bold_title'      => 'Short bold line before text becomes a sub-heading',
-		'photo_run'       => '3 or more photos in a row become a gallery',
+		'photo_run'       => 'Photos next to each other (however they were boxed) become one gallery',
 		'list_dash'       => 'Typed dash at the start of a list item removed',
 		'empty'           => 'Empty paragraphs, headings and list items removed',
 	);
@@ -227,26 +227,50 @@ function tba_set_inner( $block, $inner ) {
 }
 
 /**
- * The photo in a block that is just one photo: a plain image, or a layout-only group or a one-photo gallery
- * around one (Shawn often drops each photo into its own box). Null for anything else.
+ * The photos in a block that holds nothing but photos: a plain image, or a layout-only group or gallery
+ * holding only photos and other such boxes, at any depth (Shawn often drops photos into boxes of one or two,
+ * grids inside grids, or leaves empty boxes behind). An empty box gives array(). Null for anything else.
  */
-function tba_single_photo( $block ) {
+function tba_photo_blocks( $block ) {
 	if ( ! empty( $block['tba_lossy'] ) ) {
 		return null;
 	}
 	if ( 'core/image' === $block['blockName'] ) {
-		return $block;
+		return array( $block );
 	}
-	$allowed = array( 'core/group' => array( 'layout' ), 'core/gallery' => array( 'linkTo' ) );
+	$allowed = array( 'core/group' => array( 'layout', 'style' ), 'core/gallery' => array( 'linkTo' ) );
 	if ( ! isset( $allowed[ $block['blockName'] ] ) || array_diff( array_keys( $block['attrs'] ), $allowed[ $block['blockName'] ] )
-		|| 1 !== count( $block['innerBlocks'] ) ) {
-		return null;
+		|| array_diff( array_keys( $block['attrs']['style'] ?? array() ), array( 'layout' ) ) ) {
+		return null; // Colours, spacing, names etc. mean the box was styled on purpose.
 	}
 	$wrapper = implode( '', array_filter( $block['innerContent'], 'is_string' ) );
 	if ( '' !== trim( wp_strip_all_tags( $wrapper ) ) ) {
 		return null;
 	}
-	return tba_single_photo( $block['innerBlocks'][0] );
+	$photos = array();
+	foreach ( $block['innerBlocks'] as $inner ) {
+		$inner_photos = tba_photo_blocks( $inner );
+		if ( null === $inner_photos ) {
+			return null;
+		}
+		array_push( $photos, ...$inner_photos );
+	}
+	return $photos;
+}
+
+/** A photo moved into a gallery loses any fixed width Shawn dragged it to, so the gallery can size it. */
+function tba_gallery_photo( $image ) {
+	if ( ! isset( $image['attrs']['width'] ) && ! isset( $image['attrs']['height'] ) ) {
+		return $image;
+	}
+	unset( $image['attrs']['width'], $image['attrs']['height'] );
+	$fix = function ( $html ) {
+		$html = preg_replace( '/(<figure\b[^>]*class="[^"]*?)\s*\bis-resized\b/', '$1', $html, 1 );
+		return preg_replace( '/(<img\b[^>]*?)\s+style="[^"]*"/', '$1', $html, 1 );
+	};
+	$image['innerHTML']       = $fix( $image['innerHTML'] );
+	$image['innerContent'][0] = $fix( $image['innerContent'][0] );
+	return $image;
 }
 
 /** Heading and gallery rules, top level only, outside patterns. */
@@ -287,27 +311,38 @@ function tba_tidy_top( $blocks, &$changes ) {
 		}
 	}
 
-	// Runs of 3+ top-level photos (blank separators allowed between them) become one gallery. A photo in a
-	// box of its own counts too; the box goes.
+	// Photos next to each other (blank separators allowed between them) become one gallery, however they
+	// were boxed. Empty boxes go. A lone photo, or a run that is already a single gallery, stays as it is.
 	$out = array();
 	$run = array();
 	$flush = function () use ( &$out, &$run, &$changes ) {
-		$photos = array_values( array_filter( $run, fn( $b ) => ! tba_is_blank( $b ) ) );
-		if ( count( $photos ) >= 3 ) {
-			$out[]     = tba_make_gallery( array_map( 'tba_single_photo', $photos ) );
-			$boxed     = count( array_filter( $photos, fn( $b ) => 'core/image' !== $b['blockName'] ) );
-			$changes[] = array( 'photo_run', count( $photos ) . ' photos in a row became a gallery' . ( 1 === $boxed ? " (1 was in a box of its own)" : ( $boxed ? " ($boxed were each in a box of their own)" : "" ) ) );
+		$real   = array_values( array_filter( $run, fn( $b ) => ! tba_is_blank( $b ) ) );
+		$photos = array();
+		foreach ( $real as $block ) {
+			array_push( $photos, ...tba_photo_blocks( $block ) );
+		}
+		$keep_as_is = count( $photos ) < 2 || ( 1 === count( $real ) && 'core/gallery' === $real[0]['blockName'] );
+		if ( ! $keep_as_is ) {
+			$out[]     = tba_make_gallery( array_map( 'tba_gallery_photo', $photos ) );
+			$boxes     = count( array_filter( $real, fn( $b ) => 'core/image' !== $b['blockName'] ) );
+			$changes[] = array( 'photo_run', count( $photos ) . ' photos in a row became a gallery' . ( $boxes ? " (they were spread over $boxes " . ( 1 === $boxes ? 'box' : 'boxes' ) . ')' : '' ) );
 			// Keep a separator after the gallery if the run ended with one.
 			if ( tba_is_blank( end( $run ) ) ) {
 				$out[] = end( $run );
 			}
 		} else {
-			array_push( $out, ...$run );
+			foreach ( $run as $block ) {
+				if ( ! tba_is_blank( $block ) && ! tba_photo_blocks( $block ) ) {
+					$changes[] = array( 'empty', 'Removed an empty box' );
+					continue;
+				}
+				$out[] = $block;
+			}
 		}
 		$run = array();
 	};
 	foreach ( $blocks as $block ) {
-		if ( null !== tba_single_photo( $block ) || ( $run && tba_is_blank( $block ) ) ) {
+		if ( null !== tba_photo_blocks( $block ) || ( $run && tba_is_blank( $block ) ) ) {
 			$run[] = $block;
 			continue;
 		}

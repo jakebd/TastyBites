@@ -63,11 +63,12 @@ done
 $WPS option update blog_public 0 --quiet
 
 echo "--> Scrubbing production-only data"
-# Production's queued Assistant jobs must not run (and spend) on staging, and no key ever lives in the DB.
+# Production's queued Assistant jobs must not run (and spend) on staging, AI on staging starts switched off,
+# and no key ever lives in the DB.
 PREFIX="$($WPS db prefix)"
 TABLES=",$($WPS db tables --all-tables-with-prefix --format=csv),"
 {
-	echo "DELETE FROM ${PREFIX}options WHERE option_name LIKE '%anthropic%' OR option_name = 'tba_runner_lock';"
+	echo "DELETE FROM ${PREFIX}options WHERE option_name LIKE '%anthropic%' OR option_name IN ('tba_runner_lock','tba_staging_ai');"
 	if [[ "$TABLES" == *",${PREFIX}tba_jobs,"* ]]; then echo "TRUNCATE ${PREFIX}tba_jobs;"; fi
 } > "$TMP/scrub.sql"
 $WPS db query < "$TMP/scrub.sql"

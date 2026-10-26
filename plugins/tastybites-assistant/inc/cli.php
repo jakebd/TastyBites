@@ -45,6 +45,42 @@ class TBA_CLI {
 	}
 
 	/**
+	 * One tiny AI call (well under a cent) to check the key, the guards and the log. Never shows the key.
+	 *
+	 * ## OPTIONS
+	 *
+	 * [--model=<model>]
+	 * : haiku, sonnet or opus.
+	 * ---
+	 * default: haiku
+	 * ---
+	 *
+	 * @subcommand ai-test
+	 */
+	public function ai_test( $args, $assoc ) {
+		WP_CLI::line( 'Environment: ' . wp_get_environment_type() . '; key file ' . basename( tba_secrets_file() ) . ': ' . ( '' !== tba_ai_key() ? 'key set' : 'NO KEY' ) );
+		$answer = tba_ai( 'test', array(
+			'model'      => $assoc['model'],
+			'system'     => 'You are a connection test. Answer briefly.',
+			'content'    => 'Reply with the single word OK.',
+			'schema'     => array(
+				'type'       => 'object',
+				'properties' => array( 'reply' => array( 'type' => 'string' ) ),
+				'required'   => array( 'reply' ),
+			),
+			'max_tokens' => 50,
+		) );
+		if ( is_wp_error( $answer ) ) {
+			WP_CLI::error( $answer->get_error_code() . ': ' . $answer->get_error_message() );
+		}
+		global $wpdb;
+		$row = $wpdb->get_row( 'SELECT * FROM ' . tba_table( 'ai_log' ) . ' ORDER BY id DESC LIMIT 1' );
+		WP_CLI::success( sprintf( 'Model %s replied "%s" (%d in / %d out tokens, $%.6f, %d ms). Spent today: $%.4f of $%.2f.',
+			$row->model_used, $answer['reply'], $row->input_tokens, $row->output_tokens, $row->cost_usd, $row->duration_ms,
+			tba_ai_spent_today(), tba_ai_daily_cap() ) );
+	}
+
+	/**
 	 * Show switches, the last background run and job counts.
 	 */
 	public function status() {

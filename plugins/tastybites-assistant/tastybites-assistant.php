@@ -19,8 +19,10 @@ define( 'TBA_DB_VERSION', 1 );
 define( 'TBA_DIR', __DIR__ );
 
 require TBA_DIR . '/inc/install.php';
+require TBA_DIR . '/inc/secrets.php';
 require TBA_DIR . '/inc/switches.php';
 require TBA_DIR . '/inc/jobs.php';
+require TBA_DIR . '/inc/ai.php';
 require TBA_DIR . '/inc/publish.php';
 require TBA_DIR . '/inc/thumbs.php';
 require TBA_DIR . '/inc/layout.php';

@@ -26,6 +26,7 @@ require TBA_DIR . '/inc/ai.php';
 require TBA_DIR . '/inc/publish.php';
 require TBA_DIR . '/inc/thumbs.php';
 require TBA_DIR . '/inc/layout.php';
+require TBA_DIR . '/inc/spelling.php';
 
 if ( is_admin() ) {
 	require TBA_DIR . '/inc/admin.php';

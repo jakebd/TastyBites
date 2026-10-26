@@ -259,14 +259,28 @@ Claude as the provider. Estimate the cost before building; it should be small at
   now vs. after, side by side (with a phone-width toggle), plus Apply / Reject; Apply saves a revision (undo =
   Restore). Rules, from a survey of all 38 posts: Day lines → H2; a bold route line right after a Day heading →
   H3; "Worth a second stop" / "Don't waste your time" → H2; a short bold line followed by text → H3 (bold lines
-  followed by photos are usually captions, so they stay, for the AI step later); 3+ photos in a row → gallery (a photo in a box of its own, i.e. a one-photo group or gallery, counts and is unwrapped);
+  followed by photos are usually captions, so they stay, for the AI step later); photos next to each other (2+) → one gallery, however Shawn boxed them (layout-only groups and galleries holding only photos, at any depth, are unwrapped; empty boxes removed; dragged photo widths dropped inside the gallery; a lone photo or an existing single gallery stays);
   typed list dashes and empty paragraphs/headings/list items removed. No Columns layouts exist, so no unwrap
   rule. Guards: same words in the same order and the same photos; every rewritten block closes its tags;
   untouched blocks are copied byte for byte; blocks WordPress can't re-save exactly are left alone; Apply is
-  refused if the post changed since or is open in the editor. 22 proposals waiting on staging for Jacob.
+  refused if the post changed since or is open in the editor. 25 proposals waiting on staging for Jacob.
   `wp tba layout [--store] [--verbose]` for a dry run.
 - (?) **2.12 Image tidy-up on upload:** convert large PNG photos to JPEG/WebP and cap their dimensions so
       posts stay light (Italian Center is ~12 MB of PNGs today). Doesn't need AI.
+- [ ] **2.14 Phone photo upload page (Jacob, 2026-10-26):** a simple, phone-friendly page on the site (one
+      link Shawn bookmarks on his iPhone home screen) where he logs in with his normal site login and uploads
+      photos straight from his camera roll into the Media Library, optionally tagged to a trip or draft post.
+      **Why:** Shawn takes every photo on his iPhone, emails them to himself and uploads them from the computer,
+      because WP admin is awkward on a phone. That strips the photos' data: checked 2026-10-26, his recent
+      uploads (Road Trip USA Sept 2026) have **no camera, date or GPS left**, and many are only 480×640 (email's
+      shrunk size). Direct upload keeps full size and the photo data.
+      **Keep the data, but private:** read time taken, GPS and camera on upload and store them as private
+      attachment fields (for the AI: order and day of photos, place names, which restaurant; §4 Photos), then
+      strip GPS from the public files so readers can't see where Shawn's home is. Convert HEIC to JPEG
+      (iPhone's default format; the host may not convert it). Checks: does the host's PHP keep EXIF on upload,
+      HEIC support, upload size limits for full-size iPhone photos (often 3–6 MB each), and pair with 2.12 so
+      the public copies stay light. Uses his existing login and WordPress's own permissions, no new accounts.
+      Only helps photos from now on; the old ones' data is already gone.
 
 ---
 
@@ -337,7 +351,7 @@ Shawn talks; AI turns it into posts in his voice. Proposed by Jacob, 2026-10-24.
   - Upload a batch from the laptop into the session; AI describes each one (vision) and places it next
     to the matching part of the story, with a caption and alt text he can adjust.
   - Use the photos' own data where present: the time taken gives the order and day; GPS gives the
-    place, which could also feed the map. Check whether his camera/phone keeps this, and note that
+    place, which could also feed the map. His iPhone records it, but emailing photos to himself strips it (checked 2026-10-26), so this needs the direct upload page (2.14); note that
     WordPress doesn't store GPS by default.
   - What if a photo matches nothing he said? Put it in an "unplaced photos" gallery at the end.
 - **Voice to text:** browser dictation (simple, quality varies by browser) or recording audio and

@@ -258,7 +258,7 @@ Claude as the provider. Estimate the cost before building; it should be small at
   **Built (propose mode, staging 2026-10-25):** the top-level **Tidy-ups** menu (under Posts, Editors and up so Shawn can use it) shows each proposal as the real page,
   now vs. after, side by side (with a phone-width toggle), plus Apply / Reject; Apply saves a revision (undo =
   Restore). Rules, from a survey of all 38 posts: Day lines → H2; a bold route line right after a Day heading →
-  H3; "Worth a second stop" / "Don't waste your time" → H2; a short bold line followed by text → H3 (bold lines
+  H3; "Worth a second stop" / "Don't waste your time" → H2; a short bold line followed by text → H3; a bold line where up to 3 letters stuck to a bold word missed the bold ("V**iew from our room**") counts as bold and is fixed (bold lines
   followed by photos are usually captions, so they stay, for the AI step later); photos next to each other (2+) → one gallery, however Shawn boxed them (layout-only groups and galleries holding only photos, at any depth, are unwrapped; empty boxes removed; dragged photo widths dropped inside the gallery; a lone photo or an existing single gallery stays);
   typed list dashes and empty paragraphs/headings/list items removed. No Columns layouts exist, so no unwrap
   rule. Guards: same words in the same order and the same photos; every rewritten block closes its tags;

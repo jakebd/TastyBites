@@ -95,7 +95,7 @@ function tba_is_spelling_variant( $a, $b ) {
 
 /** Never touch swearing, either way. */
 function tba_is_swearing( $word ) {
-	return (bool) preg_match( '/fuck|shit|bitch|bastard|asshole|b(damn(ed|it)?|crap(py)?|piss(ed)?|ass(es)?|hell|bloody|bugger)b/iu', $word );
+	return (bool) preg_match( '/fuck|shit|bitch|bastard|asshole|\b(damn(ed|it)?|crap(py)?|piss(ed)?|ass(es)?|hell|bloody|bugger)\b/iu', $word );
 }
 
 /** The site word list: names and words confirmed as written (lower case). */

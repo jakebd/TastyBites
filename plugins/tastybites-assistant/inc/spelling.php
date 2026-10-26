@@ -87,7 +87,8 @@ function tba_is_spelling_variant( $a, $b ) {
 			array( 'or', 'er$1', 'iz$1', 'yz$1', 'l$1', 'og', 'ense', 'e' ), $w );
 		return $w;
 	};
-	return tba_spell_key( $a ) !== tba_spell_key( $b ) && $norm( $a ) === $norm( $b );
+	// Short words (or/our, are/re) are never spelling variants.
+	return min( mb_strlen( $a ), mb_strlen( $b ) ) >= 5 && tba_spell_key( $a ) !== tba_spell_key( $b ) && $norm( $a ) === $norm( $b );
 }
 
 /** Never touch swearing, either way. */
@@ -203,6 +204,7 @@ TXT;
 	}
 
 	$site_words = tba_site_words();
+	$all_text   = implode( "\n", $lines );
 	$items      = array();
 	foreach ( $answer['fixes'] as $f ) {
 		$line = (int) $f['line'];
@@ -219,7 +221,8 @@ TXT;
 			'context'   => tba_spell_context( $text, $word ),
 		);
 		$found = '' === $word ? 0 : preg_match_all( tba_word_pattern( $word ), $text );
-		$caps  = preg_match( '/^\p{Lu}/u', $word ) && ! preg_match( '/(^|[.!?:]\s+)' . preg_quote( $word, '/' ) . '/u', $text );
+		// Spelled the same way 2+ times across the post: he may well mean it (a name he always writes so).
+		$repeats = '' === $word ? 0 : preg_match_all( tba_word_pattern( $word ), $all_text );
 
 		if ( ! $found ) {
 			$item += array( 'decision' => 'skip', 'reason' => 'Not found in that line' );
@@ -239,8 +242,8 @@ TXT;
 			$item += array( 'decision' => 'ask', 'reason' => 'Too big a change to be sure it is a typo' );
 		} elseif ( ! $item['sure'] ) {
 			$item += array( 'decision' => 'ask', 'reason' => 'The AI is not sure' );
-		} elseif ( $caps ) {
-			$item += array( 'decision' => 'ask', 'reason' => 'Capitalised mid-sentence: might be a name' );
+		} elseif ( $repeats >= 2 && preg_match( '/^\p{Lu}/u', $word ) ) {
+			$item += array( 'decision' => 'ask', 'reason' => "Capitalised and written this way $repeats times: might be a name" );
 		} elseif ( $item['real_word'] && $found > 1 ) {
 			$item += array( 'decision' => 'ask', 'reason' => 'A real word that appears more than once in the line' );
 		} else {

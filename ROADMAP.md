@@ -429,4 +429,6 @@ Real issues inside the posts themselves. Parked on purpose: they need Shawn, or 
 | 2026-10-25 | Question emails per publish, no weekly 5-question cap; Jacob controls who gets which email (2.13) | A busy week would exhaust a weekly cap; Jacob can take over if Shawn is overrun |
 | 2026-10-25 | AI Mode drafts get the §2 helpers before publish (exception to "publish only") | An AI Mode draft is complete, not half-written |
 | 2026-10-25 | Layout tidy-ups may remove typed dashes and empty lines inside recipe/review patterns, but never change their structure | ~90 dashed ingredient lines are all inside patterns; text-level fixes don't affect the pattern |
+| 2026-10-26 | AI spend limit $20/month per environment; one key per environment in its own Console workspace, stored in `~/.tastybites-secrets-<env>.php` | Jacob: a hard ceiling while it is tested; staging can never use the production key |
+| 2026-10-26 | Tidy-ups get a top-level menu open to Editors | Jacob: Shawn should be able to find it if he uses it; he is an Editor |
 | 2026-10-24 | Research that reads the web runs in a separate agent | Keeps outside content (possible prompt injection) out of the main session |

@@ -109,9 +109,10 @@ refreshed by `scripts/refresh-staging.sh`. That script only reads from productio
 - (re)creates the `staging-admin` WordPress administrator.
 
 **Refreshing overwrites everything on staging**, including whatever branch you'd deployed there, so
-redeploy afterwards. Until the Assistant plugin is on production, a refresh also removes it from
-staging: redeploy, then `wp plugin activate tastybites-assistant` and `wp tba setup` on staging. Do it whenever staging content has drifted far from production, or before
-testing plugin/WordPress updates.
+redeploy afterwards. The exception is the Assistant plugin: the refresh keeps staging's own deployed copy,
+re-activates it and runs `wp tba setup` on the cloned DB, and empties the job queue copied from production.
+It never copies secrets (see "Secrets" below). Do it whenever staging content has drifted far from production,
+or before testing plugin/WordPress updates.
 
 ### Assistant plugin
 
@@ -123,7 +124,14 @@ tables and the "Assistant" Editor user that background jobs run as).
 - **Background jobs** run from a server cron line every 5 minutes (`crontab -l` over SSH). Staging:
   `cd $HOME/staging.gengiestastybites.ca && wp cron event run --due-now --quiet >> $HOME/deploy/staging/cron.log 2>&1`.
   Production gets the same line (with `public_html`) when the plugin goes live there.
-- **Status:** Tools → Assistant in WP admin, or `wp tba status` / `wp tba jobs` / `wp tba run`.
+- **Status:** Tools → Assistant in WP admin, or `wp tba status` / `wp tba jobs` / `wp tba run`. Layout
+  tidy-ups wait on the top-level **Tidy-ups** menu (Editors and up).
+- **Secrets** (the Anthropic API key) live in one file per environment in the home directory, outside both
+  web roots: `~/.tastybites-secrets-production.php` and `~/.tastybites-secrets-staging.php` (chmod 600). The
+  plugin picks the file by `WP_ENVIRONMENT_TYPE` (staging's wp-config sets `staging`; production leaves it
+  unset), so staging can never use production's key. Never put a key in `wp-config.php`, the DB or the repo;
+  the staging refresh strips and checks for one. Each key sits in its own Anthropic Console workspace
+  (`tastybites-production`, `tastybites-staging`), each with a $20/month spend limit.
 - **Off switches:** `define( 'TBA_DISABLED', true );` in `wp-config.php` stops everything; each helper
   can be turned off on Tools → Assistant; or deactivate the plugin.
 

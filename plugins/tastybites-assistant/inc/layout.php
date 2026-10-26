@@ -296,7 +296,7 @@ function tba_tidy_top( $blocks, &$changes ) {
 		if ( count( $photos ) >= 3 ) {
 			$out[]     = tba_make_gallery( array_map( 'tba_single_photo', $photos ) );
 			$boxed     = count( array_filter( $photos, fn( $b ) => 'core/image' !== $b['blockName'] ) );
-			$changes[] = array( 'photo_run', count( $photos ) . ' photos in a row became a gallery' . ( $boxed ? " ($boxed were each in a box of their own)" : '' ) );
+			$changes[] = array( 'photo_run', count( $photos ) . ' photos in a row became a gallery' . ( 1 === $boxed ? " (1 was in a box of its own)" : ( $boxed ? " ($boxed were each in a box of their own)" : "" ) ) );
 			// Keep a separator after the gallery if the run ended with one.
 			if ( tba_is_blank( end( $run ) ) ) {
 				$out[] = end( $run );

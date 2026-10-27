@@ -744,6 +744,8 @@ function tba_spelling_action( $post_id, $do, $index, $custom = '', $remember = f
 
 	if ( 'apply' === $do ) {
 		$todo = array_filter( $items, fn( $i ) => 'proposed' === tba_spelling_status( $i ) );
+	} elseif ( 'apply_open' === $do ) { // Accept every waiting suggestion on the post as shown.
+		$todo = array_filter( $items, fn( $i ) => 'open' === tba_spelling_status( $i ) );
 	} elseif ( 'fix' === $do && isset( $items[ $index ] ) ) {
 		$custom = trim( preg_replace( '/\s+/u', ' ', $custom ) );
 		if ( '' !== $custom ) {

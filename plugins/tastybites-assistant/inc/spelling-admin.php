@@ -127,7 +127,12 @@ function tba_spelling_page() {
 				continue;
 			}
 			$stale    = tba_spelling_base( $post ) !== ( $state['base'] ?? '' );
-			$proposed = count( array_filter( $state['items'], fn( $i ) => 'proposed' === tba_spelling_status( $i ) ) );
+			// The post's bulk button belongs to the tab: accept the waiting suggestions, or apply the report's fixes.
+			$bulk = array(
+				'open'     => array( 'apply_open', 'Apply the %d suggestion', 'Apply the %d suggestions' ),
+				'proposed' => array( 'apply', 'Apply the %d fix', 'Apply the %d fixes' ),
+			)[ $filter ] ?? null;
+			$bulk_count = $bulk ? count( $items ) : 0;
 			?>
 			<h2 id="post-<?php echo esc_attr( $post->ID ); ?>" style="margin-top:2em">
 				<a href="<?php echo esc_url( get_permalink( $post ) ); ?>" target="_blank"><?php echo esc_html( get_the_title( $post ) ); ?></a>
@@ -137,8 +142,8 @@ function tba_spelling_page() {
 						echo ' · <a href="' . esc_url( admin_url( 'revision.php?revision=' . (int) $state['revision'] ) ) . '">undo the automatic fixes</a>';
 					}
 				?></span>
-				<?php if ( $proposed ) {
-					echo tba_spelling_button( $post->ID, 'apply', sprintf( _n( 'Apply the %d fix', 'Apply the %d fixes', $proposed ), $proposed ), -1, true ); // phpcs:ignore -- escaped inside.
+				<?php if ( $bulk_count ) {
+					echo tba_spelling_button( $post->ID, $bulk[0], sprintf( _n( $bulk[1], $bulk[2], $bulk_count ), $bulk_count ), -1, true ); // phpcs:ignore -- escaped inside.
 				} ?>
 			</h2>
 			<table class="widefat striped">

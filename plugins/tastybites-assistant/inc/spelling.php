@@ -706,6 +706,11 @@ add_filter( 'tba_publish_pass', function ( $result, $post ) {
 	return tba_spelling_pass( $post );
 }, 10, 2 ); // Before the layout tidy-ups (20), so they're proposed on the corrected text.
 
+/** Item status, also for reports stored before statuses existed (the screen and the buttons must agree). */
+function tba_spelling_status( $item ) {
+	return $item['status'] ?? array( 'fix' => 'proposed', 'ask' => 'open', 'skip' => 'ignored' )[ $item['decision'] ];
+}
+
 /**
  * Jacob's actions on the Spelling screen: 'fix' one item (optionally with his own spelling), 'keep' one item
  * as written (optionally adding the word to the site word list), or 'apply' every proposed fix on the post.
@@ -738,7 +743,7 @@ function tba_spelling_action( $post_id, $do, $index, $custom = '', $remember = f
 	}
 
 	if ( 'apply' === $do ) {
-		$todo = array_filter( $items, fn( $i ) => 'proposed' === ( $i['status'] ?? '' ) );
+		$todo = array_filter( $items, fn( $i ) => 'proposed' === tba_spelling_status( $i ) );
 	} elseif ( 'fix' === $do && isset( $items[ $index ] ) ) {
 		$custom = trim( preg_replace( '/\s+/u', ' ', $custom ) );
 		if ( '' !== $custom ) {
@@ -767,9 +772,14 @@ function tba_spelling_action( $post_id, $do, $index, $custom = '', $remember = f
 	$state['base']  = tba_spelling_base( get_post( $post_id ) );
 	update_post_meta( $post_id, '_tba_spelling', $state );
 
-	$message = sprintf( _n( 'Fixed %d word.', 'Fixed %d words.', count( $done['applied'] ) ), count( $done['applied'] ) );
+	$message = '';
+	if ( $done['applied'] ) {
+		$list    = implode( ', ', array_map( fn( $k ) => "{$items[ $k ]['word']} → {$items[ $k ]['fix']}", $done['applied'] ) );
+		$message = sprintf( _n( 'Fixed %d word in "%s": %s.', 'Fixed %d words in "%s": %s.', count( $done['applied'] ) ), count( $done['applied'] ), get_the_title( $post_id ), $list )
+			. ' They now show under the Fixed tab, each with an undo link.';
+	}
 	if ( $done['failed'] ) {
 		$message .= ' Not changed: ' . implode( '; ', array_map( fn( $k, $why ) => "\"{$items[ $k ]['word']}\" ($why)", array_keys( $done['failed'] ), $done['failed'] ) ) . '.';
 	}
-	return $message;
+	return trim( $message );
 }

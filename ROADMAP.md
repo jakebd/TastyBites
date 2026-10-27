@@ -257,6 +257,15 @@ Claude as the provider. Estimate the cost before building; it should be small at
       destinations, site word list: "Lawtons" → "Lawsons"); every ask gets a **second opinion** (Opus, reasons
       first, sees the lines around it) that turns it into fix / keep / still unsure; a change that adds or
       removes a "not" is always asked. Result: 130 would fix, 10 would ask, 7 dropped as correct as written.
+      **5b built (staging 2026-10-26):** runs in the publish pass before the layout tidy-ups (which now
+      re-read the post); certain fixes are applied as one revision by the Assistant user, after saving Shawn's
+      version as a revision so undo always exists; skipped while someone has the post open (retried). Per-post
+      memory: a word kept as written is never changed later; a fix that comes back after an undo is asked,
+      not re-applied. **Tidy-ups → Spelling** dashboard: waiting / fixed / would fix / ignored / kept tabs;
+      Fix, Keep as written (+ add to site word list), "Use mine" (own spelling), Fix anyway on ignored,
+      "Apply the N fixes" for report-only posts, undo links. Tested end to end on a throwaway copy (publish
+      as Shawn → 11 fixes in one revision, words check vs original passes, layout proposal on corrected text;
+      undo → fixes asked not re-applied; every button). The spelling helper is **on** on staging.
 - [ ] **2.9 Content flags:** find and flag gaps instead of guessing. Examples from the 2026-10 review:
       reviews with no city, address, cuisine, price or visit date; restaurants mentioned in trip posts with
       no score; recipes without servings or with inconsistent times; typos; images without alt text.

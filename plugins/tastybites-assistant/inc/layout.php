@@ -574,6 +574,7 @@ add_filter( 'tba_publish_pass', function ( $result, $post ) {
 	if ( true !== $result || ! tba_feature_on( 'layout' ) ) {
 		return $result;
 	}
+	$post     = get_post( $post->ID ); // The spelling fixer (priority 10) may have just changed it.
 	$proposal = tba_layout_refresh( $post );
 	if ( is_array( $proposal ) && get_post_meta( $post->ID, '_tba_layout_rejected', true ) === md5( $proposal['content'] ) ) {
 		delete_post_meta( $post->ID, '_tba_layout' );

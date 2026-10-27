@@ -170,8 +170,9 @@ For each misspelled word:
 - fix: the correct spelling (same capitalisation);
 - sure: true only when it is certainly a typo with one obvious correction. If it might be a name or an intended word, or there's more than one reasonable correction, set sure to false;
 - name: true if the word is, or might be, part of the name of a person, restaurant, business, place, brand or product (he capitalises ordinary food words like Winter Melon too: those are not names);
+- quote: the misspelled word with 3 or 4 words on each side, copied exactly as written, so the exact spot can be found (short words like "a" or "is" often appear several times in a line);
 - why: a few words.
-List each misspelled word once per line it appears in. If nothing is misspelled, return an empty list.
+List every mistake separately, each with its own quote, even when the same word is wrong twice. If nothing is misspelled, return an empty list.
 TXT;
 
 	$answer = tba_ai( 'spelling', array(
@@ -192,9 +193,10 @@ TXT;
 							'sure'      => array( 'type' => 'boolean' ),
 							'real_word' => array( 'type' => 'boolean' ),
 							'name'      => array( 'type' => 'boolean' ),
+							'quote'     => array( 'type' => 'string' ),
 							'why'       => array( 'type' => 'string' ),
 						),
-						'required'             => array( 'line', 'word', 'fix', 'sure', 'real_word', 'name', 'why' ),
+						'required'             => array( 'line', 'word', 'fix', 'sure', 'real_word', 'name', 'quote', 'why' ),
 						'additionalProperties' => false,
 					),
 				),
@@ -222,17 +224,19 @@ TXT;
 			&& tba_spell_key( $word . $next[1] ) === tba_spell_key( $fix ) ) {
 			$word .= ' ' . $next[1];
 		}
-		$item = array(
+		$found = '' === $word ? 0 : preg_match_all( tba_word_pattern( $word ), $text );
+		$at    = tba_spell_locate( $text, $word, (string) $f['quote'] );
+		$item  = array(
 			'line'      => $line,
 			'word'      => $word,
 			'fix'       => $fix,
+			'at'        => $at, // Which occurrence of the word in the line (0 = first); -1 if it couldn't be pinned down.
 			'sure'      => (bool) $f['sure'],
 			'real_word' => (bool) $f['real_word'],
 			'name'      => (bool) $f['name'],
 			'why'       => (string) $f['why'],
-			'context'   => tba_spell_context( $text, $word ),
+			'context'   => tba_spell_context( $text, $word, max( 0, $at ) ),
 		);
-		$found = '' === $word ? 0 : preg_match_all( tba_word_pattern( $word ), $text );
 
 		if ( ! $found ) {
 			$item += array( 'decision' => 'skip', 'reason' => 'Not found in that line' );
@@ -254,10 +258,10 @@ TXT;
 			$item += array( 'decision' => 'ask', 'reason' => 'The AI is not sure' );
 		} elseif ( $item['name'] ) {
 			$item += array( 'decision' => 'ask', 'reason' => 'Might be a name (restaurant, person, place or brand)' );
-		} elseif ( $item['real_word'] && $found > 1 ) {
-			$item += array( 'decision' => 'ask', 'reason' => 'A real word that appears more than once in the line' );
+		} elseif ( $item['real_word'] && $at < 0 ) {
+			$item += array( 'decision' => 'ask', 'reason' => 'A real word that appears more than once in the line, and the exact spot wasn\'t clear' );
 		} else {
-			$item += array( 'decision' => 'fix', 'reason' => $item['real_word'] ? 'Wrong word, once in the line' : 'Typo' );
+			$item += array( 'decision' => 'fix', 'reason' => $item['real_word'] ? 'Wrong word (that one spot only)' : 'Typo' );
 		}
 		$item['fix'] = tba_match_case( $word, $fix );
 		$items[]     = $item;
@@ -265,14 +269,42 @@ TXT;
 	return array( 'chunks' => $chunks, 'items' => $items );
 }
 
-function tba_spell_context( $text, $word ) {
-	if ( '' === $word || ! preg_match( tba_word_pattern( $word ), $text, $m, PREG_OFFSET_CAPTURE ) ) {
-		return mb_substr( $text, 0, 120 );
+/**
+ * Which occurrence of the word in the line the AI means (0 = first), found from the words it quoted around
+ * it. If the quote can't be found, a word that appears once is still certain; otherwise -1.
+ */
+function tba_spell_locate( $text, $word, $quote ) {
+	if ( '' === $word || ! preg_match_all( tba_word_pattern( $word ), $text, $m, PREG_OFFSET_CAPTURE ) ) {
+		return -1;
 	}
-	$at    = mb_strlen( substr( $text, 0, $m[0][1] ) ); // Byte offset → letter offset.
-	$start = max( 0, $at - 60 );
-	$ctx   = mb_substr( $text, $start, mb_strlen( $word ) + 120 );
-	return ( $start ? '…' : '' ) . trim( $ctx ) . ( $start + mb_strlen( $ctx ) < mb_strlen( $text ) ? '…' : '' );
+	$offsets = array_column( $m[0], 1 );
+	$norm    = fn( $s ) => trim( preg_replace( '/\s+/u', ' ', $s ) );
+	$quote   = $norm( $quote );
+	if ( '' !== $quote ) {
+		$pos = strpos( $text, $quote );
+		if ( false !== $pos ) {
+			foreach ( $offsets as $n => $offset ) {
+				if ( $offset >= $pos && $offset < $pos + strlen( $quote ) ) {
+					return $n;
+				}
+			}
+		}
+	}
+	return 1 === count( $offsets ) ? 0 : -1;
+}
+
+/** The sentence around one occurrence of the word: array( before, the word, after ) for highlighting. */
+function tba_spell_context( $text, $word, $nth = 0 ) {
+	if ( '' === $word || ! preg_match_all( tba_word_pattern( $word ), $text, $m, PREG_OFFSET_CAPTURE ) || ! isset( $m[0][ $nth ] ) ) {
+		return array( mb_substr( $text, 0, 120 ), '', '' );
+	}
+	list( $match, $byte ) = $m[0][ $nth ];
+	$at     = mb_strlen( substr( $text, 0, $byte ) ); // Byte offset → letter offset.
+	$start  = max( 0, $at - 60 );
+	$before = mb_substr( $text, $start, $at - $start );
+	$after  = mb_substr( $text, $at + mb_strlen( $match ), 60 );
+	$more   = $at + mb_strlen( $match ) + 60 < mb_strlen( $text );
+	return array( ( $start ? '…' : '' ) . ltrim( $before ), $match, rtrim( $after ) . ( $more ? '…' : '' ) );
 }
 
 /** Report-only run: store the result on the post for the Spelling report screen. */

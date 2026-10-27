@@ -119,6 +119,18 @@ function tba_run_due_jobs( $limit = 50 ) {
 			}
 
 			$error = is_wp_error( $result ) ? $result->get_error_code() . ': ' . $result->get_error_message() : 'Unexpected result';
+			// Someone has the post open in the editor: not a failure, so wait without using up a retry. Check
+			// every 5 minutes (a tab left open all afternoon is normal) and give up only after a day.
+			if ( is_wp_error( $result ) && 'tba_locked' === $result->get_error_code() && strtotime( $job->created . ' UTC' ) > time() - DAY_IN_SECONDS ) {
+				$wpdb->update( $table, array(
+					'status'     => 'pending',
+					'attempts'   => $job->attempts - 1,
+					'next_run'   => gmdate( 'Y-m-d H:i:s', time() + 5 * MINUTE_IN_SECONDS ),
+					'last_error' => substr( $error, 0, 1000 ),
+					'updated'    => tba_now(),
+				), array( 'id' => $job->id ) );
+				continue;
+			}
 			$retry = TBA_RETRY_MINUTES[ $job->attempts - 1 ] ?? null;
 			$wpdb->update( $table, array(
 				'status'     => $retry ? 'pending' : 'failed',

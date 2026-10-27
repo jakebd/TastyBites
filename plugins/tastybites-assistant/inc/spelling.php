@@ -463,7 +463,8 @@ function tba_spell_item_key( $item ) {
 
 /** Per-post memory of decisions: key => 'applied' or 'kept'. */
 function tba_spelling_history( $post_id, $key = null, $value = null ) {
-	$history = (array) get_post_meta( $post_id, '_tba_spelling_history', true );
+	$history = get_post_meta( $post_id, '_tba_spelling_history', true );
+	$history = is_array( $history ) ? $history : array();
 	if ( null !== $key ) {
 		$history[ $key ] = $value;
 		update_post_meta( $post_id, '_tba_spelling_history', $history );

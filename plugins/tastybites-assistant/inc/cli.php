@@ -91,7 +91,7 @@ class TBA_CLI {
 	 * [--model=<model>]
 	 * : haiku, sonnet or opus.
 	 * ---
-	 * default: sonnet
+	 * default: opus
 	 * ---
 	 *
 	 * [--store]
@@ -112,8 +112,9 @@ class TBA_CLI {
 				WP_CLI::warning( "#$id: " . $result->get_error_message() );
 				continue;
 			}
+			$result['items'] = tba_spelling_with_history( $id, $result['items'] );
 			if ( isset( $assoc['store'] ) ) {
-				tba_spelling_store( $post, $result, $model );
+				tba_spelling_store( $post, $result['items'], $model );
 			}
 			WP_CLI::line( sprintf( '#%d %s: %d found', $id, html_entity_decode( $post->post_title ), count( $result['items'] ) ) );
 			foreach ( $result['items'] as $item ) {

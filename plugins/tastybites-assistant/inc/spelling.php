@@ -9,8 +9,11 @@
  *          big a change to be a typo, etc.
  *
  * Only text between tags changes (never markup, links, image alt text or block settings), and a words check
- * confirms every other word is identical. Step 5a is report-only: `wp tba spelling [<id>...] [--store]`, with
- * results on the Tidy-ups → Spelling report screen.
+ * confirms every other word is identical. Runs in the publish pass (before the layout tidy-ups); each pass that
+ * changes something is one revision. Decisions are remembered per post (`_tba_spelling_history`) so a word
+ * Jacob kept is never changed later, and a fix that comes back after an undo is asked, not re-applied.
+ * Report-only runs: `wp tba spelling [<id>...] [--store]`. Everything shows on Tidy-ups → Spelling, with
+ * buttons to fix, keep or override each item.
  */
 
 defined( 'ABSPATH' ) || exit;
@@ -23,6 +26,7 @@ add_filter( 'tba_features', function ( $features ) {
 // Tags that start a new paragraph-like chunk of text. Inline tags (strong, em, a, span) don't.
 const TBA_SPELL_BLOCK_TAGS = 'p|h[1-6]|li|ul|ol|figcaption|figure|div|td|th|tr|table|blockquote|pre|dt|dd|section|cite';
 const TBA_SPELL_WORD_CHARS = "\p{L}\p{N}'’";
+const TBA_SPELLING_MODEL   = 'opus'; // Chosen from the 38-post test (ROADMAP 2.8).
 
 /**
  * The post's text as chunks (one per paragraph, heading, list item, caption...), each with the raw text
@@ -139,7 +143,7 @@ function tba_is_typo_sized( $word, $fix ) {
  * Ask the AI for spelling mistakes in a post. Returns array( 'chunks' => ..., 'items' => [...] ) with a
  * decision on each item, or a WP_Error.
  */
-function tba_spelling_check( $post, $model = 'sonnet' ) {
+function tba_spelling_check( $post, $model = TBA_SPELLING_MODEL ) {
 	$chunks = tba_text_chunks( $post->post_content );
 	$lines  = array( '[0] ' . html_entity_decode( $post->post_title, ENT_QUOTES | ENT_HTML5, 'UTF-8' ) );
 	foreach ( $chunks as $i => $chunk ) {
@@ -237,6 +241,7 @@ TXT;
 			'real_word' => (bool) $f['real_word'],
 			'kind'      => in_array( $f['kind'] ?? '', array( 'word', 'place', 'name' ), true ) ? $f['kind'] : 'name',
 			'why'       => (string) $f['why'],
+			'quote'     => (string) $f['quote'],
 			'context'   => tba_spell_context( $text, $word, max( 0, $at ) ),
 		);
 		// A name fixed to the spelling he (or the site) uses elsewhere, like "Snanky Chan" → "Snacky Chan".
@@ -431,11 +436,336 @@ function tba_spell_context( $text, $word, $nth = 0 ) {
 }
 
 /** Report-only run: store the result on the post for the Spelling report screen. */
-function tba_spelling_store( $post, $result, $model ) {
+function tba_spelling_store( $post, $items, $model, $mode = 'report', $revision = 0 ) {
+	$status = array( 'fix' => 'live' === $mode ? 'applied' : 'proposed', 'ask' => 'open', 'skip' => 'ignored' );
+	foreach ( $items as &$item ) {
+		$item['status'] = $item['status'] ?? $status[ $item['decision'] ];
+	}
+	unset( $item );
 	update_post_meta( $post->ID, '_tba_spelling', array(
-		'model'   => $model,
-		'created' => time(),
-		'base'    => md5( $post->post_title . "\n" . $post->post_content ),
-		'items'   => $result['items'],
+		'model'    => $model,
+		'mode'     => $mode, // 'report' (nothing applied) or 'live' (fixes applied on publish).
+		'created'  => time(),
+		'base'     => tba_spelling_base( $post ),
+		'revision' => (int) $revision, // The revision from before this pass's fixes: restoring it undoes them.
+		'items'    => array_values( $items ),
 	) );
+}
+
+function tba_spelling_base( $post ) {
+	return md5( $post->post_title . "\n" . $post->post_content );
+}
+
+/** A change's identity across passes: this word to this fix. */
+function tba_spell_item_key( $item ) {
+	return mb_strtolower( $item['word'] ) . '→' . mb_strtolower( $item['fix'] );
+}
+
+/** Per-post memory of decisions: key => 'applied' or 'kept'. */
+function tba_spelling_history( $post_id, $key = null, $value = null ) {
+	$history = (array) get_post_meta( $post_id, '_tba_spelling_history', true );
+	if ( null !== $key ) {
+		$history[ $key ] = $value;
+		update_post_meta( $post_id, '_tba_spelling_history', $history );
+	}
+	return $history;
+}
+
+/** Applies what was decided before on this post: kept words stay, a fix that came back after an undo is asked. */
+function tba_spelling_with_history( $post_id, $items ) {
+	$history = tba_spelling_history( $post_id );
+	foreach ( $items as &$item ) {
+		$was = $history[ tba_spell_item_key( $item ) ] ?? '';
+		if ( 'kept' === $was && 'skip' !== $item['decision'] ) {
+			$item['decision'] = 'skip';
+			$item['reason']   = 'You chose to keep it as written';
+		} elseif ( 'applied' === $was && 'fix' === $item['decision'] ) {
+			$item['decision'] = 'ask';
+			$item['reason']   = 'Fixed before but it is back (undone?), so asking instead';
+		}
+	}
+	unset( $item );
+	return $items;
+}
+
+/** The chunk an item is in now: its line if the word (and quote) are still there, else wherever the quote is. */
+function tba_spell_find_line( $chunks, $item ) {
+	$norm  = fn( $s ) => trim( preg_replace( '/\s+/u', ' ', $s ) );
+	$quote = $norm( $item['quote'] ?? '' );
+	$line  = (int) $item['line'] - 1;
+	$has   = fn( $i ) => isset( $chunks[ $i ] ) && preg_match( tba_word_pattern( $item['word'] ), $chunks[ $i ]['text'] );
+	if ( $has( $line ) && ( '' === $quote || false !== strpos( $chunks[ $line ]['text'], $quote ) ) ) {
+		return $line;
+	}
+	if ( '' !== $quote ) {
+		foreach ( $chunks as $i => $chunk ) {
+			if ( false !== strpos( $chunk['text'], $quote ) && $has( $i ) ) {
+				return $i;
+			}
+		}
+	}
+	return $has( $line ) ? $line : -1;
+}
+
+/**
+ * Builds the corrected title and content for the given items (each at its exact spot; a plain typo that
+ * appears several times in its paragraph is fixed everywhere in it). Returns array( title, content,
+ * applied => item keys, failed => item key => reason ). Nothing is saved.
+ */
+function tba_spelling_build( $post, $items ) {
+	$chunks  = tba_text_chunks( $post->post_content );
+	$edits   = array( 'title' => array(), 'content' => array() );
+	$applied = array();
+	$failed  = array();
+	foreach ( $items as $k => $item ) {
+		if ( 0 === (int) $item['line'] ) {
+			$where = 'title';
+			$segs  = array( array( 0, $post->post_title ) );
+			$text  = html_entity_decode( $post->post_title, ENT_QUOTES | ENT_HTML5, 'UTF-8' );
+		} else {
+			$line = tba_spell_find_line( $chunks, $item );
+			if ( $line < 0 ) {
+				$failed[ $k ] = 'That sentence is no longer in the post';
+				continue;
+			}
+			$where = 'content';
+			$segs  = $chunks[ $line ]['segs'];
+			$text  = $chunks[ $line ]['text'];
+		}
+		$pattern = tba_word_pattern( $item['word'] );
+		$matches = array();
+		foreach ( $segs as list( $offset, $raw ) ) {
+			if ( preg_match_all( $pattern, $raw, $m, PREG_OFFSET_CAPTURE ) ) {
+				foreach ( $m[0] as list( $match, $pos ) ) {
+					$matches[] = array( $offset + $pos, $match );
+				}
+			}
+		}
+		// Every occurrence must sit wholly inside one piece of text (not split by a tag or an entity).
+		if ( ! $matches || count( $matches ) !== preg_match_all( $pattern, $text ) ) {
+			$failed[ $k ] = 'Couldn\'t place the change safely (the word is split by formatting)';
+			continue;
+		}
+		$nth = tba_spell_locate( $text, $item['word'], $item['quote'] ?? '' );
+		if ( $nth < 0 && ! empty( $item['real_word'] ) ) {
+			$failed[ $k ] = 'Couldn\'t tell which one to change';
+			continue;
+		}
+		foreach ( $nth >= 0 ? array( $matches[ $nth ] ) : $matches as list( $at, $match ) ) {
+			$edits[ $where ][ $at ] = array( strlen( $match ), tba_match_case( $match, $item['fix'] ) );
+		}
+		$applied[] = $k;
+	}
+	$splice = function ( $string, $list ) {
+		krsort( $list );
+		$end = PHP_INT_MAX;
+		foreach ( $list as $at => list( $length, $replacement ) ) {
+			if ( $at + $length <= $end ) { // Overlapping edits: keep the later one only.
+				$string = substr_replace( $string, $replacement, $at, $length );
+				$end    = $at;
+			}
+		}
+		return $string;
+	};
+	return array(
+		'title'   => $splice( $post->post_title, $edits['title'] ),
+		'content' => $splice( $post->post_content, $edits['content'] ),
+		'applied' => $applied,
+		'failed'  => $failed,
+	);
+}
+
+/**
+ * The words check for spelling: the markup is byte-for-byte the same, and the words are the same in the same
+ * order except where one of the given word → fix pairs was swapped in.
+ */
+function tba_spelling_verify( $before, $after, $pairs ) {
+	$tags = fn( $c ) => preg_match_all( '#<!--.*?-->|<[^>]*>#s', $c, $m ) ? implode( '', $m[0] ) : '';
+	if ( $tags( $before ) !== $tags( $after ) ) {
+		return false;
+	}
+	$tokens = fn( $c ) => array_map( 'mb_strtolower', tba_spell_tokens( html_entity_decode( wp_strip_all_tags( $c ), ENT_QUOTES | ENT_HTML5, 'UTF-8' ) ) );
+	$a      = $tokens( $before );
+	$b      = $tokens( $after );
+	$subs   = array();
+	foreach ( $pairs as list( $word, $fix ) ) {
+		$subs[] = array( $tokens( $word ), $tokens( $fix ) );
+	}
+	$i = 0;
+	$j = 0;
+	while ( $i < count( $a ) || $j < count( $b ) ) {
+		if ( isset( $a[ $i ], $b[ $j ] ) && $a[ $i ] === $b[ $j ] ) {
+			$i++;
+			$j++;
+			continue;
+		}
+		foreach ( $subs as list( $from, $to ) ) {
+			if ( array_slice( $a, $i, count( $from ) ) === $from && array_slice( $b, $j, count( $to ) ) === $to ) {
+				$i += count( $from );
+				$j += count( $to );
+				continue 2;
+			}
+		}
+		return false;
+	}
+	return true;
+}
+
+/**
+ * Saves corrected title/content as one revision. Refused if someone has the post open in the editor or it
+ * changed since it was read. Returns the ID of the revision from before (restoring it undoes this), or WP_Error.
+ */
+function tba_spelling_save( $post, $title, $content ) {
+	require_once ABSPATH . 'wp-admin/includes/post.php';
+	$editing = wp_check_post_lock( $post->ID );
+	if ( $editing ) {
+		return new WP_Error( 'tba_locked', get_the_author_meta( 'display_name', $editing ) . ' has this post open in the editor right now. Try again once they\'re done.' );
+	}
+	$fresh = get_post( $post->ID );
+	if ( $fresh->post_content !== $post->post_content || $fresh->post_title !== $post->post_title ) {
+		return new WP_Error( 'tba_stale', 'The post changed while it was being checked.' );
+	}
+	$was = tba_in_job();
+	tba_in_job( true ); // Our own save: don't queue another pass for it.
+	$result = wp_update_post( wp_slash( array( 'ID' => $post->ID, 'post_title' => $title, 'post_content' => $content ) ), true );
+	tba_in_job( $was );
+	if ( is_wp_error( $result ) ) {
+		return $result;
+	}
+	$revisions = array_values( wp_get_post_revisions( $post->ID, array( 'posts_per_page' => 2 ) ) );
+	return isset( $revisions[1] ) ? $revisions[1]->ID : 0;
+}
+
+/**
+ * Builds, checks and saves the given items in one revision. Returns array( revision, applied, failed ) or a
+ * WP_Error. Items that fail are listed in `failed` with the reason, and nothing about them changes.
+ */
+function tba_spelling_commit( $post, $items ) {
+	$built = tba_spelling_build( $post, $items );
+	if ( ! $built['applied'] ) {
+		return array( 'revision' => 0, 'applied' => array(), 'failed' => $built['failed'] );
+	}
+	$pairs = array();
+	foreach ( $built['applied'] as $k ) {
+		$pairs[] = array( $items[ $k ]['word'], $items[ $k ]['fix'] );
+	}
+	if ( ! tba_spelling_verify( $post->post_content, $built['content'], $pairs ) || ! tba_spelling_verify( $post->post_title, $built['title'], $pairs ) ) {
+		return new WP_Error( 'tba_words_changed', 'The change didn\'t pass the words check, so nothing was changed.' );
+	}
+	$revision = tba_spelling_save( $post, $built['title'], $built['content'] );
+	if ( is_wp_error( $revision ) ) {
+		return $revision;
+	}
+	foreach ( $built['applied'] as $k ) {
+		tba_spelling_history( $post->ID, tba_spell_item_key( $items[ $k ] ), 'applied' );
+	}
+	return array( 'revision' => $revision, 'applied' => $built['applied'], 'failed' => $built['failed'] );
+}
+
+/** The publish pass: check, fix what's certain, keep the rest for Jacob. A WP_Error retries the job later. */
+function tba_spelling_pass( $post ) {
+	$state = get_post_meta( $post->ID, '_tba_spelling', true );
+	if ( $state && 'live' === ( $state['mode'] ?? '' ) && $state['base'] === tba_spelling_base( $post ) ) {
+		return true; // This exact version was already checked.
+	}
+	$result = tba_spelling_check( $post );
+	if ( is_wp_error( $result ) ) {
+		return $result;
+	}
+	$items    = tba_spelling_with_history( $post->ID, $result['items'] );
+	$fixes    = array_filter( $items, fn( $i ) => 'fix' === $i['decision'] );
+	$revision = 0;
+	if ( $fixes ) {
+		$done = tba_spelling_commit( $post, $fixes );
+		if ( is_wp_error( $done ) ) {
+			if ( in_array( $done->get_error_code(), array( 'tba_locked', 'tba_stale' ), true ) ) {
+				return $done; // Try again later.
+			}
+			$done = array( 'revision' => 0, 'applied' => array(), 'failed' => array_fill_keys( array_keys( $fixes ), $done->get_error_message() ) );
+		}
+		foreach ( $done['failed'] as $k => $why ) {
+			$items[ $k ]['decision'] = 'ask';
+			$items[ $k ]['reason']   = $why . ', so asking instead';
+		}
+		$revision = $done['revision'];
+		$post     = get_post( $post->ID );
+	}
+	tba_spelling_store( $post, $items, TBA_SPELLING_MODEL, 'live', $revision );
+	do_action( 'tba_spelling_questions', $post, array_values( array_filter( $items, fn( $i ) => 'ask' === $i['decision'] ) ) );
+	return true;
+}
+
+add_filter( 'tba_publish_pass', function ( $result, $post ) {
+	if ( true !== $result || ! tba_feature_on( 'spelling' ) ) {
+		return $result;
+	}
+	return tba_spelling_pass( $post );
+}, 10, 2 ); // Before the layout tidy-ups (20), so they're proposed on the corrected text.
+
+/**
+ * Jacob's actions on the Spelling screen: 'fix' one item (optionally with his own spelling), 'keep' one item
+ * as written (optionally adding the word to the site word list), or 'apply' every proposed fix on the post.
+ * Returns a message, or a WP_Error.
+ */
+function tba_spelling_action( $post_id, $do, $index, $custom = '', $remember = false ) {
+	$post  = get_post( $post_id );
+	$state = get_post_meta( $post_id, '_tba_spelling', true );
+	if ( ! $post || ! $state ) {
+		return new WP_Error( 'tba_missing', 'Nothing to act on for this post.' );
+	}
+	$items = $state['items'];
+
+	if ( 'keep' === $do ) {
+		if ( ! isset( $items[ $index ] ) ) {
+			return new WP_Error( 'tba_missing', 'That word is no longer listed.' );
+		}
+		$items[ $index ]['status'] = 'kept';
+		tba_spelling_history( $post_id, tba_spell_item_key( $items[ $index ] ), 'kept' );
+		$message = "Kept \"{$items[ $index ]['word']}\" as written.";
+		if ( $remember ) {
+			$words   = (array) get_option( 'tba_site_words', array() );
+			$words[] = $items[ $index ]['word'];
+			update_option( 'tba_site_words', array_values( array_unique( $words ) ), false );
+			$message .= ' Added to the site word list, so it will never be flagged again.';
+		}
+		$state['items'] = $items;
+		update_post_meta( $post_id, '_tba_spelling', $state );
+		return $message;
+	}
+
+	if ( 'apply' === $do ) {
+		$todo = array_filter( $items, fn( $i ) => 'proposed' === ( $i['status'] ?? '' ) );
+	} elseif ( 'fix' === $do && isset( $items[ $index ] ) ) {
+		$custom = trim( preg_replace( '/\s+/u', ' ', $custom ) );
+		if ( '' !== $custom ) {
+			if ( preg_match_all( '/\s/u', $custom ) > 2 || preg_match( '/[<>]/', $custom ) ) {
+				return new WP_Error( 'tba_custom', 'Type just the corrected word (up to three words, no HTML).' );
+			}
+			$items[ $index ]['fix'] = $custom;
+		}
+		$todo = array( $index => $items[ $index ] );
+	} else {
+		return new WP_Error( 'tba_missing', 'That word is no longer listed.' );
+	}
+	if ( ! $todo ) {
+		return new WP_Error( 'tba_missing', 'There is nothing to apply.' );
+	}
+
+	$done = tba_spelling_commit( $post, $todo );
+	if ( is_wp_error( $done ) ) {
+		return $done;
+	}
+	foreach ( $done['applied'] as $k ) {
+		$items[ $k ]['status']   = 'fixed';
+		$items[ $k ]['revision'] = $done['revision'];
+	}
+	$state['items'] = $items;
+	$state['base']  = tba_spelling_base( get_post( $post_id ) );
+	update_post_meta( $post_id, '_tba_spelling', $state );
+
+	$message = sprintf( _n( 'Fixed %d word.', 'Fixed %d words.', count( $done['applied'] ) ), count( $done['applied'] ) );
+	if ( $done['failed'] ) {
+		$message .= ' Not changed: ' . implode( '; ', array_map( fn( $k, $why ) => "\"{$items[ $k ]['word']}\" ($why)", array_keys( $done['failed'] ), $done['failed'] ) ) . '.';
+	}
+	return $message;
 }

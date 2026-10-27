@@ -259,6 +259,8 @@ TXT;
 			$item += array( 'decision' => 'skip', 'reason' => 'On the site word list' );
 		} elseif ( ! tba_is_typo_sized( $word, $fix ) ) {
 			$item += array( 'decision' => 'ask', 'reason' => 'Too big a change to be sure it is a typo' );
+		} elseif ( tba_flips_negation( $word, $fix ) ) {
+			$item += array( 'decision' => 'ask', 'reason' => 'Adds or removes a "not", which changes the meaning' );
 		} elseif ( ! $item['sure'] ) {
 			$item += array( 'decision' => 'ask', 'reason' => 'The AI is not sure' );
 		} elseif ( 'name' === $item['kind'] && ! $spelled_elsewhere ) {
@@ -369,12 +371,18 @@ TXT;
 		if ( 'keep' === $c['verdict'] ) {
 			$item['decision'] = 'skip';
 			$item['reason']   = 'Second opinion: correct as written';
-		} elseif ( 'fix' === $c['verdict'] && ! $person_or_business && $within_reach ) {
+		} elseif ( 'fix' === $c['verdict'] && ! $person_or_business && $within_reach && ! tba_flips_negation( $item['word'], $item['fix'] ) ) {
 			$item['decision'] = 'fix';
 			$item['reason']   = 'Second opinion: definitely a typo';
 		}
 		unset( $item );
 	}
+}
+
+/** Adding or removing a "not" (can't → can, do → don't) flips the meaning, so it is always asked. */
+function tba_flips_negation( $word, $fix ) {
+	$negative = fn( $w ) => (bool) preg_match( "/n['’]?t$|^(not|no|never|nor)$/iu", trim( $w ) );
+	return $negative( $word ) !== $negative( $fix );
 }
 
 /** A looser limit for changes two checks agree on (are → our, bullion → bouillon): up to 3 letters. */

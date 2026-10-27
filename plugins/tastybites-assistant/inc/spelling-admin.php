@@ -63,8 +63,9 @@ function tba_spelling_page() {
 				<thead><tr><th style="width:7em"></th><th style="width:16em">Word</th><th>In the post</th><th style="width:22em">Why</th></tr></thead>
 				<tbody>
 				<?php foreach ( $items as $item ) :
-					$ctx = esc_html( $item['context'] );
-					$ctx = preg_replace( tba_word_pattern( esc_html( $item['word'] ) ), '<mark>$0</mark>', $ctx, 1 );
+					// Context is array( before, the word, after ), so the exact spot is marked.
+					list( $before, $match, $after ) = array_pad( (array) $item['context'], 3, '' );
+					$ctx = esc_html( $before ) . ( '' !== $match ? '<mark>' . esc_html( $match ) . '</mark>' : '' ) . esc_html( $after );
 					?>
 					<tr>
 						<td><span style="display:inline-block;padding:2px 8px;border-radius:10px;color:#fff;background:<?php echo esc_attr( $colors[ $item['decision'] ] ); ?>"><?php echo esc_html( $labels[ $item['decision'] ] ); ?></span></td>

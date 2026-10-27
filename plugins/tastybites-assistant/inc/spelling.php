@@ -169,7 +169,7 @@ For each misspelled word:
 - word: copied exactly as written, a single word (or the two parts of a split word) with no punctuation around it;
 - fix: the correct spelling (same capitalisation);
 - sure: true only when it is certainly a typo with one obvious correction. If it might be a name or an intended word, or there's more than one reasonable correction, set sure to false;
-- name: true if the word is, or might be, part of the name of a person, restaurant, business, place, brand or product (he capitalises ordinary food words like Winter Melon too: those are not names);
+- kind: "place" if it's a well-known city, state, province, country or region whose correct spelling you are certain of (Milwaukee, Minnesota, Saskatoon); "name" if it is, or might be, part of the name of a person, restaurant, business, brand, product or a small or little-known place; otherwise "word" (he capitalises ordinary food words like Winter Melon too: those are words, not names);
 - quote: the misspelled word with 3 or 4 words on each side, copied exactly as written, so the exact spot can be found (short words like "a" or "is" often appear several times in a line);
 - why: a few words.
 List every mistake separately, each with its own quote, even when the same word is wrong twice. If nothing is misspelled, return an empty list.
@@ -178,7 +178,7 @@ TXT;
 	$answer = tba_ai( 'spelling', array(
 		'model'      => $model,
 		'system'     => $system,
-		'content'    => "The post, one numbered line per title, paragraph, heading, list item or caption:\n\n" . implode( "\n", $lines ),
+		'content'    => tba_site_names_note() . "The post, one numbered line per title, paragraph, heading, list item or caption:\n\n" . implode( "\n", $lines ),
 		'schema'     => array(
 			'type'       => 'object',
 			'properties' => array(
@@ -192,11 +192,11 @@ TXT;
 							'fix'       => array( 'type' => 'string' ),
 							'sure'      => array( 'type' => 'boolean' ),
 							'real_word' => array( 'type' => 'boolean' ),
-							'name'      => array( 'type' => 'boolean' ),
+							'kind'      => array( 'type' => 'string', 'enum' => array( 'word', 'place', 'name' ) ),
 							'quote'     => array( 'type' => 'string' ),
 							'why'       => array( 'type' => 'string' ),
 						),
-						'required'             => array( 'line', 'word', 'fix', 'sure', 'real_word', 'name', 'quote', 'why' ),
+						'required'             => array( 'line', 'word', 'fix', 'sure', 'real_word', 'kind', 'quote', 'why' ),
 						'additionalProperties' => false,
 					),
 				),
@@ -211,6 +211,8 @@ TXT;
 	}
 
 	$site_words = tba_site_words();
+	// Where a name is spelled correctly elsewhere: the rest of the post and the names already on the site.
+	$known      = implode( "\n", $lines ) . "\n" . implode( "\n", tba_site_names() );
 	$items      = array();
 	foreach ( $answer['fixes'] as $f ) {
 		$line = (int) $f['line'];
@@ -233,10 +235,13 @@ TXT;
 			'at'        => $at, // Which occurrence of the word in the line (0 = first); -1 if it couldn't be pinned down.
 			'sure'      => (bool) $f['sure'],
 			'real_word' => (bool) $f['real_word'],
-			'name'      => (bool) $f['name'],
+			'kind'      => in_array( $f['kind'] ?? '', array( 'word', 'place', 'name' ), true ) ? $f['kind'] : 'name',
 			'why'       => (string) $f['why'],
 			'context'   => tba_spell_context( $text, $word, max( 0, $at ) ),
 		);
+		// A name fixed to the spelling he (or the site) uses elsewhere, like "Snanky Chan" → "Snacky Chan".
+		$spelled_elsewhere = '' !== $fix && preg_match( tba_word_pattern( $fix ), $known );
+		$item['known']     = (bool) $spelled_elsewhere;
 
 		if ( ! $found ) {
 			$item += array( 'decision' => 'skip', 'reason' => 'Not found in that line' );
@@ -254,19 +259,137 @@ TXT;
 			$item += array( 'decision' => 'skip', 'reason' => 'On the site word list' );
 		} elseif ( ! tba_is_typo_sized( $word, $fix ) ) {
 			$item += array( 'decision' => 'ask', 'reason' => 'Too big a change to be sure it is a typo' );
+		} elseif ( tba_flips_negation( $word, $fix ) ) {
+			$item += array( 'decision' => 'ask', 'reason' => 'Adds or removes a "not", which changes the meaning' );
 		} elseif ( ! $item['sure'] ) {
 			$item += array( 'decision' => 'ask', 'reason' => 'The AI is not sure' );
-		} elseif ( $item['name'] ) {
-			$item += array( 'decision' => 'ask', 'reason' => 'Might be a name (restaurant, person, place or brand)' );
+		} elseif ( 'name' === $item['kind'] && ! $spelled_elsewhere ) {
+			$item += array( 'decision' => 'ask', 'reason' => 'Might be the name of a person, restaurant, business or brand' );
 		} elseif ( $item['real_word'] && $at < 0 ) {
 			$item += array( 'decision' => 'ask', 'reason' => 'A real word that appears more than once in the line, and the exact spot wasn\'t clear' );
 		} else {
-			$item += array( 'decision' => 'fix', 'reason' => $item['real_word'] ? 'Wrong word (that one spot only)' : 'Typo' );
+			$reasons = array( 'place' => 'Well-known place name', 'name' => 'A name, fixed to how it is spelled elsewhere' );
+			$item   += array( 'decision' => 'fix', 'reason' => $item['real_word'] ? 'Wrong word (that one spot only)' : ( $reasons[ $item['kind'] ] ?? 'Typo' ) );
 		}
 		$item['fix'] = tba_match_case( $word, $fix );
 		$items[]     = $item;
 	}
+	tba_spelling_second_opinion( $post, $items, $lines, $chunks, $model );
 	return array( 'chunks' => $chunks, 'items' => $items );
+}
+
+/** Names already on the site (restaurants reviewed, tags, destinations, the site word list), for context. */
+function tba_site_names() {
+	$names = wp_list_pluck( get_posts( array( 'post_type' => 'review_content', 'post_status' => 'publish', 'numberposts' => 200 ) ), 'post_title' );
+	foreach ( array( 'post_tag', 'destination' ) as $taxonomy ) {
+		if ( taxonomy_exists( $taxonomy ) ) {
+			$names = array_merge( $names, wp_list_pluck( get_terms( array( 'taxonomy' => $taxonomy, 'hide_empty' => false, 'number' => 300 ) ), 'name' ) );
+		}
+	}
+	$names = array_merge( $names, (array) get_option( 'tba_site_words', array() ) );
+	$names = array_map( fn( $n ) => html_entity_decode( $n, ENT_QUOTES | ENT_HTML5, 'UTF-8' ), $names );
+	return array_values( array_unique( array_filter( $names ) ) );
+}
+
+function tba_site_names_note() {
+	$names = tba_site_names();
+	return $names ? 'Names already used on the site, spelled correctly (restaurants, places, people): ' . implode( '; ', $names ) . "\n\n" : '';
+}
+
+/**
+ * A second, focused look at every "ask": the paragraph with the ones around it, decided by a model asked to
+ * reason first. "fix" turns an ask into a fix (still within PHP's limits), "keep" drops it as correct as
+ * written, "unsure" leaves it for Jacob/Shawn. Names of people and businesses are never fixed this way unless
+ * the fix matches a spelling used elsewhere.
+ */
+function tba_spelling_second_opinion( $post, &$items, $lines, $chunks, $model ) {
+	$asks = array_keys( array_filter( $items, fn( $i ) => 'ask' === $i['decision'] ) );
+	if ( ! $asks ) {
+		return;
+	}
+	$cases = array();
+	foreach ( $asks as $n => $key ) {
+		$item = $items[ $key ];
+		$near = array();
+		foreach ( array( $item['line'] - 1, $item['line'], $item['line'] + 1 ) as $l ) {
+			if ( isset( $lines[ $l ] ) ) {
+				$near[] = ( $l === $item['line'] ? '>> ' : '   ' ) . $lines[ $l ];
+			}
+		}
+		list( $before, $match, $after ) = array_pad( (array) $item['context'], 3, '' );
+		$cases[] = "Case $n: \"{$item['word']}\" → \"{$item['fix']}\" in: {$before}[[{$match}]]{$after}\n"
+			. "First look: {$item['why']} ({$item['reason']})\n" . implode( "\n", $near );
+	}
+
+	$system = <<<TXT
+You are the second opinion on spelling questions for Gengie's Tasty Bites, a Canadian food and travel blog by Shawn Genge, a retired chef who writes casually, the way he talks. A first check flagged each word below but wasn't sure enough to change it. For each case, think it through, then decide:
+- "fix": it is definitely a misspelling or a mistyped word, and the suggested fix is exactly what he meant;
+- "keep": it is correct as written, or he meant it (slang, a name, a Canadian spelling, his way of saying it);
+- "unsure": you can't tell without asking him.
+Only say "fix" when you are certain. A wrong change to his words is worse than leaving a typo. The word in [[double brackets]] is the exact spot; the line marked >> is where it is, with the lines around it for context.
+TXT;
+
+	$answer = tba_ai( 'spelling_review', array(
+		'model'      => $model,
+		'system'     => $system,
+		'content'    => tba_site_names_note() . 'Post title: ' . html_entity_decode( $post->post_title, ENT_QUOTES | ENT_HTML5, 'UTF-8' ) . ' (' . $post->post_type . ")\n\n" . implode( "\n\n", $cases ),
+		'schema'     => array(
+			'type'       => 'object',
+			'properties' => array(
+				'cases' => array(
+					'type'  => 'array',
+					'items' => array(
+						'type'                 => 'object',
+						'properties'           => array(
+							'case'      => array( 'type' => 'integer' ),
+							'reasoning' => array( 'type' => 'string' ),
+							'verdict'   => array( 'type' => 'string', 'enum' => array( 'fix', 'keep', 'unsure' ) ),
+						),
+						'required'             => array( 'case', 'reasoning', 'verdict' ),
+						'additionalProperties' => false,
+					),
+				),
+			),
+			'required'   => array( 'cases' ),
+		),
+		'max_tokens' => 8000,
+		'object_id'  => $post->ID,
+	) );
+	if ( is_wp_error( $answer ) ) {
+		return; // The asks stay asks.
+	}
+	foreach ( $answer['cases'] as $c ) {
+		$key = $asks[ (int) $c['case'] ] ?? null;
+		if ( null === $key ) {
+			continue;
+		}
+		$item                = &$items[ $key ];
+		$item['second']      = $c['verdict'];
+		$item['second_why']  = (string) $c['reasoning'];
+		$person_or_business  = 'name' === $item['kind'] && empty( $item['known'] );
+		$within_reach        = tba_is_typo_sized( $item['word'], $item['fix'] ) || tba_is_near_typo( $item['word'], $item['fix'] );
+		if ( 'keep' === $c['verdict'] ) {
+			$item['decision'] = 'skip';
+			$item['reason']   = 'Second opinion: correct as written';
+		} elseif ( 'fix' === $c['verdict'] && ! $person_or_business && $within_reach && ! tba_flips_negation( $item['word'], $item['fix'] ) ) {
+			$item['decision'] = 'fix';
+			$item['reason']   = 'Second opinion: definitely a typo';
+		}
+		unset( $item );
+	}
+}
+
+/** Adding or removing a "not" (can't → can, do → don't) flips the meaning, so it is always asked. */
+function tba_flips_negation( $word, $fix ) {
+	$negative = fn( $w ) => (bool) preg_match( "/n['’]?t$|^(not|no|never|nor)$/iu", trim( $w ) );
+	return $negative( $word ) !== $negative( $fix );
+}
+
+/** A looser limit for changes two checks agree on (are → our, bullion → bouillon): up to 3 letters. */
+function tba_is_near_typo( $word, $fix ) {
+	$a = tba_spell_key( str_replace( ' ', '', $word ) );
+	$b = tba_spell_key( str_replace( ' ', '', $fix ) );
+	return strlen( $a ) === mb_strlen( $a ) && strlen( $b ) === mb_strlen( $b ) && levenshtein( $a, $b ) <= 3;
 }
 
 /**

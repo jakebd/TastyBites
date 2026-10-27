@@ -248,8 +248,15 @@ Claude as the provider. Estimate the cost before building; it should be small at
       questions). Final Opus run: 89 would fix, 73 would ask. PHP rules: only words in that line; small changes
       only (≤2 letters, ≤3 for long words, or joining/splitting a word: "cheese cake" → "cheesecake"); never
       Canadian/US variants or swearing (whole words); possible names (the AI flags them) and unsure words are
-      asked; a "wrong word" (their/there) is fixed only if it appears once in that paragraph. Next: 5b apply on
-      publish, 5c question emails + 2.13 email settings.
+      asked. Next: 5b apply on publish, 5c question emails + 2.13 email settings.
+      **Confidence round (Jacob's review, 2026-10-26):** Jacob confirmed every "would fix" on all 26 posts that
+      had any. Then: the AI quotes a few words around each mistake so the exact spot is known (fixes the report
+      highlighting the first "a"/"is" in a paragraph, and lets a wrong word used twice in a paragraph be fixed
+      at that one spot); well-known places (Milwaukee, Fond du Lac) are fixable, names of people/businesses are
+      asked unless the fix matches a spelling used elsewhere in the post or on the site (review titles, tags,
+      destinations, site word list: "Lawtons" → "Lawsons"); every ask gets a **second opinion** (Opus, reasons
+      first, sees the lines around it) that turns it into fix / keep / still unsure; a change that adds or
+      removes a "not" is always asked. Result: 130 would fix, 10 would ask, 7 dropped as correct as written.
 - [ ] **2.9 Content flags:** find and flag gaps instead of guessing. Examples from the 2026-10 review:
       reviews with no city, address, cuisine, price or visit date; restaurants mentioned in trip posts with
       no score; recipes without servings or with inconsistent times; typos; images without alt text.

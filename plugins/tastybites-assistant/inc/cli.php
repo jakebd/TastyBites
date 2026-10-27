@@ -119,8 +119,9 @@ class TBA_CLI {
 			foreach ( $result['items'] as $item ) {
 				$count[ $item['decision'] ]++;
 				$all[] = array( 'post' => (int) $id ) + $item;
-				WP_CLI::line( sprintf( '    %-4s %s → %s  (%s; AI: %s%s) %s', strtoupper( $item['decision'] ), $item['word'], $item['fix'],
-					$item['reason'], $item['sure'] ? 'sure' : 'unsure', $item['real_word'] ? ', real word' : '', $item['why'] ) );
+				WP_CLI::line( sprintf( '    %-4s %s → %s  (%s; AI: %s%s, %s) %s%s', strtoupper( $item['decision'] ), $item['word'], $item['fix'],
+					$item['reason'], $item['sure'] ? 'sure' : 'unsure', $item['real_word'] ? ', real word' : '', $item['kind'] ?? '', $item['why'],
+					empty( $item['second'] ) ? '' : " [2nd: {$item['second']}: " . mb_substr( $item['second_why'], 0, 140 ) . ']' ) );
 			}
 		}
 		if ( ! empty( $assoc['out'] ) ) {

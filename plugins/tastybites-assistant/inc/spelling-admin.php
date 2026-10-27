@@ -19,11 +19,6 @@ function tba_spelling_posts() {
 	) );
 }
 
-/** Item status, also for reports stored before statuses existed. */
-function tba_spelling_status( $item ) {
-	return $item['status'] ?? array( 'fix' => 'proposed', 'ask' => 'open', 'skip' => 'ignored' )[ $item['decision'] ];
-}
-
 function tba_spelling_open_count() {
 	$open = 0;
 	foreach ( tba_spelling_posts() as $post ) {

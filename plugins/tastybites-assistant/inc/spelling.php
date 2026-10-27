@@ -626,6 +626,9 @@ function tba_spelling_save( $post, $title, $content ) {
 	if ( $fresh->post_content !== $post->post_content || $fresh->post_title !== $post->post_title ) {
 		return new WP_Error( 'tba_stale', 'The post changed while it was being checked.' );
 	}
+	// Make sure the version as Shawn left it is a revision (it isn't when a post was published in one go),
+	// so restoring it always undoes this. Does nothing if the latest revision already matches.
+	wp_save_post_revision( $post->ID );
 	$was = tba_in_job();
 	tba_in_job( true ); // Our own save: don't queue another pass for it.
 	$result = wp_update_post( wp_slash( array( 'ID' => $post->ID, 'post_title' => $title, 'post_content' => $content ) ), true );

@@ -207,6 +207,11 @@ Follow-ups:
 > under the $20/month Console limit, "AI on staging" switch (off by default and after every refresh), key in
 > `~/.tastybites-secrets-staging.php`; Privacy page "AI helpers" section on staging. Test: `wp tba ai-test`.
 >
+> **Released to production 2026-11-04 (PR #23, steps 1–5b):** privacy section, plugin active (jobs run as
+> user #3457), production cron line (log `~/deploy/production/cron.log`), `wp tba ai-test` passed. Photo fallback and
+> layout tidy-ups on; spelling off until Jacob switches it on (Tools → Assistant). 5c emails and later helpers
+> follow the same checklist minus the one-off steps.
+>
 > **Release checklist (production, all at once, Jacob's go):** create the `tastybites-production` Console
 > workspace ($20/month limit) and key → Jacob pastes it into `~/.tastybites-secrets-production.php` (chmod 600);
 > run `scripts/migrations/ai-helpers-privacy.php` on production **before** anything else; merge `ai-features`

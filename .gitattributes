@@ -18,3 +18,4 @@ DEPLOYMENT.md  export-ignore
 CLAUDE.md      export-ignore
 ROADMAP.md     export-ignore
 docs           export-ignore
+plugins        export-ignore

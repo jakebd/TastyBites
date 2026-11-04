@@ -9,6 +9,7 @@ set -euo pipefail
 
 REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 THEME_SLUG="TastyBites"
+PLUGIN_SLUG="tastybites-assistant"
 
 # Read only the keys we need from .env (avoids sourcing the password line).
 if [ -f "$REPO_ROOT/.env" ]; then

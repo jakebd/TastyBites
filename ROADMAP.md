@@ -197,14 +197,30 @@ Follow-ups:
 > **Research (2026-10-25):** `docs/research/authoring-ai-2026-10/REPORT.md` covers prior art, what helped other
 > (older) authors, the tiered after-publish design, architecture, build order and per-item specs. Read it before
 > building anything in §2 or §4.
+>
+> **Build progress:** step 1 (plugin foundation: `plugins/tastybites-assistant`, job queue, AI log table, off
+> switches, after-publish trigger, Tools → Assistant, staging cron) on staging 2026-10-25, branch
+> `ai-features` (integration branch; all AI work stays on staging and ships to production together).
+> Step 2 (2.1 featured photo) and step 3 (2.11 layout tidy-ups, propose mode) on staging 2026-10-25. Shawn's emails start **off** until Jacob's check-in with him.
+> Step 4 (AI connection) on staging 2026-10-26: `tba_ai()` calls Anthropic directly with structured output,
+> approved models only (Haiku/Sonnet/Opus 5.5), every call logged with cost, $1/day limit (Tools → Assistant)
+> under the $20/month Console limit, "AI on staging" switch (off by default and after every refresh), key in
+> `~/.tastybites-secrets-staging.php`; Privacy page "AI helpers" section on staging. Test: `wp tba ai-test`.
+>
+> **Release checklist (production, all at once, Jacob's go):** create the `tastybites-production` Console
+> workspace ($20/month limit) and key → Jacob pastes it into `~/.tastybites-secrets-production.php` (chmod 600);
+> run `scripts/migrations/ai-helpers-privacy.php` on production **before** anything else; merge `ai-features`
+> to `main` (deploys the plugin); `wp plugin activate tastybites-assistant` + `wp tba setup`; add the cron line;
+> `wp tba ai-test`; then switch helpers on one at a time.
 
 Runs on the server when Shawn **publishes or updates a published post**, never on draft saves,
 because he writes over several days. It fills in what is missing and never changes his
 wording without approval. Built on WordPress 7.1's core AI client (Settings → Connectors) with
 Claude as the provider. Estimate the cost before building; it should be small at his volume.
 
-- [ ] **2.1 Featured photo fallback** (no AI): on publish, if there is no featured image, use the
-      first image in the post. Later: let AI pick the best photo instead.
+- [x] **2.1 Featured photo fallback** (no AI; on staging 2026-10-25): on publish, if there is no featured
+      image, use the first image in the post (≥300px wide: 11 of Shawn's own picks are 480px or less). All 38
+      published posts already have one, so no backfill was needed. Later: let AI pick the best photo instead.
 - [ ] **2.2 Alt text:** describe each image that has none (Claude vision). Includes a one-off pass over
       the ~1,060 existing images, of which only 4 have alt text today.
 - [ ] **2.3 Summary + social preview:** write the excerpt and the Open Graph/meta description when they
@@ -226,6 +242,30 @@ Claude as the provider. Estimate the cost before building; it should be small at
       list. If it isn't sure, the word stays as written and an **urgent email goes to Jacob and Shawn right
       away**; the first answer settles it. Grammar and style stay off. Before going live: report-only run over
       the existing posts so Jacob can judge accuracy (the same list can fix the archive).
+      **5a built (staging 2026-10-26, report only):** `inc/spelling.php`; `wp tba spelling [--model] [--store]`;
+      Tidy-ups → Spelling report. Model eval over all 38 posts: Opus 5.5 found the most real mistakes (~$0.02 a
+      post), Sonnet the fewest, Haiku more false alarms; two Opus runs agreed on ~85% (the rest mostly
+      questions). Final Opus run: 89 would fix, 73 would ask. PHP rules: only words in that line; small changes
+      only (≤2 letters, ≤3 for long words, or joining/splitting a word: "cheese cake" → "cheesecake"); never
+      Canadian/US variants or swearing (whole words); possible names (the AI flags them) and unsure words are
+      asked. Next: 5b apply on publish, 5c question emails + 2.13 email settings.
+      **Confidence round (Jacob's review, 2026-10-26):** Jacob confirmed every "would fix" on all 26 posts that
+      had any. Then: the AI quotes a few words around each mistake so the exact spot is known (fixes the report
+      highlighting the first "a"/"is" in a paragraph, and lets a wrong word used twice in a paragraph be fixed
+      at that one spot); well-known places (Milwaukee, Fond du Lac) are fixable, names of people/businesses are
+      asked unless the fix matches a spelling used elsewhere in the post or on the site (review titles, tags,
+      destinations, site word list: "Lawtons" → "Lawsons"); every ask gets a **second opinion** (Opus, reasons
+      first, sees the lines around it) that turns it into fix / keep / still unsure; a change that adds or
+      removes a "not" is always asked. Result: 130 would fix, 10 would ask, 7 dropped as correct as written.
+      **5b built (staging 2026-10-26):** runs in the publish pass before the layout tidy-ups (which now
+      re-read the post); certain fixes are applied as one revision by the Assistant user, after saving Shawn's
+      version as a revision so undo always exists; skipped while someone has the post open (retried). Per-post
+      memory: a word kept as written is never changed later; a fix that comes back after an undo is asked,
+      not re-applied. **Tidy-ups → Spelling** dashboard: waiting / fixed / would fix / ignored / kept tabs;
+      Fix, Keep as written (+ add to site word list), "Use mine" (own spelling), Fix anyway on ignored,
+      "Apply the N fixes" for report-only posts, undo links. Tested end to end on a throwaway copy (publish
+      as Shawn → 11 fixes in one revision, words check vs original passes, layout proposal on corrected text;
+      undo → fixes asked not re-applied; every button). The spelling helper is **on** on staging.
 - [ ] **2.9 Content flags:** find and flag gaps instead of guessing. Examples from the 2026-10 review:
       reviews with no city, address, cuisine, price or visit date; restaurants mentioned in trip posts with
       no score; recipes without servings or with inconsistent times; typos; images without alt text.
@@ -249,8 +289,32 @@ Claude as the provider. Estimate the cost before building; it should be small at
   - legacy row/column layouts that squeeze text are unwrapped.
   Runs on publish, shows a before/after for approval (or applies automatically once trusted). Never
   changes his words.
+  **Built (propose mode, staging 2026-10-25):** the top-level **Tidy-ups** menu (under Posts, Editors and up so Shawn can use it) shows each proposal as the real page,
+  now vs. after, side by side (with a phone-width toggle), plus Apply / Reject; Apply saves a revision (undo =
+  Restore). Rules, from a survey of all 38 posts: Day lines → H2; a bold route line right after a Day heading →
+  H3; "Worth a second stop" / "Don't waste your time" → H2; a short bold line followed by text → H3; a bold line where up to 3 letters stuck to a bold word missed the bold ("V**iew from our room**") counts as bold and is fixed (bold lines
+  followed by photos are usually captions, so they stay, for the AI step later); photos next to each other (2+) → one gallery, however Shawn boxed them (layout-only groups and galleries holding only photos, at any depth, are unwrapped; empty boxes removed; dragged photo widths dropped inside the gallery; a lone photo or an existing single gallery stays);
+  typed list dashes and empty paragraphs/headings/list items removed. No Columns layouts exist, so no unwrap
+  rule. Guards: same words in the same order and the same photos; every rewritten block closes its tags;
+  untouched blocks are copied byte for byte; blocks WordPress can't re-save exactly are left alone; Apply is
+  refused if the post changed since or is open in the editor. 25 proposals waiting on staging for Jacob.
+  `wp tba layout [--store] [--verbose]` for a dry run.
 - (?) **2.12 Image tidy-up on upload:** convert large PNG photos to JPEG/WebP and cap their dimensions so
       posts stay light (Italian Center is ~12 MB of PNGs today). Doesn't need AI.
+- [ ] **2.14 Phone photo upload page (Jacob, 2026-10-26):** a simple, phone-friendly page on the site (one
+      link Shawn bookmarks on his iPhone home screen) where he logs in with his normal site login and uploads
+      photos straight from his camera roll into the Media Library, optionally tagged to a trip or draft post.
+      **Why:** Shawn takes every photo on his iPhone, emails them to himself and uploads them from the computer,
+      because WP admin is awkward on a phone. That strips the photos' data: checked 2026-10-26, his recent
+      uploads (Road Trip USA Sept 2026) have **no camera, date or GPS left**, and many are only 480×640 (email's
+      shrunk size). Direct upload keeps full size and the photo data.
+      **Keep the data, but private:** read time taken, GPS and camera on upload and store them as private
+      attachment fields (for the AI: order and day of photos, place names, which restaurant; §4 Photos), then
+      strip GPS from the public files so readers can't see where Shawn's home is. Convert HEIC to JPEG
+      (iPhone's default format; the host may not convert it). Checks: does the host's PHP keep EXIF on upload,
+      HEIC support, upload size limits for full-size iPhone photos (often 3–6 MB each), and pair with 2.12 so
+      the public copies stay light. Uses his existing login and WordPress's own permissions, no new accounts.
+      Only helps photos from now on; the old ones' data is already gone.
 
 ---
 
@@ -321,7 +385,7 @@ Shawn talks; AI turns it into posts in his voice. Proposed by Jacob, 2026-10-24.
   - Upload a batch from the laptop into the session; AI describes each one (vision) and places it next
     to the matching part of the story, with a caption and alt text he can adjust.
   - Use the photos' own data where present: the time taken gives the order and day; GPS gives the
-    place, which could also feed the map. Check whether his camera/phone keeps this, and note that
+    place, which could also feed the map. His iPhone records it, but emailing photos to himself strips it (checked 2026-10-26), so this needs the direct upload page (2.14); note that
     WordPress doesn't store GPS by default.
   - What if a photo matches nothing he said? Put it in an "unplaced photos" gallery at the end.
 - **Voice to text:** browser dictation (simple, quality varies by browser) or recording audio and
@@ -412,4 +476,11 @@ Real issues inside the posts themselves. Parked on purpose: they need Shawn, or 
 | 2026-10-25 | Spelling fixed automatically after publish (2.8); unsure words emailed to Jacob and Shawn immediately | Typos matter to the content; code checks only single words change |
 | 2026-10-25 | Question emails per publish, no weekly 5-question cap; Jacob controls who gets which email (2.13) | A busy week would exhaust a weekly cap; Jacob can take over if Shawn is overrun |
 | 2026-10-25 | AI Mode drafts get the §2 helpers before publish (exception to "publish only") | An AI Mode draft is complete, not half-written |
+| 2026-10-25 | Layout tidy-ups may remove typed dashes and empty lines inside recipe/review patterns, but never change their structure | ~90 dashed ingredient lines are all inside patterns; text-level fixes don't affect the pattern |
+| 2026-10-26 | AI spend limit $20/month per environment; one key per environment in its own Console workspace, stored in `~/.tastybites-secrets-<env>.php` | Jacob: a hard ceiling while it is tested; staging can never use the production key |
+| 2026-10-26 | AI calls go straight to Anthropic's API (`tba_ai()`), not WordPress's AI Client | The core client needs an extra provider plugin and can switch models quietly; the alt-text backfill needs the Batches API anyway |
+| 2026-10-26 | Privacy page says "an AI language model (LLM) service", not a vendor name | Jacob: keep the wording general |
+| 2026-10-26 | $1/day spend limit in the plugin, on top of the Console's $20/month | A runaway bug stops within a day |
+| 2026-10-26 | Spelling uses Opus 5.5 | Most real mistakes found in the 38-post test; cost is pennies a month |
+| 2026-10-26 | Tidy-ups get a top-level menu open to Editors | Jacob: Shawn should be able to find it if he uses it; he is an Editor |
 | 2026-10-24 | Research that reads the web runs in a separate agent | Keeps outside content (possible prompt injection) out of the main session |
